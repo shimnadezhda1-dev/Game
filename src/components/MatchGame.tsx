@@ -1,0 +1,80 @@
+import { useEffect, useMemo, useState } from "react";
+import { Character } from "./Character";
+import { LetterItem } from "../types";
+import { randomOptions, weightedLetterPick } from "../utils/selectors";
+import { LetterVisual } from "./LetterVisual";
+
+interface MatchGameProps {
+  letters: LetterItem[];
+  mistakes: Record<string, number>;
+  onCorrect: (letterId: string) => void;
+  onMistake: (letterId: string) => void;
+  onSpeak: (text: string) => void;
+  onBack: () => void;
+}
+
+export function MatchGame({
+  letters,
+  mistakes,
+  onCorrect,
+  onMistake,
+  onSpeak,
+  onBack
+}: MatchGameProps) {
+  const [target, setTarget] = useState<LetterItem>(() => weightedLetterPick(letters, mistakes));
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [correct, setCorrect] = useState(false);
+
+  const options = useMemo(() => {
+    const ids = randomOptions(target.id, letters.map((l) => l.id), 3);
+    return ids.map((id) => letters.find((l) => l.id === id)!);
+  }, [target, letters]);
+
+  useEffect(() => {
+    onSpeak(`Собери пару для буквы ${target.upper}`);
+  }, [target, onSpeak]);
+
+  function nextRound() {
+    setTarget(weightedLetterPick(letters, mistakes));
+    setSelectedImage(null);
+    setCorrect(false);
+  }
+
+  function chooseImage(id: string) {
+    if (correct) return;
+    setSelectedImage(id);
+    if (id === target.id) {
+      setCorrect(true);
+      onCorrect(target.id);
+      onSpeak("Отлично! Пара собрана!");
+      window.setTimeout(nextRound, 1200);
+    } else {
+      onMistake(target.id);
+      onSpeak("Попробуй ещё!");
+    }
+  }
+
+  return (
+    <div className="screen">
+      <Character mood={correct ? "happy" : "tip"} message="Нажми на подходящую картинку" />
+      <button className="back-btn" onClick={onBack}>
+        ←
+      </button>
+      <div className="letter-anchor">{target.upper}</div>
+      <div className="cards-row picture-row">
+        {options.map((item) => (
+          <button
+            key={item.id}
+            className={`option-card picture-option ${
+              selectedImage === item.id && item.id !== target.id ? "shake" : ""
+            } ${correct && item.id === target.id ? "correct" : ""}`}
+            onClick={() => chooseImage(item.id)}
+          >
+            <LetterVisual letter={item} />
+            <span className="word">{item.word}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
