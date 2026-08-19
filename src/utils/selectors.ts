@@ -11,12 +11,15 @@ export function shuffle<T>(items: T[]): T[] {
 
 export function weightedLetterPick(
   letters: LetterItem[],
-  mistakeCounts: Record<string, number>
+  mistakeCounts: Record<string, number>,
+  excludeId?: string
 ): LetterItem {
-  const weighted = letters.map((letter) => {
-    const mistakes = mistakeCounts[letter.id] ?? 0;
-    const baseDifficulty = Math.max(1, letter.difficulty);
-    return { letter, weight: baseDifficulty + mistakes * 3 };
+  const pool =
+    letters.length > 1 && excludeId ? letters.filter((letter) => letter.id !== excludeId) : letters;
+
+  const weighted = pool.map((letter) => {
+    const mistakes = Math.min(mistakeCounts[letter.id] ?? 0, 2);
+    return { letter, weight: 1 + mistakes };
   });
 
   const total = weighted.reduce((sum, item) => sum + item.weight, 0);
@@ -28,7 +31,7 @@ export function weightedLetterPick(
       return item.letter;
     }
   }
-  return letters[0];
+  return pool[0];
 }
 
 export function randomOptions(targetId: string, ids: string[], count: number): string[] {

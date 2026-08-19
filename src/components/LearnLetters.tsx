@@ -13,7 +13,7 @@ interface LearnLettersProps {
 export function LearnLetters({ letter, onNext, onSpeak, onBack }: LearnLettersProps) {
   useEffect(() => {
     onSpeak(letter.voiceText);
-  }, [letter, onSpeak]);
+  }, [letter.id, letter.voiceText, onSpeak]);
 
   return (
     <div className="screen">

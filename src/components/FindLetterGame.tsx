@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Character } from "./Character";
 import { LetterItem } from "../types";
+import { audioManager } from "../audio/AudioManager";
 import { randomOptions, weightedLetterPick } from "../utils/selectors";
 
 const praises = ["Правильно!", "Молодец!", "У тебя получилось!"];
@@ -29,15 +30,15 @@ export function FindLetterGame({
 
   const options = useMemo(
     () => randomOptions(target.id, letters.map((l) => l.id), 3),
-    [target, letters]
+    [target.id, letters]
   );
 
   useEffect(() => {
     onSpeak(`Найди букву ${target.upper}`);
-  }, [target, onSpeak]);
+  }, [target.id, onSpeak, target.upper]);
 
   function nextRound() {
-    setTarget(weightedLetterPick(letters, mistakes));
+    setTarget((current) => weightedLetterPick(letters, mistakes, current.id));
     setWrongCount(0);
     setSelected(null);
     setCorrect(false);
@@ -48,13 +49,15 @@ export function FindLetterGame({
     setSelected(id);
     if (id === target.id) {
       setCorrect(true);
+      audioManager.playSuccess();
       onCorrect(target.id);
       onSpeak(praises[Math.floor(Math.random() * praises.length)]);
-      window.setTimeout(nextRound, 1100);
+      window.setTimeout(nextRound, 1400);
     } else {
+      audioManager.playTryAgain();
       onMistake(target.id);
       setWrongCount((prev) => prev + 1);
-      onSpeak("Попробуй ещё!");
+      onSpeak("Попробуй ещё разок!");
     }
   }
 

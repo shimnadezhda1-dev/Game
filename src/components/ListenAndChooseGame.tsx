@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Character } from "./Character";
 import { LetterItem } from "../types";
+import { audioManager } from "../audio/AudioManager";
 import { randomOptions, weightedLetterPick } from "../utils/selectors";
 
 interface ListenAndChooseGameProps {
@@ -26,7 +27,7 @@ export function ListenAndChooseGame({
 
   const options = useMemo(
     () => randomOptions(target.id, letters.map((l) => l.id), 4),
-    [target, letters]
+    [target.id, letters]
   );
 
   const phrase = `Найди букву ${target.upper}`;
@@ -36,7 +37,7 @@ export function ListenAndChooseGame({
   }, [phrase, onSpeak]);
 
   function nextRound() {
-    setTarget(weightedLetterPick(letters, mistakes));
+    setTarget((current) => weightedLetterPick(letters, mistakes, current.id));
     setSelected(null);
     setCorrect(false);
   }
@@ -46,12 +47,14 @@ export function ListenAndChooseGame({
     setSelected(id);
     if (id === target.id) {
       setCorrect(true);
+      audioManager.playSuccess();
       onCorrect(target.id);
       onSpeak("Молодец!");
-      window.setTimeout(nextRound, 1000);
+      window.setTimeout(nextRound, 1400);
     } else {
+      audioManager.playTryAgain();
       onMistake(target.id);
-      onSpeak("Попробуй ещё!");
+      onSpeak("Попробуй ещё разок!");
     }
   }
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { HomeScreen } from "./components/HomeScreen";
 import { LearnLetters } from "./components/LearnLetters";
 import { FindLetterGame } from "./components/FindLetterGame";
@@ -11,18 +11,16 @@ import { GameHubScreen } from "./components/GameHubScreen";
 import { LETTERS } from "./data/letters";
 import { audioManager } from "./audio/AudioManager";
 import { GameId, ProgressState, Screen } from "./types";
-import { defaultProgress, loadProgress, saveProgress } from "./utils/storage";
+import { loadProgress, saveProgress } from "./utils/storage";
 import { preloadImages } from "./utils/preload";
 import { assetUrl } from "./utils/assets";
 
 function App() {
   const [screen, setScreen] = useState<Screen>("home");
-  const [progress, setProgress] = useState<ProgressState>(defaultProgress);
+  const [progress, setProgress] = useState<ProgressState>(() => loadProgress());
 
   useEffect(() => {
-    const loaded = loadProgress();
-    setProgress(loaded);
-    audioManager.setEnabled(loaded.soundEnabled);
+    audioManager.setEnabled(progress.soundEnabled);
     preloadImages(
       LETTERS.map((letter) => letter.imagePath)
         .filter(Boolean)
@@ -36,9 +34,9 @@ function App() {
 
   const learnLetter = useMemo(() => LETTERS[progress.currentLearnIndex % LETTERS.length], [progress]);
 
-  function speak(text: string) {
+  const speak = useCallback((text: string) => {
     audioManager.speak(text);
-  }
+  }, []);
 
   function unlockGames(correctAnswers: number): GameId[] {
     const unlocked: GameId[] = ["find"];

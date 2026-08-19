@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Character } from "./Character";
 import { LetterItem } from "../types";
+import { audioManager } from "../audio/AudioManager";
 import { randomOptions, weightedLetterPick } from "../utils/selectors";
 import { LetterVisual } from "./LetterVisual";
 
@@ -28,14 +29,14 @@ export function MatchGame({
   const options = useMemo(() => {
     const ids = randomOptions(target.id, letters.map((l) => l.id), 3);
     return ids.map((id) => letters.find((l) => l.id === id)!);
-  }, [target, letters]);
+  }, [target.id, letters]);
 
   useEffect(() => {
     onSpeak(`Собери пару для буквы ${target.upper}`);
-  }, [target, onSpeak]);
+  }, [target.id, onSpeak, target.upper]);
 
   function nextRound() {
-    setTarget(weightedLetterPick(letters, mistakes));
+    setTarget((current) => weightedLetterPick(letters, mistakes, current.id));
     setSelectedImage(null);
     setCorrect(false);
   }
@@ -45,12 +46,14 @@ export function MatchGame({
     setSelectedImage(id);
     if (id === target.id) {
       setCorrect(true);
+      audioManager.playSuccess();
       onCorrect(target.id);
       onSpeak("Отлично! Пара собрана!");
-      window.setTimeout(nextRound, 1200);
+      window.setTimeout(nextRound, 1500);
     } else {
+      audioManager.playTryAgain();
       onMistake(target.id);
-      onSpeak("Попробуй ещё!");
+      onSpeak("Попробуй ещё разок!");
     }
   }
 
