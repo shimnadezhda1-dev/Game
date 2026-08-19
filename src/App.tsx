@@ -13,6 +13,7 @@ import { audioManager } from "./audio/AudioManager";
 import { GameId, ProgressState, Screen } from "./types";
 import { defaultProgress, loadProgress, saveProgress } from "./utils/storage";
 import { preloadImages } from "./utils/preload";
+import { assetUrl } from "./utils/assets";
 
 function App() {
   const [screen, setScreen] = useState<Screen>("home");
@@ -22,7 +23,11 @@ function App() {
     const loaded = loadProgress();
     setProgress(loaded);
     audioManager.setEnabled(loaded.soundEnabled);
-    preloadImages(LETTERS.map((letter) => letter.imagePath).filter(Boolean) as string[]);
+    preloadImages(
+      LETTERS.map((letter) => letter.imagePath)
+        .filter(Boolean)
+        .map((path) => assetUrl(path as string))
+    );
   }, []);
 
   useEffect(() => {
