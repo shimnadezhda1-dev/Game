@@ -1,5 +1,6 @@
 import { GameId } from "../types";
 import { Character } from "./Character";
+import { BottomNav } from "./BottomNav";
 
 interface GameHubScreenProps {
   unlockedGames: GameId[];
@@ -16,11 +17,8 @@ const GAME_ITEMS: Array<{ id: GameId; badge: string; title: string; className: s
 
 export function GameHubScreen({ unlockedGames, onOpenGame, onBack }: GameHubScreenProps) {
   return (
-    <div className="screen">
+    <div className="screen has-bottom-nav">
       <Character mood="happy" message="Выбери игру!" />
-      <button className="back-btn" onClick={onBack}>
-        ←
-      </button>
       <h2 className="title">Играем</h2>
       <div className="menu-grid">
         {GAME_ITEMS.map((item) => {
@@ -39,6 +37,7 @@ export function GameHubScreen({ unlockedGames, onOpenGame, onBack }: GameHubScre
           );
         })}
       </div>
+      <BottomNav onBack={onBack} />
     </div>
   );
 }

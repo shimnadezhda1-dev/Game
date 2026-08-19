@@ -7,7 +7,7 @@ export const LETTERS: LetterItem[] = [
     lower: "а",
     word: "Арбуз",
     emoji: "🍉",
-    imagePath: "/images/a-arbuz.svg",
+    imagePath: "/images/a-arbuz.svg?v=5",
     voiceText: "А — арбуз",
     difficulty: 1
   },
@@ -17,7 +17,7 @@ export const LETTERS: LetterItem[] = [
     lower: "б",
     word: "Барабан",
     emoji: "🥁",
-    imagePath: "/images/b-baraban.svg",
+    imagePath: "/images/b-baraban.svg?v=4",
     voiceText: "Б — барабан",
     difficulty: 1
   },
@@ -27,7 +27,7 @@ export const LETTERS: LetterItem[] = [
     lower: "в",
     word: "Волк",
     emoji: "🐺",
-    imagePath: "/images/v-volk.svg",
+    imagePath: "/images/v-volk.svg?v=4",
     voiceText: "В — волк",
     difficulty: 1
   },
@@ -37,7 +37,7 @@ export const LETTERS: LetterItem[] = [
     lower: "г",
     word: "Гриб",
     emoji: "🍄",
-    imagePath: "/images/g-grib.svg",
+    imagePath: "/images/g-grib.svg?v=4",
     voiceText: "Г — гриб",
     difficulty: 2
   },
@@ -47,7 +47,7 @@ export const LETTERS: LetterItem[] = [
     lower: "д",
     word: "Дом",
     emoji: "🏠",
-    imagePath: "/images/d-dom.svg",
+    imagePath: "/images/d-dom.svg?v=4",
     voiceText: "Д — дом",
     difficulty: 2
   }

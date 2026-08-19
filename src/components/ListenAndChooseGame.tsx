@@ -3,11 +3,13 @@ import { Character } from "./Character";
 import { LetterItem } from "../types";
 import { audioManager } from "../audio/AudioManager";
 import { randomOptions, weightedLetterPick } from "../utils/selectors";
+import { BottomNav } from "./BottomNav";
+import { Point, pointFromEvent } from "../utils/point";
 
 interface ListenAndChooseGameProps {
   letters: LetterItem[];
   mistakes: Record<string, number>;
-  onCorrect: (letterId: string) => void;
+  onCorrect: (letterId: string, origin?: Point) => void;
   onMistake: (letterId: string) => void;
   onSpeak: (text: string) => void;
   onBack: () => void;
@@ -42,15 +44,13 @@ export function ListenAndChooseGame({
     setCorrect(false);
   }
 
-  function choose(id: string) {
+  function choose(id: string, event: { currentTarget: EventTarget }) {
     if (correct) return;
     setSelected(id);
     if (id === target.id) {
       setCorrect(true);
-      audioManager.playSuccess();
-      onCorrect(target.id);
-      onSpeak("Молодец!");
-      window.setTimeout(nextRound, 1400);
+      onCorrect(target.id, pointFromEvent(event));
+      window.setTimeout(nextRound, 1700);
     } else {
       audioManager.playTryAgain();
       onMistake(target.id);
@@ -59,11 +59,8 @@ export function ListenAndChooseGame({
   }
 
   return (
-    <div className="screen">
-      <Character mood={correct ? "happy" : "tip"} message="Слушай внимательно" />
-      <button className="back-btn" onClick={onBack}>
-        ←
-      </button>
+    <div className="screen has-bottom-nav">
+      <Character mood={correct ? "happy" : "tip"} message={correct ? "Молодец!" : "Слушай внимательно"} />
       <button className="menu-btn repeat-btn" onClick={() => onSpeak(phrase)}>
         🔊 Повторить
       </button>
@@ -76,13 +73,14 @@ export function ListenAndChooseGame({
               className={`option-card ${selected === id && id !== target.id ? "shake" : ""} ${
                 correct && id === target.id ? "correct" : ""
               }`}
-              onClick={() => choose(id)}
+              onClick={(event) => choose(id, event)}
             >
               {letter.upper}
             </button>
           );
         })}
       </div>
+      <BottomNav onBack={onBack} />
     </div>
   );
 }

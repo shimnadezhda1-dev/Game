@@ -4,11 +4,13 @@ import { LetterItem } from "../types";
 import { audioManager } from "../audio/AudioManager";
 import { randomOptions, weightedLetterPick } from "../utils/selectors";
 import { LetterVisual } from "./LetterVisual";
+import { BottomNav } from "./BottomNav";
+import { Point, pointFromEvent } from "../utils/point";
 
 interface MatchGameProps {
   letters: LetterItem[];
   mistakes: Record<string, number>;
-  onCorrect: (letterId: string) => void;
+  onCorrect: (letterId: string, origin?: Point) => void;
   onMistake: (letterId: string) => void;
   onSpeak: (text: string) => void;
   onBack: () => void;
@@ -41,15 +43,13 @@ export function MatchGame({
     setCorrect(false);
   }
 
-  function chooseImage(id: string) {
+  function chooseImage(id: string, event: { currentTarget: EventTarget }) {
     if (correct) return;
     setSelectedImage(id);
     if (id === target.id) {
       setCorrect(true);
-      audioManager.playSuccess();
-      onCorrect(target.id);
-      onSpeak("Отлично! Пара собрана!");
-      window.setTimeout(nextRound, 1500);
+      onCorrect(target.id, pointFromEvent(event));
+      window.setTimeout(nextRound, 1700);
     } else {
       audioManager.playTryAgain();
       onMistake(target.id);
@@ -58,11 +58,8 @@ export function MatchGame({
   }
 
   return (
-    <div className="screen">
-      <Character mood={correct ? "happy" : "tip"} message="Нажми на подходящую картинку" />
-      <button className="back-btn" onClick={onBack}>
-        ←
-      </button>
+    <div className="screen has-bottom-nav">
+      <Character mood={correct ? "happy" : "tip"} message={correct ? "Молодец!" : "Нажми на подходящую картинку"} />
       <div className="letter-anchor">{target.upper}</div>
       <div className="cards-row picture-row">
         {options.map((item) => (
@@ -71,13 +68,14 @@ export function MatchGame({
             className={`option-card picture-option ${
               selectedImage === item.id && item.id !== target.id ? "shake" : ""
             } ${correct && item.id === target.id ? "correct" : ""}`}
-            onClick={() => chooseImage(item.id)}
+            onClick={(event) => chooseImage(item.id, event)}
           >
             <LetterVisual letter={item} />
             <span className="word">{item.word}</span>
           </button>
         ))}
       </div>
+      <BottomNav onBack={onBack} />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { LetterItem } from "../types";
 import { Character } from "./Character";
 import { LetterVisual } from "./LetterVisual";
+import { BottomNav } from "./BottomNav";
 
 interface LearnLettersProps {
   letter: LetterItem;
@@ -16,11 +17,8 @@ export function LearnLetters({ letter, onNext, onSpeak, onBack }: LearnLettersPr
   }, [letter.id, letter.voiceText, onSpeak]);
 
   return (
-    <div className="screen">
+    <div className="screen has-bottom-nav">
       <Character mood="neutral" message="Слушай и повторяй!" />
-      <button className="back-btn" onClick={onBack}>
-        ←
-      </button>
       <div className="letter-card">
         <div className="main-letter">
           {letter.upper} {letter.lower}
@@ -33,9 +31,7 @@ export function LearnLetters({ letter, onNext, onSpeak, onBack }: LearnLettersPr
         <LetterVisual letter={letter} />
         <div className="word">{letter.word}</div>
       </div>
-      <button className="next-btn" onClick={onNext}>
-        →
-      </button>
+      <BottomNav onBack={onBack} onNext={onNext} />
     </div>
   );
 }

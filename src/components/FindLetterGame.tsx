@@ -3,13 +3,13 @@ import { Character } from "./Character";
 import { LetterItem } from "../types";
 import { audioManager } from "../audio/AudioManager";
 import { randomOptions, weightedLetterPick } from "../utils/selectors";
-
-const praises = ["Правильно!", "Молодец!", "У тебя получилось!"];
+import { BottomNav } from "./BottomNav";
+import { Point, pointFromEvent } from "../utils/point";
 
 interface FindLetterGameProps {
   letters: LetterItem[];
   mistakes: Record<string, number>;
-  onCorrect: (letterId: string) => void;
+  onCorrect: (letterId: string, origin?: Point) => void;
   onMistake: (letterId: string) => void;
   onSpeak: (text: string) => void;
   onBack: () => void;
@@ -44,15 +44,13 @@ export function FindLetterGame({
     setCorrect(false);
   }
 
-  function handleChoose(id: string) {
+  function handleChoose(id: string, event: { currentTarget: EventTarget }) {
     if (correct) return;
     setSelected(id);
     if (id === target.id) {
       setCorrect(true);
-      audioManager.playSuccess();
-      onCorrect(target.id);
-      onSpeak(praises[Math.floor(Math.random() * praises.length)]);
-      window.setTimeout(nextRound, 1400);
+      onCorrect(target.id, pointFromEvent(event));
+      window.setTimeout(nextRound, 1700);
     } else {
       audioManager.playTryAgain();
       onMistake(target.id);
@@ -62,11 +60,8 @@ export function FindLetterGame({
   }
 
   return (
-    <div className="screen">
-      <Character mood={correct ? "happy" : "tip"} message={correct ? "Ура!" : "Найди букву"} />
-      <button className="back-btn" onClick={onBack}>
-        ←
-      </button>
+    <div className="screen has-bottom-nav">
+      <Character mood={correct ? "happy" : "tip"} message={correct ? "Молодец!" : "Найди букву"} />
       <div className="task-title">Найди: {target.upper}</div>
       <div className="cards-row">
         {options.map((id) => {
@@ -82,12 +77,13 @@ export function FindLetterGame({
             .join(" ")
             .trim();
           return (
-            <button key={id} className={className} onClick={() => handleChoose(id)}>
+            <button key={id} className={className} onClick={(event) => handleChoose(id, event)}>
               {letter.upper}
             </button>
           );
         })}
       </div>
+      <BottomNav onBack={onBack} />
     </div>
   );
 }

@@ -8,16 +8,27 @@ import { MatchGame } from "./components/MatchGame";
 import { Progress } from "./components/Progress";
 import { RewardScreen } from "./components/RewardScreen";
 import { GameHubScreen } from "./components/GameHubScreen";
+import { FlyingStar } from "./components/FlyingStar";
 import { LETTERS } from "./data/letters";
 import { audioManager } from "./audio/AudioManager";
 import { GameId, ProgressState, Screen } from "./types";
 import { loadProgress, saveProgress } from "./utils/storage";
 import { preloadImages } from "./utils/preload";
 import { assetUrl } from "./utils/assets";
+import { Point } from "./utils/point";
+
+interface Flight {
+  fromX: number;
+  fromY: number;
+  toX: number;
+  toY: number;
+}
 
 function App() {
   const [screen, setScreen] = useState<Screen>("home");
   const [progress, setProgress] = useState<ProgressState>(() => loadProgress());
+  const [flight, setFlight] = useState<Flight | null>(null);
+  const [bankPulse, setBankPulse] = useState(false);
 
   useEffect(() => {
     audioManager.setEnabled(progress.soundEnabled);
@@ -46,7 +57,7 @@ function App() {
     return unlocked;
   }
 
-  function markCorrect(letterId: string) {
+  function addStar(letterId: string) {
     setProgress((prev) => {
       const nextCorrect = prev.correctAnswers + 1;
       const nextStars = prev.stars + 1;
@@ -61,11 +72,30 @@ function App() {
         learnedLetterIds
       };
       if (nextCorrect % 5 === 0) {
-        setScreen("reward");
-        speak("Ура! Ты заработал новую звёздочку!");
+        window.setTimeout(() => {
+          setScreen("reward");
+          speak("Ура! Ты заработал новую звёздочку!");
+        }, 400);
       }
       return next;
     });
+    setBankPulse(true);
+    window.setTimeout(() => setBankPulse(false), 600);
+  }
+
+  function markCorrect(letterId: string, origin?: Point) {
+    speak("Молодец!");
+    audioManager.playSuccess();
+    const bank = document.getElementById("star-bank")?.getBoundingClientRect();
+    const fromX = origin?.x ?? window.innerWidth / 2;
+    const fromY = origin?.y ?? window.innerHeight / 2;
+    const toX = bank ? bank.left + bank.width / 2 : 48;
+    const toY = bank ? bank.top + bank.height / 2 : 28;
+    setFlight({ fromX, fromY, toX, toY });
+    window.setTimeout(() => {
+      addStar(letterId);
+      setFlight(null);
+    }, 850);
   }
 
   function markMistake(letterId: string) {
@@ -92,6 +122,13 @@ function App() {
     });
   }
 
+  function prevLearnLetter() {
+    setProgress((prev) => {
+      const nextIndex = (prev.currentLearnIndex - 1 + LETTERS.length) % LETTERS.length;
+      return { ...prev, currentLearnIndex: nextIndex };
+    });
+  }
+
   function openGame(game: GameId) {
     if (!progress.unlockedGames.includes(game)) {
       speak("Скоро откроется!");
@@ -114,7 +151,13 @@ function App() {
 
   return (
     <div className="app-shell">
-      <Progress progress={progress} onOpenStars={() => setScreen("stars")} onToggleSound={toggleSound} />
+      <Progress
+        progress={progress}
+        onOpenStars={() => setScreen("stars")}
+        onToggleSound={toggleSound}
+        bankPulse={bankPulse}
+      />
+      {flight ? <FlyingStar {...flight} /> : null}
       {screen === "home" ? (
         <HomeScreen
           onGoLearn={() => setScreen("learn")}
@@ -133,7 +176,9 @@ function App() {
         <LearnLetters
           letter={learnLetter}
           onNext={nextLearnLetter}
-          onBack={() => setScreen("home")}
+          onBack={
+            progress.currentLearnIndex === 0 ? () => setScreen("home") : prevLearnLetter
+          }
           onSpeak={speak}
         />
       ) : null}
@@ -180,7 +225,7 @@ function App() {
       {screen === "stars" ? (
         <div className="screen">
           <div className="title">Мои звёздочки</div>
-          <div className="stars-big">{progress.stars}</div>
+          <div className="stars-big">★ {progress.stars}</div>
           <div className="reward-text">Учено букв: {progress.learnedLetterIds.length}</div>
           <button className="play-btn" onClick={() => setScreen("home")}>
             Домой
