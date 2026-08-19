@@ -1,10 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
-  <rect width="256" height="256" rx="40" fill="#f2fff3"/>
-  <circle cx="128" cy="128" r="94" fill="#2fb44a"/>
-  <path d="M40 128a88 88 0 0 0 176 0" fill="#ff4d5b"/>
-  <circle cx="98" cy="152" r="4" fill="#222"/>
-  <circle cx="122" cy="162" r="4" fill="#222"/>
-  <circle cx="144" cy="150" r="4" fill="#222"/>
-  <circle cx="165" cy="160" r="4" fill="#222"/>
-  <text x="20" y="44" font-size="34" font-family="Arial Rounded MT Bold, Arial" fill="#7a46ff"></text>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9be7ff"/>
+      <stop offset="1" stop-color="#fff3c4"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="48" fill="url(#sky)"/>
+  <circle cx="210" cy="42" r="22" fill="#ffe66d"/>
+  <ellipse cx="128" cy="210" rx="90" ry="18" fill="#8bd46a" opacity=".7"/>
+  <path d="M48 142c0-52 36-94 80-94s80 42 80 94-80 56-80 56-80-4-80-56z" fill="#2ec36b"/>
+  <path d="M64 142c8-46 30-78 64-78s56 32 64 78c0 8-64 44-64 44s-64-36-64-44z" fill="#ff5d73"/>
+  <path d="M88 150c8 10 24 18 40 18s32-8 40-18" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="96" cy="166" r="5" fill="#2a2a2a"/>
+  <circle cx="124" cy="176" r="5" fill="#2a2a2a"/>
+  <circle cx="154" cy="168" r="5" fill="#2a2a2a"/>
+  <circle cx="176" cy="156" r="5" fill="#2a2a2a"/>
+  <text x="18" y="48" font-size="36" font-family="Nunito, Arial Rounded MT Bold, Arial" font-weight="800" fill="#7c4dff">А</text>
 </svg>

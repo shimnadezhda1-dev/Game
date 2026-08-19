@@ -1,9 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
-  <rect width="256" height="256" rx="40" fill="#fff7e8"/>
-  <ellipse cx="128" cy="142" rx="76" ry="54" fill="#ff8c42"/>
-  <ellipse cx="128" cy="142" rx="76" ry="20" fill="#ffc08a"/>
-  <line x1="52" y1="142" x2="204" y2="142" stroke="#7a3e15" stroke-width="4"/>
-  <line x1="70" y1="103" x2="186" y2="183" stroke="#7a3e15" stroke-width="5"/>
-  <line x1="186" y1="103" x2="70" y2="183" stroke="#7a3e15" stroke-width="5"/>
-  <text x="20" y="44" font-size="34" font-family="Arial Rounded MT Bold, Arial" fill="#7a46ff"></text>
+  <rect width="256" height="256" rx="48" fill="#fff0d6"/>
+  <circle cx="38" cy="48" r="14" fill="#ff8fab"/>
+  <circle cx="220" cy="56" r="10" fill="#7ad7f0"/>
+  <rect x="58" y="92" width="140" height="92" rx="46" fill="#ff7a45"/>
+  <rect x="58" y="92" width="140" height="36" rx="18" fill="#ffd27a"/>
+  <rect x="70" y="128" width="116" height="12" rx="6" fill="#fff6e8"/>
+  <line x1="78" y1="104" x2="178" y2="176" stroke="#7a3e15" stroke-width="6" stroke-linecap="round"/>
+  <line x1="178" y1="104" x2="78" y2="176" stroke="#7a3e15" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="72" cy="86" r="10" fill="#ffd27a"/>
+  <circle cx="184" cy="86" r="10" fill="#ffd27a"/>
+  <rect x="168" y="54" width="10" height="70" rx="5" fill="#6c63ff" transform="rotate(18 173 89)"/>
+  <rect x="188" y="48" width="10" height="78" rx="5" fill="#ff5d8f" transform="rotate(-12 193 87)"/>
+  <text x="18" y="48" font-size="36" font-family="Nunito, Arial Rounded MT Bold, Arial" font-weight="800" fill="#7c4dff">Б</text>
 </svg>

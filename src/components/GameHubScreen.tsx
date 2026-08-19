@@ -7,11 +7,11 @@ interface GameHubScreenProps {
   onBack: () => void;
 }
 
-const GAME_ITEMS: Array<{ id: GameId; icon: string; title: string }> = [
-  { id: "find", icon: "🎯", title: "Найди букву" },
-  { id: "picture", icon: "🖼️", title: "Что начинается?" },
-  { id: "listen", icon: "🎧", title: "Послушай и выбери" },
-  { id: "match", icon: "🧩", title: "Собери пару" }
+const GAME_ITEMS: Array<{ id: GameId; badge: string; title: string; className: string }> = [
+  { id: "find", badge: "АБВ", title: "Найди букву", className: "hub-find" },
+  { id: "picture", badge: "Аа", title: "Что начинается?", className: "hub-picture" },
+  { id: "listen", badge: "♪", title: "Послушай и выбери", className: "hub-listen" },
+  { id: "match", badge: "★", title: "Собери пару", className: "hub-match" }
 ];
 
 export function GameHubScreen({ unlockedGames, onOpenGame, onBack }: GameHubScreenProps) {
@@ -21,18 +21,20 @@ export function GameHubScreen({ unlockedGames, onOpenGame, onBack }: GameHubScre
       <button className="back-btn" onClick={onBack}>
         ←
       </button>
-      <h2 className="title">🎮 Играем</h2>
+      <h2 className="title">Играем</h2>
       <div className="menu-grid">
         {GAME_ITEMS.map((item) => {
           const isOpen = unlockedGames.includes(item.id);
           return (
             <button
               key={item.id}
-              className={`menu-btn game-hub-btn ${isOpen ? "" : "locked"}`}
+              className={`menu-btn game-hub-btn ${item.className} ${isOpen ? "" : "locked"}`}
               onClick={() => onOpenGame(item.id)}
               disabled={!isOpen}
             >
-              {item.icon} {item.title} {!isOpen ? "🔒" : ""}
+              <span className="menu-icon letters-badge">{item.badge}</span>
+              {item.title}
+              {!isOpen ? " 🔒" : ""}
             </button>
           );
         })}

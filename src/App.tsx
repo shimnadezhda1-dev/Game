@@ -179,7 +179,7 @@ function App() {
       ) : null}
       {screen === "stars" ? (
         <div className="screen">
-          <div className="title">⭐ Мои звёздочки</div>
+          <div className="title">Мои звёздочки</div>
           <div className="stars-big">{progress.stars}</div>
           <div className="reward-text">Учено букв: {progress.learnedLetterIds.length}</div>
           <button className="play-btn" onClick={() => setScreen("home")}>
