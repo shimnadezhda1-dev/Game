@@ -5,6 +5,7 @@ import { audioManager } from "../audio/AudioManager";
 import { randomOptions, weightedLetterPick } from "../utils/selectors";
 import { BottomNav } from "./BottomNav";
 import { Point, pointFromEvent } from "../utils/point";
+import { WorldBackground } from "./WorldBackground";
 
 interface ListenAndChooseGameProps {
   letters: LetterItem[];
@@ -60,6 +61,7 @@ export function ListenAndChooseGame({
 
   return (
     <div className="screen has-bottom-nav">
+      <WorldBackground variant="play" />
       <Character mood={correct ? "happy" : "tip"} message={correct ? "Молодец!" : "Слушай внимательно"} />
       <button className="menu-btn repeat-btn" onClick={() => onSpeak(phrase)}>
         🔊 Повторить
@@ -80,7 +82,7 @@ export function ListenAndChooseGame({
           );
         })}
       </div>
-      <BottomNav onBack={onBack} />
+      <BottomNav onBack={onBack} onHome={onBack} />
     </div>
   );
 }

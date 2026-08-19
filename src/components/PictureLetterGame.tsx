@@ -5,6 +5,7 @@ import { audioManager } from "../audio/AudioManager";
 import { randomOptions, weightedLetterPick } from "../utils/selectors";
 import { LetterVisual } from "./LetterVisual";
 import { BottomNav } from "./BottomNav";
+import { WorldBackground } from "./WorldBackground";
 import { Point, pointFromEvent } from "../utils/point";
 
 interface PictureLetterGameProps {
@@ -59,6 +60,7 @@ export function PictureLetterGame({
 
   return (
     <div className="screen has-bottom-nav">
+      <WorldBackground variant="play" />
       <Character mood={correct ? "happy" : "tip"} message={correct ? "Молодец!" : "Что начинается на эту букву?"} />
       <div className="task-title letter-task">{target.upper}</div>
       <div className="cards-row picture-row">
@@ -70,12 +72,12 @@ export function PictureLetterGame({
             } ${correct && item.id === target.id ? "correct" : ""}`}
             onClick={(event) => choose(item.id, event)}
           >
-            <LetterVisual letter={item} />
+            <LetterVisual letter={item} size="card" />
             <span className="word">{item.word}</span>
           </button>
         ))}
       </div>
-      <BottomNav onBack={onBack} />
+      <BottomNav onBack={onBack} onHome={onBack} />
     </div>
   );
 }

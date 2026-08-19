@@ -1,4 +1,5 @@
 import { LetterItem } from "../types";
+import { ASSETS } from "../utils/assets";
 
 export const LETTERS: LetterItem[] = [
   {
@@ -6,8 +7,7 @@ export const LETTERS: LetterItem[] = [
     upper: "А",
     lower: "а",
     word: "Арбуз",
-    emoji: "🍉",
-    imagePath: "/images/a-arbuz.svg?v=5",
+    imagePath: ASSETS.letters.A,
     voiceText: "А — арбуз",
     difficulty: 1
   },
@@ -16,8 +16,7 @@ export const LETTERS: LetterItem[] = [
     upper: "Б",
     lower: "б",
     word: "Барабан",
-    emoji: "🥁",
-    imagePath: "/images/b-baraban.svg?v=4",
+    imagePath: ASSETS.letters.B,
     voiceText: "Б — барабан",
     difficulty: 1
   },
@@ -26,8 +25,7 @@ export const LETTERS: LetterItem[] = [
     upper: "В",
     lower: "в",
     word: "Волк",
-    emoji: "🐺",
-    imagePath: "/images/v-volk.svg?v=4",
+    imagePath: ASSETS.letters.V,
     voiceText: "В — волк",
     difficulty: 1
   },
@@ -36,8 +34,7 @@ export const LETTERS: LetterItem[] = [
     upper: "Г",
     lower: "г",
     word: "Гриб",
-    emoji: "🍄",
-    imagePath: "/images/g-grib.svg?v=4",
+    imagePath: ASSETS.letters.G,
     voiceText: "Г — гриб",
     difficulty: 2
   },
@@ -46,8 +43,7 @@ export const LETTERS: LetterItem[] = [
     upper: "Д",
     lower: "д",
     word: "Дом",
-    emoji: "🏠",
-    imagePath: "/images/d-dom.svg?v=4",
+    imagePath: ASSETS.letters.D,
     voiceText: "Д — дом",
     difficulty: 2
   }

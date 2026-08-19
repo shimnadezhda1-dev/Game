@@ -9,12 +9,14 @@ import { Progress } from "./components/Progress";
 import { RewardScreen } from "./components/RewardScreen";
 import { GameHubScreen } from "./components/GameHubScreen";
 import { FlyingStar } from "./components/FlyingStar";
+import { WorldBackground } from "./components/WorldBackground";
+import { Character } from "./components/Character";
 import { LETTERS } from "./data/letters";
 import { audioManager } from "./audio/AudioManager";
 import { GameId, ProgressState, Screen } from "./types";
 import { loadProgress, saveProgress } from "./utils/storage";
 import { preloadImages } from "./utils/preload";
-import { assetUrl } from "./utils/assets";
+import { assetUrl, ASSETS } from "./utils/assets";
 import { Point } from "./utils/point";
 
 interface Flight {
@@ -32,11 +34,16 @@ function App() {
 
   useEffect(() => {
     audioManager.setEnabled(progress.soundEnabled);
-    preloadImages(
-      LETTERS.map((letter) => letter.imagePath)
-        .filter(Boolean)
-        .map((path) => assetUrl(path as string))
-    );
+    preloadImages([
+      ...LETTERS.map((letter) => assetUrl(letter.imagePath)),
+      assetUrl(ASSETS.fox.idle),
+      assetUrl(ASSETS.fox.happy),
+      assetUrl(ASSETS.fox.tip),
+      assetUrl(ASSETS.fox.celebrate),
+      assetUrl(ASSETS.ui.cubes),
+      assetUrl(ASSETS.ui.play),
+      assetUrl(ASSETS.ui.stars)
+    ]);
   }, []);
 
   useEffect(() => {
@@ -155,6 +162,7 @@ function App() {
         progress={progress}
         onOpenStars={() => setScreen("stars")}
         onToggleSound={toggleSound}
+        onHome={screen === "home" ? undefined : () => setScreen("home")}
         bankPulse={bankPulse}
       />
       {flight ? <FlyingStar {...flight} /> : null}
@@ -179,6 +187,7 @@ function App() {
           onBack={
             progress.currentLearnIndex === 0 ? () => setScreen("home") : prevLearnLetter
           }
+          onHome={() => setScreen("home")}
           onSpeak={speak}
         />
       ) : null}
@@ -223,10 +232,12 @@ function App() {
         />
       ) : null}
       {screen === "stars" ? (
-        <div className="screen">
+        <div className="screen has-bottom-nav">
+          <WorldBackground variant="play" />
+          <Character mood="celebrate" size="hero" />
           <div className="title">Мои звёздочки</div>
+          <img className="reward-star" src={assetUrl(ASSETS.ui.stars)} alt="" draggable={false} />
           <div className="stars-big">★ {progress.stars}</div>
-          <div className="reward-text">Учено букв: {progress.learnedLetterIds.length}</div>
           <button className="play-btn" onClick={() => setScreen("home")}>
             Домой
           </button>

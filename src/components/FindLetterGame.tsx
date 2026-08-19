@@ -5,6 +5,9 @@ import { audioManager } from "../audio/AudioManager";
 import { randomOptions, weightedLetterPick } from "../utils/selectors";
 import { BottomNav } from "./BottomNav";
 import { Point, pointFromEvent } from "../utils/point";
+import { WorldBackground } from "./WorldBackground";
+
+const TONES = ["card-sun", "card-sky", "card-mint", "card-coral"];
 
 interface FindLetterGameProps {
   letters: LetterItem[];
@@ -61,17 +64,19 @@ export function FindLetterGame({
 
   return (
     <div className="screen has-bottom-nav">
+      <WorldBackground variant="play" />
       <Character mood={correct ? "happy" : "tip"} message={correct ? "Молодец!" : "Найди букву"} />
       <div className="task-title">Найди: {target.upper}</div>
       <div className="cards-row">
-        {options.map((id) => {
+        {options.map((id, index) => {
           const letter = letters.find((item) => item.id === id)!;
           const isSelected = selected === id;
           const showHint = wrongCount >= 2 && id === target.id && !correct;
           const className = [
             "option-card",
+            TONES[index % TONES.length],
             isSelected && id !== target.id ? "shake" : "",
-            correct && id === target.id ? "correct" : "",
+            correct && id === target.id ? "correct pop" : "",
             showHint ? "hint" : ""
           ]
             .join(" ")
@@ -79,11 +84,12 @@ export function FindLetterGame({
           return (
             <button key={id} className={className} onClick={(event) => handleChoose(id, event)}>
               {letter.upper}
+              {correct && id === target.id ? <span className="card-sparkle">✨</span> : null}
             </button>
           );
         })}
       </div>
-      <BottomNav onBack={onBack} />
+      <BottomNav onBack={onBack} onHome={onBack} />
     </div>
   );
 }

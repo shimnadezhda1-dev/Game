@@ -6,6 +6,7 @@ import { randomOptions, weightedLetterPick } from "../utils/selectors";
 import { LetterVisual } from "./LetterVisual";
 import { BottomNav } from "./BottomNav";
 import { Point, pointFromEvent } from "../utils/point";
+import { WorldBackground } from "./WorldBackground";
 
 interface MatchGameProps {
   letters: LetterItem[];
@@ -59,6 +60,7 @@ export function MatchGame({
 
   return (
     <div className="screen has-bottom-nav">
+      <WorldBackground variant="play" />
       <Character mood={correct ? "happy" : "tip"} message={correct ? "Молодец!" : "Нажми на подходящую картинку"} />
       <div className="letter-anchor">{target.upper}</div>
       <div className="cards-row picture-row">
@@ -70,12 +72,12 @@ export function MatchGame({
             } ${correct && item.id === target.id ? "correct" : ""}`}
             onClick={(event) => chooseImage(item.id, event)}
           >
-            <LetterVisual letter={item} />
+            <LetterVisual letter={item} size="card" />
             <span className="word">{item.word}</span>
           </button>
         ))}
       </div>
-      <BottomNav onBack={onBack} />
+      <BottomNav onBack={onBack} onHome={onBack} />
     </div>
   );
 }
