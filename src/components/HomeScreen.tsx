@@ -22,17 +22,19 @@ export function HomeScreen({ onGoLearn, onPlayGames, onOpenStars }: HomeScreenPr
   return (
     <div className="screen home-screen">
       <WorldBackground variant="cover" />
-      <div className="rainbow-label">🌈</div>
       <h1 className="logo-title" aria-label="Весёлый алфавит">
         {TITLE.map(([letter, color], index) => (
           <span key={`${letter}-${index}`} style={{ color }}>
             {letter}
           </span>
         ))}
-        <span className="logo-rest"> алфавит</span>
+        <br />
+        <span className="logo-rest">алфавит</span>
       </h1>
       <p className="subtitle">Играй • Слушай • Запоминай</p>
-      <Character mood="happy" size="hero" message="Привет! Давай играть!" />
+      <button className="fox-start" onClick={onGoLearn} aria-label="Играть">
+        <Character mood="happy" size="hero" message="Привет! Давай играть!" />
+      </button>
       <button className="play-btn" onClick={onGoLearn}>
         ▶ ИГРАТЬ
       </button>
@@ -47,7 +49,7 @@ export function HomeScreen({ onGoLearn, onPlayGames, onOpenStars }: HomeScreenPr
         </button>
         <button className="mode-card menu-stars" onClick={onOpenStars}>
           <img src={assetUrl(ASSETS.ui.stars)} alt="" draggable={false} />
-          <span>Мои звёздочки</span>
+          <span>Звёздочки</span>
         </button>
       </div>
     </div>
