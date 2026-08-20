@@ -6,8 +6,7 @@ import { randomOptions, weightedLetterPick } from "../utils/selectors";
 import { BottomNav } from "./BottomNav";
 import { Point, pointFromEvent } from "../utils/point";
 import { WorldBackground } from "./WorldBackground";
-
-const TONES = ["card-sun", "card-sky", "card-mint", "card-coral"];
+import { CARD_TONES } from "../utils/cardTones";
 
 interface FindLetterGameProps {
   letters: LetterItem[];
@@ -74,7 +73,7 @@ export function FindLetterGame({
           const showHint = wrongCount >= 2 && id === target.id && !correct;
           const className = [
             "option-card",
-            TONES[index % TONES.length],
+            CARD_TONES[index % CARD_TONES.length],
             isSelected && id !== target.id ? "shake" : "",
             correct && id === target.id ? "correct pop" : "",
             showHint ? "hint" : ""

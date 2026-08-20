@@ -35,7 +35,7 @@ export function LearnLetters({ letter, onNext, onSpeak, onBack, onHome }: LearnL
       <Character mood="neutral" message="Слушай и повторяй!" />
       <div className={`hero-letter ${speaking ? "letter-bounce" : ""}`}>{letter.upper}</div>
       <div className="hero-lower">{letter.lower}</div>
-      <div className="hero-art bounce">
+      <div className="hero-art">
         <LetterVisual letter={letter} size="hero" />
       </div>
       <div className="caption">

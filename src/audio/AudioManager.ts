@@ -10,16 +10,6 @@ function softenText(text: string): string {
   return text.replace(/[АБВГД]/g, (letter) => LETTER_SOUNDS[letter] ?? letter);
 }
 
-function googleTtsUrl(text: string): string {
-  const query = new URLSearchParams({
-    ie: "UTF-8",
-    tl: "ru",
-    client: "tw-ob",
-    q: text
-  });
-  return `https://translate.google.com/translate_tts?${query.toString()}`;
-}
-
 function pickVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null {
   const russian = voices.filter((voice) => voice.lang.toLowerCase().startsWith("ru"));
   const pool = russian.length ? russian : voices;
@@ -30,7 +20,6 @@ function pickVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null 
 class AudioManager {
   private enabled = true;
   private voice: SpeechSynthesisVoice | null = null;
-  private currentAudio: HTMLAudioElement | null = null;
   private audioContext: AudioContext | null = null;
 
   constructor() {
@@ -58,54 +47,11 @@ class AudioManager {
   }
 
   speak(text: string): void {
-    if (!this.enabled) {
+    if (!this.enabled || !("speechSynthesis" in window)) {
       return;
     }
-
     this.stop();
-    const spoken = softenText(text);
-    const audio = new Audio(googleTtsUrl(spoken));
-    audio.preload = "auto";
-    this.currentAudio = audio;
-
-    let usedFallback = false;
-    const fallback = () => {
-      if (usedFallback || this.currentAudio !== audio) {
-        return;
-      }
-      usedFallback = true;
-      this.speakNative(spoken);
-    };
-
-    const timeoutId = window.setTimeout(() => {
-      if (audio.readyState < 2) {
-        fallback();
-      }
-    }, 1200);
-
-    audio.addEventListener("playing", () => window.clearTimeout(timeoutId));
-    audio.addEventListener("error", fallback);
-    const playResult = audio.play();
-    if (playResult) {
-      playResult.catch(fallback);
-    }
-  }
-
-  playSuccess(): void {
-    this.playChime([523, 659, 784], 0.12);
-  }
-
-  playTryAgain(): void {
-    this.playChime([392, 349], 0.14);
-  }
-
-  private speakNative(text: string): void {
-    if (!("speechSynthesis" in window)) {
-      return;
-    }
-
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
+    const utterance = new SpeechSynthesisUtterance(softenText(text));
     utterance.lang = "ru-RU";
     utterance.rate = 0.92;
     utterance.pitch = 1.04;
@@ -115,6 +61,14 @@ class AudioManager {
       utterance.lang = this.voice.lang || "ru-RU";
     }
     window.speechSynthesis.speak(utterance);
+  }
+
+  playSuccess(): void {
+    this.playChime([523, 659, 784], 0.12);
+  }
+
+  playTryAgain(): void {
+    this.playChime([392, 349], 0.14);
   }
 
   private playChime(freqs: number[], duration: number): void {
@@ -145,18 +99,9 @@ class AudioManager {
   }
 
   private stop(): void {
-    if (this.currentAudio) {
-      this.currentAudio.pause();
-      this.currentAudio.src = "";
-      this.currentAudio = null;
-    }
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
-  }
-
-  cheer(): void {
-    this.speak("Молодец!");
   }
 }
 

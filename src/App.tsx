@@ -56,12 +56,8 @@ function App() {
     audioManager.speak(text);
   }, []);
 
-  function unlockGames(correctAnswers: number): GameId[] {
-    const unlocked: GameId[] = ["find"];
-    if (correctAnswers >= 3) unlocked.push("picture");
-    if (correctAnswers >= 6) unlocked.push("listen");
-    if (correctAnswers >= 10) unlocked.push("match");
-    return unlocked;
+  function unlockGames(): GameId[] {
+    return ["find", "picture", "listen", "match"];
   }
 
   function addStar(letterId: string) {
@@ -75,7 +71,7 @@ function App() {
         ...prev,
         correctAnswers: nextCorrect,
         stars: nextStars,
-        unlockedGames: unlockGames(nextCorrect),
+        unlockedGames: unlockGames(),
         learnedLetterIds
       };
       if (nextCorrect % 5 === 0) {
@@ -153,7 +149,18 @@ function App() {
   }
 
   if (screen === "reward") {
-    return <RewardScreen stars={progress.stars} onClose={() => setScreen("home")} />;
+    return (
+      <div className="app-shell">
+        <Progress
+          progress={progress}
+          onOpenStars={() => setScreen("stars")}
+          onToggleSound={toggleSound}
+          onHome={() => setScreen("home")}
+          bankPulse={bankPulse}
+        />
+        <RewardScreen stars={progress.stars} onClose={() => setScreen("home")} />
+      </div>
+    );
   }
 
   return (
@@ -232,7 +239,7 @@ function App() {
         />
       ) : null}
       {screen === "stars" ? (
-        <div className="screen has-bottom-nav">
+        <div className="screen">
           <WorldBackground variant="play" />
           <Character mood="celebrate" size="hero" />
           <div className="title">Мои звёздочки</div>

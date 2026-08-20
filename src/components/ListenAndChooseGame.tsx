@@ -6,6 +6,7 @@ import { randomOptions, weightedLetterPick } from "../utils/selectors";
 import { BottomNav } from "./BottomNav";
 import { Point, pointFromEvent } from "../utils/point";
 import { WorldBackground } from "./WorldBackground";
+import { CARD_TONES } from "../utils/cardTones";
 
 interface ListenAndChooseGameProps {
   letters: LetterItem[];
@@ -66,15 +67,15 @@ export function ListenAndChooseGame({
       <button className="menu-btn repeat-btn" onClick={() => onSpeak(phrase)}>
         🔊 Повторить
       </button>
-      <div className="cards-row">
-        {options.map((id) => {
+      <div className="cards-row cards-row-4">
+        {options.map((id, index) => {
           const letter = letters.find((item) => item.id === id)!;
           return (
             <button
               key={id}
-              className={`option-card ${selected === id && id !== target.id ? "shake" : ""} ${
-                correct && id === target.id ? "correct" : ""
-              }`}
+              className={`option-card ${CARD_TONES[index % CARD_TONES.length]} ${
+                selected === id && id !== target.id ? "shake" : ""
+              } ${correct && id === target.id ? "correct pop" : ""}`}
               onClick={(event) => choose(id, event)}
             >
               {letter.upper}

@@ -7,6 +7,7 @@ import { LetterVisual } from "./LetterVisual";
 import { BottomNav } from "./BottomNav";
 import { Point, pointFromEvent } from "../utils/point";
 import { WorldBackground } from "./WorldBackground";
+import { CARD_TONES } from "../utils/cardTones";
 
 interface MatchGameProps {
   letters: LetterItem[];
@@ -64,12 +65,12 @@ export function MatchGame({
       <Character mood={correct ? "happy" : "tip"} message={correct ? "Молодец!" : "Нажми на подходящую картинку"} />
       <div className="letter-anchor">{target.upper}</div>
       <div className="cards-row picture-row">
-        {options.map((item) => (
+        {options.map((item, index) => (
           <button
             key={item.id}
-            className={`option-card picture-option ${
+            className={`option-card picture-option ${CARD_TONES[index % CARD_TONES.length]} ${
               selectedImage === item.id && item.id !== target.id ? "shake" : ""
-            } ${correct && item.id === target.id ? "correct" : ""}`}
+            } ${correct && item.id === target.id ? "correct pop" : ""}`}
             onClick={(event) => chooseImage(item.id, event)}
           >
             <LetterVisual letter={item} size="card" />

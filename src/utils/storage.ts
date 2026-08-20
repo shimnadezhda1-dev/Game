@@ -2,7 +2,7 @@ import { GameId, ProgressState } from "../types";
 
 const STORAGE_KEY = "happy-alphabet-progress-v1";
 
-const DEFAULT_UNLOCKED: GameId[] = ["find"];
+const DEFAULT_UNLOCKED: GameId[] = ["find", "picture", "listen", "match"];
 
 export const defaultProgress: ProgressState = {
   learnedLetterIds: [],
@@ -24,7 +24,9 @@ export function loadProgress(): ProgressState {
     return {
       ...defaultProgress,
       ...parsed,
-      unlockedGames: parsed.unlockedGames?.length ? parsed.unlockedGames : DEFAULT_UNLOCKED,
+      unlockedGames: Array.from(
+        new Set([...(parsed.unlockedGames ?? []), ...DEFAULT_UNLOCKED])
+      ) as GameId[],
       mistakeCounts: parsed.mistakeCounts ?? {}
     };
   } catch {

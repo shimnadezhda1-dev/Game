@@ -6,6 +6,7 @@ import { randomOptions, weightedLetterPick } from "../utils/selectors";
 import { LetterVisual } from "./LetterVisual";
 import { BottomNav } from "./BottomNav";
 import { WorldBackground } from "./WorldBackground";
+import { CARD_TONES } from "../utils/cardTones";
 import { Point, pointFromEvent } from "../utils/point";
 
 interface PictureLetterGameProps {
@@ -64,12 +65,12 @@ export function PictureLetterGame({
       <Character mood={correct ? "happy" : "tip"} message={correct ? "Молодец!" : "Что начинается на эту букву?"} />
       <div className="task-title letter-task">{target.upper}</div>
       <div className="cards-row picture-row">
-        {options.map((item) => (
+        {options.map((item, index) => (
           <button
             key={item.id}
-            className={`option-card picture-option ${
+            className={`option-card picture-option ${CARD_TONES[index % CARD_TONES.length]} ${
               selected === item.id && item.id !== target.id ? "shake" : ""
-            } ${correct && item.id === target.id ? "correct" : ""}`}
+            } ${correct && item.id === target.id ? "correct pop" : ""}`}
             onClick={(event) => choose(item.id, event)}
           >
             <LetterVisual letter={item} size="card" />
