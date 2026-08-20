@@ -32,12 +32,12 @@ export function HomeScreen({ onGoLearn, onPlayGames, onOpenStars }: HomeScreenPr
         <span className="logo-rest">алфавит</span>
       </h1>
       <p className="subtitle">Играй • Слушай • Запоминай</p>
-      <button className="fox-start" onClick={onGoLearn} aria-label="Играть">
-        <Character mood="happy" size="hero" message="Привет! Давай играть!" />
-      </button>
       <button className="play-btn" onClick={onGoLearn}>
         ▶ ИГРАТЬ
       </button>
+      <div className="home-fox">
+        <Character mood="happy" size="hero" message="Привет! Давай играть!" />
+      </div>
       <div className="mode-grid">
         <button className="mode-card menu-learn" onClick={onGoLearn}>
           <img src={assetUrl(ASSETS.ui.cubes)} alt="" draggable={false} />
