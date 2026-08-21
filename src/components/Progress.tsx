@@ -1,4 +1,5 @@
 import { ProgressState } from "../types";
+import { assetUrl, ASSETS } from "../utils/assets";
 
 interface ProgressProps {
   progress: ProgressState;
@@ -12,8 +13,8 @@ export function Progress({ progress, onOpenStars, onToggleSound, onHome, bankPul
   return (
     <div className="top-bar">
       {onHome ? (
-        <button className="pill-btn home-btn" onClick={onHome} aria-label="Домой">
-          ⌂ Домой
+        <button className="icon-round home-btn" onClick={onHome} aria-label="Домой">
+          <img src={assetUrl(ASSETS.ui.home)} alt="" draggable={false} />
         </button>
       ) : (
         <span />
@@ -21,12 +22,18 @@ export function Progress({ progress, onOpenStars, onToggleSound, onHome, bankPul
       <div className="top-bar-right">
         <button
           id="star-bank"
-          className={`pill-btn star-bank ${bankPulse ? "star-bank-pulse" : ""}`}
+          className={`icon-round star-bank ${bankPulse ? "star-bank-pulse" : ""}`}
           onClick={onOpenStars}
+          aria-label="Мои награды"
         >
-          ★ {progress.stars}
+          <img src={assetUrl(ASSETS.ui.rewards)} alt="" draggable={false} />
+          <span className="star-count">{progress.stars}</span>
         </button>
-        <button className="pill-btn" onClick={onToggleSound}>
+        <button
+          className="icon-round sound-btn"
+          onClick={onToggleSound}
+          aria-label={progress.soundEnabled ? "Звук включён" : "Звук выключен"}
+        >
           {progress.soundEnabled ? "🔊" : "🔇"}
         </button>
       </div>

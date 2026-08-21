@@ -58,7 +58,9 @@ function App() {
       assetUrl(ASSETS.fox.celebrate),
       assetUrl(ASSETS.ui.cubes),
       assetUrl(ASSETS.ui.play),
-      assetUrl(ASSETS.ui.stars)
+      assetUrl(ASSETS.ui.stars),
+      assetUrl(ASSETS.ui.rewards),
+      assetUrl(ASSETS.ui.home)
     ]);
   }, []);
 
@@ -228,6 +230,7 @@ function App() {
             onGoLearn={() => go("learn")}
             onPlayGames={() => go("modeSelect")}
             onOpenStars={() => go("stars")}
+            onSpeak={speak}
             foxCelebrate={progress.stars >= 20}
           />
         );
@@ -238,6 +241,7 @@ function App() {
             onOpenGame={openGame}
             onStartAdventure={() => go("adventure")}
             onBack={backHome}
+            onSpeak={speak}
           />
         );
       case "learn":
@@ -303,7 +307,7 @@ function App() {
         );
       case "stars":
         return (
-          <StarsScreen progress={progress} letters={LETTERS} onBack={backHome} />
+          <StarsScreen progress={progress} letters={LETTERS} onBack={backHome} onSpeak={speak} />
         );
       case "reward":
         return (
@@ -320,6 +324,7 @@ function App() {
             onGoLearn={() => go("learn")}
             onPlayGames={() => go("modeSelect")}
             onOpenStars={() => go("stars")}
+            onSpeak={speak}
           />
         );
     }

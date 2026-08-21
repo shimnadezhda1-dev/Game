@@ -41,7 +41,7 @@ export function ListenAndChooseGame({
     onSpeak,
     onFinished,
     speakPrompt: (letter) => letter.upper,
-    praise: (letter) => `Правильно! Это буква ${letter.upper}!`
+    praise: (letter) => `Молодец! Это буква ${letter.upper}!`
   });
 
   return (
@@ -52,7 +52,9 @@ export function ListenAndChooseGame({
         mood={round.phase === "feedback" ? "happy" : "tip"}
         message={round.phase === "feedback" ? "Молодец!" : "Послушай и найди букву"}
       />
-      <SpeakButton onClick={round.replay} disabled={round.phase === "feedback"} />
+      <div className="listen-cue">
+        <SpeakButton onClick={round.replay} disabled={round.phase === "feedback"} hintKey={round.target.id} />
+      </div>
       <div className="cards-row">
         {round.options.map((id, index) => {
           const letter = letters.find((item) => item.id === id);

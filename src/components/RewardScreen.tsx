@@ -24,12 +24,12 @@ export function RewardScreen({
         ))}
       </div>
       <Character mood="celebrate" size="hero" message="Ты супер!" />
-      <img className="reward-star" src={assetUrl(ASSETS.ui.stars)} alt="" draggable={false} />
+      <img className="reward-star" src={assetUrl(ASSETS.ui.rewards)} alt="" draggable={false} />
       <h2 className="title reward-ura">{title}</h2>
       <div className="reward-text">{text}</div>
       <div className="stars-count">★ {stars}</div>
-      <button className="play-btn compact-play" onClick={onClose}>
-        ИГРАТЬ ДАЛЬШЕ →
+      <button className="nav-arrow nav-next adventure-go" onClick={onClose} aria-label="Дальше">
+        →
       </button>
     </div>
   );

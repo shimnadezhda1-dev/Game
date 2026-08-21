@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { GameId } from "../types";
 import { Character } from "./Character";
 import { BottomNav } from "./BottomNav";
@@ -9,33 +10,30 @@ interface GameHubScreenProps {
   onOpenGame: (id: GameId) => void;
   onStartAdventure: () => void;
   onBack: () => void;
+  onSpeak: (text: string) => void;
 }
 
 const GAME_ITEMS: Array<{
   id: GameId;
   title: string;
-  hint: string;
   className: string;
   image: string;
 }> = [
   {
     id: "find",
     title: "Найди букву",
-    hint: "Слушай и находи нужную букву",
     className: "hub-find",
     image: ASSETS.ui.cubes
   },
   {
     id: "picture",
     title: "Угадай картинку",
-    hint: "Что начинается на эту букву?",
     className: "hub-picture",
     image: ASSETS.letters.A
   },
   {
     id: "listen",
     title: "Послушай и выбери",
-    hint: "Послушай звук и найди букву",
     className: "hub-listen",
     image: ASSETS.fox.idle
   }
@@ -45,15 +43,26 @@ export function GameHubScreen({
   unlockedGames,
   onOpenGame,
   onStartAdventure,
-  onBack
+  onBack,
+  onSpeak
 }: GameHubScreenProps) {
+  useEffect(() => {
+    onSpeak("Во что будем играть?");
+  }, [onSpeak]);
+
   return (
     <div className="screen hub-screen has-bottom-nav">
       <WorldBackground variant="play" />
       <Character mood="happy" message="Во что поиграем?" />
-      <h2 className="title hub-title">Во что поиграем?</h2>
-      <button className="play-btn compact-play adventure-cta" onClick={onStartAdventure}>
-        Пойдём искать буквы!
+      <button
+        className="kid-card kid-card-play hub-adventure"
+        onClick={onStartAdventure}
+        aria-label="Играть"
+      >
+        <span className="kid-card-art">
+          <img src={assetUrl(ASSETS.ui.play)} alt="" draggable={false} />
+        </span>
+        <span className="kid-card-label">Играть</span>
       </button>
       <div className="mode-grid hub-grid">
         {GAME_ITEMS.map((item) => {
@@ -61,15 +70,15 @@ export function GameHubScreen({
           return (
             <button
               key={item.id}
-              className={`mode-card game-hub-btn ${item.className} ${isOpen ? "" : "locked"}`}
+              className={`kid-card kid-card-hub ${item.className} ${isOpen ? "" : "locked"}`}
               onClick={() => onOpenGame(item.id)}
               disabled={!isOpen}
+              aria-label={item.title}
             >
-              <img src={assetUrl(item.image)} alt="" draggable={false} />
-              <span className="hub-copy">
-                <strong>{item.title}</strong>
-                <small>{item.hint}</small>
+              <span className="kid-card-art">
+                <img src={assetUrl(item.image)} alt="" draggable={false} />
               </span>
+              <span className="kid-card-label">{item.title}</span>
             </button>
           );
         })}

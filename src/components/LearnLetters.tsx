@@ -27,6 +27,7 @@ export function LearnLetters({
 }: LearnLettersProps) {
   const [speaking, setSpeaking] = useState(false);
   const timerRef = useRef<number | null>(null);
+  const welcomedRef = useRef(false);
 
   function speakLetter() {
     if (timerRef.current !== null) {
@@ -38,6 +39,17 @@ export function LearnLetters({
   }
 
   useEffect(() => {
+    if (!welcomedRef.current) {
+      welcomedRef.current = true;
+      onSpeak("Давай познакомимся с буквами!");
+      const intro = window.setTimeout(speakLetter, 1800);
+      return () => {
+        window.clearTimeout(intro);
+        if (timerRef.current !== null) {
+          window.clearTimeout(timerRef.current);
+        }
+      };
+    }
     speakLetter();
     return () => {
       if (timerRef.current !== null) {

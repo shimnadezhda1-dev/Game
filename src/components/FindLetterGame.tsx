@@ -39,8 +39,8 @@ export function FindLetterGame({
     onMistake,
     onSpeak,
     onFinished,
-    speakPrompt: (letter) => `Найди букву ${letter.upper}`,
-    praise: (letter) => `Правильно! Это буква ${letter.upper}!`
+    speakPrompt: (letter) => `Найди букву ${letter.upper}!`,
+    praise: (letter) => `Молодец! Это буква ${letter.upper}!`
   });
 
   return (
@@ -51,9 +51,9 @@ export function FindLetterGame({
         mood={round.phase === "feedback" ? "happy" : "tip"}
         message={round.phase === "feedback" ? "Молодец!" : `Найди букву ${round.target.upper}`}
       />
-      <SpeakButton onClick={round.replay} disabled={round.phase === "feedback"} />
-      <div className="task-pill">
-        Найди <span>{round.target.upper}</span>
+      <SpeakButton onClick={round.replay} disabled={round.phase === "feedback"} hintKey={round.target.id} />
+      <div className="task-pill" aria-label={`Найди букву ${round.target.upper}`}>
+        <span className="task-letter">{round.target.upper}</span>
       </div>
       <div className="cards-row">
         {round.options.map((id, index) => {

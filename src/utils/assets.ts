@@ -19,8 +19,10 @@ export const ASSETS = {
     celebrate: "/assets/character/fox-celebrate.png"
   },
   ui: {
-    cubes: "/assets/ui/cubes.png",
-    play: "/assets/ui/play.png",
-    stars: "/assets/ui/stars.png"
+    cubes: "/assets/ui/learn-cubes.png",
+    play: "/assets/ui/play-letters.png",
+    stars: "/assets/ui/stars.png",
+    rewards: "/assets/ui/rewards-chest.png",
+    home: "/assets/ui/home-house.png"
   }
 } as const;

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Character } from "./Character";
 import { LetterItem, ProgressState } from "../types";
 import { WorldBackground } from "./WorldBackground";
@@ -11,6 +12,7 @@ interface StarsScreenProps {
   progress: ProgressState;
   letters: LetterItem[];
   onBack: () => void;
+  onSpeak: (text: string) => void;
 }
 
 const REWARD_ICON: Record<string, string> = {
@@ -20,9 +22,13 @@ const REWARD_ICON: Record<string, string> = {
   fox: "🦊"
 };
 
-export function StarsScreen({ progress, letters, onBack }: StarsScreenProps) {
+export function StarsScreen({ progress, letters, onBack, onSpeak }: StarsScreenProps) {
   const learned = masteredCount(progress, letters);
   const foxMood = progress.stars >= 20 ? "celebrate" : "happy";
+
+  useEffect(() => {
+    onSpeak("Посмотрим, какие награды ты уже собрал!");
+  }, [onSpeak]);
 
   return (
     <div className="screen stars-screen has-bottom-nav">
@@ -30,7 +36,7 @@ export function StarsScreen({ progress, letters, onBack }: StarsScreenProps) {
       <Character mood={foxMood} message={learned ? "Какая коллекция!" : "Давай собирать звёзды!"} />
       <h2 className="title stars-title">Мои награды</h2>
       <div className="stars-hero">
-        <img src={assetUrl(ASSETS.ui.stars)} alt="" draggable={false} />
+        <img src={assetUrl(ASSETS.ui.rewards)} alt="" draggable={false} />
         <div className="stars-big">★ {progress.stars}</div>
       </div>
       <p className="stars-copy">

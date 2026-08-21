@@ -129,8 +129,8 @@ export function AdventurePlay({
           <LetterVisual letter={letter} size="hero" />
         </div>
         <div className="caption">Ты познакомился с буквой {letter.upper}!</div>
-        <button className="play-btn compact-play" onClick={finishLetter}>
-          Дальше →
+        <button className="nav-arrow nav-next adventure-go" onClick={finishLetter} aria-label="Дальше">
+          →
         </button>
         <BottomNav onBack={onBack} onHome={onBack} />
       </div>
@@ -155,8 +155,8 @@ export function AdventurePlay({
         {letter.upper} — {letter.word}
       </div>
       <SpeakButton onClick={() => onSpeak(letter.voiceText)} />
-      <button className="play-btn compact-play" onClick={goNextStep}>
-        Искать букву →
+      <button className="nav-arrow nav-next adventure-go pulse-hint" onClick={goNextStep} aria-label="Дальше">
+        →
       </button>
       <BottomNav onBack={onBack} onHome={onBack} />
     </div>

@@ -40,8 +40,8 @@ export function PictureLetterGame({
     onMistake,
     onSpeak,
     onFinished,
-    speakPrompt: (letter) => `Что начинается на ${letter.upper}?`,
-    praise: (letter) => `Правильно! Это ${letter.word}!`
+    speakPrompt: (letter) => `Что начинается на букву ${letter.upper}?`,
+    praise: (letter) => `Молодец! Это буква ${letter.upper}!`
   });
 
   return (
@@ -53,7 +53,7 @@ export function PictureLetterGame({
         message={round.phase === "feedback" ? "Молодец!" : `Что начинается на ${round.target.upper}?`}
       />
       <div className="letter-anchor">{round.target.upper}</div>
-      <SpeakButton onClick={round.replay} disabled={round.phase === "feedback"} />
+      <SpeakButton onClick={round.replay} disabled={round.phase === "feedback"} hintKey={round.target.id} />
       <div className="cards-row picture-row">
         {round.options.map((id, index) => {
           const item = letters.find((letter) => letter.id === id);
