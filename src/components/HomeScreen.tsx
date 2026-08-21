@@ -6,6 +6,7 @@ interface HomeScreenProps {
   onGoLearn: () => void;
   onPlayGames: () => void;
   onOpenStars: () => void;
+  foxCelebrate?: boolean;
 }
 
 const TITLE = [
@@ -18,7 +19,7 @@ const TITLE = [
   ["й", "#7c4dff"]
 ];
 
-export function HomeScreen({ onGoLearn, onPlayGames, onOpenStars }: HomeScreenProps) {
+export function HomeScreen({ onGoLearn, onPlayGames, onOpenStars, foxCelebrate }: HomeScreenProps) {
   return (
     <div className="screen home-screen">
       <WorldBackground variant="cover" />
@@ -32,11 +33,17 @@ export function HomeScreen({ onGoLearn, onPlayGames, onOpenStars }: HomeScreenPr
         <span className="logo-rest">алфавит</span>
       </h1>
       <p className="subtitle">Играй • Слушай • Запоминай</p>
-      <button className="play-btn" onClick={onGoLearn}>
-        ▶ ИГРАТЬ
-      </button>
-      <div className="home-fox">
-        <Character mood="happy" size="hero" message="Привет! Давай играть!" />
+      <div className="home-hero">
+        <div className="home-fox">
+          <Character
+            mood={foxCelebrate ? "celebrate" : "happy"}
+            size="hero"
+            message="Пойдём искать буквы!"
+          />
+        </div>
+        <button className="play-btn" onClick={onPlayGames}>
+          ▶ ИГРАТЬ
+        </button>
       </div>
       <div className="mode-grid">
         <button className="mode-card menu-learn" onClick={onGoLearn}>
@@ -49,7 +56,7 @@ export function HomeScreen({ onGoLearn, onPlayGames, onOpenStars }: HomeScreenPr
         </button>
         <button className="mode-card menu-stars" onClick={onOpenStars}>
           <img src={assetUrl(ASSETS.ui.stars)} alt="" draggable={false} />
-          <span>Звёздочки</span>
+          <span>Награды</span>
         </button>
       </div>
     </div>

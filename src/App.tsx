@@ -1,23 +1,28 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { HomeScreen } from "./components/HomeScreen";
 import { LearnLetters } from "./components/LearnLetters";
 import { FindLetterGame } from "./components/FindLetterGame";
 import { PictureLetterGame } from "./components/PictureLetterGame";
 import { ListenAndChooseGame } from "./components/ListenAndChooseGame";
-import { MatchGame } from "./components/MatchGame";
 import { Progress } from "./components/Progress";
 import { RewardScreen } from "./components/RewardScreen";
 import { GameHubScreen } from "./components/GameHubScreen";
 import { FlyingStar } from "./components/FlyingStar";
-import { WorldBackground } from "./components/WorldBackground";
-import { Character } from "./components/Character";
+import { StarsScreen } from "./components/StarsScreen";
+import { AdventurePlay } from "./components/AdventurePlay";
 import { LETTERS } from "./data/letters";
 import { audioManager } from "./audio/AudioManager";
 import { GameId, ProgressState, Screen } from "./types";
 import { loadProgress, saveProgress } from "./utils/storage";
 import { preloadImages } from "./utils/preload";
 import { assetUrl, ASSETS } from "./utils/assets";
-import { Point } from "./utils/point";
+import type { Point } from "./utils/point";
+import {
+  getLetterStats,
+  maybeUnlockNextGroup,
+  unlockedLetters
+} from "./utils/selectors";
+import { rewardJustUnlocked, StarReward } from "./utils/rewards";
 
 interface Flight {
   fromX: number;
@@ -28,9 +33,20 @@ interface Flight {
 
 function App() {
   const [screen, setScreen] = useState<Screen>("home");
+  const [returnScreen, setReturnScreen] = useState<Screen>("home");
   const [progress, setProgress] = useState<ProgressState>(() => loadProgress());
   const [flight, setFlight] = useState<Flight | null>(null);
   const [bankPulse, setBankPulse] = useState(false);
+  const [rewardCopy, setRewardCopy] = useState({ title: "УРА!", text: "Ты заработал звёздочку!" });
+  const pendingRewardRef = useRef<StarReward | null>(null);
+  const starTimerRef = useRef<number | null>(null);
+
+  const playLetters = useMemo(
+    () => LETTERS.filter((letter) => letter.group <= progress.unlockedGroupIndex),
+    [progress.unlockedGroupIndex]
+  );
+  const learnLetter =
+    playLetters[progress.currentLearnIndex % playLetters.length] ?? playLetters[0] ?? LETTERS[0];
 
   useEffect(() => {
     audioManager.setEnabled(progress.soundEnabled);
@@ -50,36 +66,53 @@ function App() {
     saveProgress(progress);
   }, [progress]);
 
-  const learnLetter = useMemo(() => LETTERS[progress.currentLearnIndex % LETTERS.length], [progress]);
+  useEffect(() => {
+    return () => {
+      if (starTimerRef.current !== null) window.clearTimeout(starTimerRef.current);
+    };
+  }, []);
 
   const speak = useCallback((text: string) => {
     audioManager.speak(text);
   }, []);
 
-  function unlockGames(): GameId[] {
-    return ["find", "picture", "listen", "match"];
+  function go(next: Screen) {
+    audioManager.stopSpeaking();
+    setScreen(next);
   }
 
   function addStar(letterId: string) {
     setProgress((prev) => {
-      const nextCorrect = prev.correctAnswers + 1;
+      const prevStats = getLetterStats(prev.letterStats, letterId);
       const nextStars = prev.stars + 1;
-      const learnedLetterIds = letterId
-        ? Array.from(new Set([...prev.learnedLetterIds, letterId]))
-        : prev.learnedLetterIds;
-      const next = {
-        ...prev,
-        correctAnswers: nextCorrect,
-        stars: nextStars,
-        unlockedGames: unlockGames(),
-        learnedLetterIds
+      const nextStats = {
+        ...prev.letterStats,
+        [letterId]: {
+          correctCount: prevStats.correctCount + 1,
+          wrongCount: prevStats.wrongCount,
+          lastPracticed: Date.now()
+        }
       };
-      if (nextCorrect % 5 === 0) {
-        window.setTimeout(() => {
-          setScreen("reward");
-          speak("Ура! Ты заработал новую звёздочку!");
-        }, 400);
+      const learnedLetterIds =
+        prevStats.correctCount + 1 >= 3
+          ? Array.from(new Set([...prev.learnedLetterIds, letterId]))
+          : prev.learnedLetterIds;
+      const unlocked = rewardJustUnlocked(prev.stars, nextStars);
+      if (unlocked) {
+        pendingRewardRef.current = unlocked;
       }
+      const next: ProgressState = {
+        ...prev,
+        correctAnswers: prev.correctAnswers + 1,
+        stars: nextStars,
+        letterStats: nextStats,
+        mistakeCounts: prev.mistakeCounts,
+        learnedLetterIds,
+        unlockedRewards: unlocked
+          ? Array.from(new Set([...prev.unlockedRewards, unlocked.id]))
+          : prev.unlockedRewards
+      };
+      next.unlockedGroupIndex = maybeUnlockNextGroup(next);
       return next;
     });
     setBankPulse(true);
@@ -87,7 +120,6 @@ function App() {
   }
 
   function markCorrect(letterId: string, origin?: Point) {
-    speak("Молодец!");
     audioManager.playSuccess();
     const bank = document.getElementById("star-bank")?.getBoundingClientRect();
     const fromX = origin?.x ?? window.innerWidth / 2;
@@ -95,49 +127,59 @@ function App() {
     const toX = bank ? bank.left + bank.width / 2 : 48;
     const toY = bank ? bank.top + bank.height / 2 : 28;
     setFlight({ fromX, fromY, toX, toY });
-    window.setTimeout(() => {
+    if (starTimerRef.current !== null) {
+      window.clearTimeout(starTimerRef.current);
+    }
+    starTimerRef.current = window.setTimeout(() => {
       addStar(letterId);
       setFlight(null);
+      const pending = pendingRewardRef.current;
+      if (pending) {
+        speak(`Ура! Ты открыл ${pending.title}!`);
+      }
     }, 850);
   }
 
   function markMistake(letterId: string) {
-    setProgress((prev) => ({
-      ...prev,
-      mistakeCounts: {
-        ...prev.mistakeCounts,
-        [letterId]: (prev.mistakeCounts[letterId] ?? 0) + 1
-      }
-    }));
+    setProgress((prev) => {
+      const prevStats = getLetterStats(prev.letterStats, letterId);
+      return {
+        ...prev,
+        mistakeCounts: {
+          ...prev.mistakeCounts,
+          [letterId]: (prev.mistakeCounts[letterId] ?? 0) + 1
+        },
+        letterStats: {
+          ...prev.letterStats,
+          [letterId]: {
+            ...prevStats,
+            wrongCount: prevStats.wrongCount + 1,
+            lastPracticed: Date.now()
+          }
+        }
+      };
+    });
   }
 
   function nextLearnLetter() {
     setProgress((prev) => {
-      const nextIndex = (prev.currentLearnIndex + 1) % LETTERS.length;
-      const learnedId = LETTERS[prev.currentLearnIndex]?.id;
-      return {
-        ...prev,
-        currentLearnIndex: nextIndex,
-        learnedLetterIds: learnedId
-          ? Array.from(new Set([...prev.learnedLetterIds, learnedId]))
-          : prev.learnedLetterIds
-      };
+      const pool = unlockedLetters(prev);
+      return { ...prev, currentLearnIndex: (prev.currentLearnIndex + 1) % pool.length };
     });
   }
 
   function prevLearnLetter() {
     setProgress((prev) => {
-      const nextIndex = (prev.currentLearnIndex - 1 + LETTERS.length) % LETTERS.length;
-      return { ...prev, currentLearnIndex: nextIndex };
+      const pool = unlockedLetters(prev);
+      return {
+        ...prev,
+        currentLearnIndex: (prev.currentLearnIndex - 1 + pool.length) % pool.length
+      };
     });
   }
 
   function openGame(game: GameId) {
-    if (!progress.unlockedGames.includes(game)) {
-      speak("Скоро откроется!");
-      return;
-    }
-    setScreen(game);
+    go(game);
   }
 
   function toggleSound() {
@@ -148,108 +190,152 @@ function App() {
     });
   }
 
-  if (screen === "reward") {
-    return (
-      <div className="app-shell">
-        <Progress
-          progress={progress}
-          onOpenStars={() => setScreen("stars")}
-          onToggleSound={toggleSound}
-          onHome={() => setScreen("home")}
-          bankPulse={bankPulse}
-        />
-        <RewardScreen stars={progress.stars} onClose={() => setScreen("home")} />
-      </div>
-    );
+  function onLetterMastered(letterId: string) {
+    setProgress((prev) => {
+      const next: ProgressState = {
+        ...prev,
+        learnedLetterIds: Array.from(new Set([...prev.learnedLetterIds, letterId]))
+      };
+      next.unlockedGroupIndex = maybeUnlockNextGroup(next);
+      return next;
+    });
+  }
+
+  function celebrateIfNeeded(fallback: Screen) {
+    const pending = pendingRewardRef.current;
+    if (pending) {
+      pendingRewardRef.current = null;
+      setRewardCopy({
+        title: pending.title,
+        text: `Новая награда: ${pending.hint}!`
+      });
+      setReturnScreen(fallback);
+      go("reward");
+      speak(`Ура! Ты открыл ${pending.title}!`);
+      return;
+    }
+    go(fallback);
+  }
+
+  const backToHub = () => celebrateIfNeeded("modeSelect");
+  const backHome = () => celebrateIfNeeded("home");
+
+  function renderScreen() {
+    switch (screen) {
+      case "home":
+        return (
+          <HomeScreen
+            onGoLearn={() => go("learn")}
+            onPlayGames={() => go("modeSelect")}
+            onOpenStars={() => go("stars")}
+            foxCelebrate={progress.stars >= 20}
+          />
+        );
+      case "modeSelect":
+        return (
+          <GameHubScreen
+            unlockedGames={progress.unlockedGames}
+            onOpenGame={openGame}
+            onStartAdventure={() => go("adventure")}
+            onBack={backHome}
+          />
+        );
+      case "learn":
+        return (
+          <LearnLetters
+            letter={learnLetter}
+            canGoPrev={progress.currentLearnIndex % playLetters.length > 0}
+            onNext={nextLearnLetter}
+            onPrev={prevLearnLetter}
+            onBack={backHome}
+            onHome={backHome}
+            onSpeak={speak}
+          />
+        );
+      case "adventure":
+        return (
+          <AdventurePlay
+            letters={playLetters}
+            stats={progress.letterStats}
+            progress={progress}
+            onCorrect={markCorrect}
+            onMistake={markMistake}
+            onSpeak={speak}
+            onBack={backToHub}
+            onLetterMastered={onLetterMastered}
+          />
+        );
+      case "find":
+        return (
+          <FindLetterGame
+            letters={playLetters}
+            stats={progress.letterStats}
+            trailStep={progress.stars % 5}
+            onCorrect={markCorrect}
+            onMistake={markMistake}
+            onSpeak={speak}
+            onBack={backToHub}
+          />
+        );
+      case "picture":
+        return (
+          <PictureLetterGame
+            letters={playLetters}
+            stats={progress.letterStats}
+            trailStep={progress.stars % 5}
+            onCorrect={markCorrect}
+            onMistake={markMistake}
+            onSpeak={speak}
+            onBack={backToHub}
+          />
+        );
+      case "listen":
+        return (
+          <ListenAndChooseGame
+            letters={playLetters}
+            stats={progress.letterStats}
+            trailStep={progress.stars % 5}
+            onCorrect={markCorrect}
+            onMistake={markMistake}
+            onSpeak={speak}
+            onBack={backToHub}
+          />
+        );
+      case "stars":
+        return (
+          <StarsScreen progress={progress} letters={LETTERS} onBack={backHome} />
+        );
+      case "reward":
+        return (
+          <RewardScreen
+            stars={progress.stars}
+            title={rewardCopy.title}
+            text={rewardCopy.text}
+            onClose={() => go(returnScreen === "reward" ? "home" : returnScreen)}
+          />
+        );
+      default:
+        return (
+          <HomeScreen
+            onGoLearn={() => go("learn")}
+            onPlayGames={() => go("modeSelect")}
+            onOpenStars={() => go("stars")}
+          />
+        );
+    }
   }
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${screen === "home" ? "home-fit" : ""}`}>
       <Progress
         progress={progress}
-        onOpenStars={() => setScreen("stars")}
+        onOpenStars={() => go("stars")}
         onToggleSound={toggleSound}
-        onHome={screen === "home" ? undefined : () => setScreen("home")}
+        onHome={screen === "home" ? undefined : backHome}
         bankPulse={bankPulse}
       />
       {flight ? <FlyingStar {...flight} /> : null}
-      {screen === "home" ? (
-        <HomeScreen
-          onGoLearn={() => setScreen("learn")}
-          onPlayGames={() => setScreen("games")}
-          onOpenStars={() => setScreen("stars")}
-        />
-      ) : null}
-      {screen === "games" ? (
-        <GameHubScreen
-          unlockedGames={progress.unlockedGames}
-          onOpenGame={openGame}
-          onBack={() => setScreen("home")}
-        />
-      ) : null}
-      {screen === "learn" ? (
-        <LearnLetters
-          letter={learnLetter}
-          onNext={nextLearnLetter}
-          onBack={
-            progress.currentLearnIndex === 0 ? () => setScreen("home") : prevLearnLetter
-          }
-          onHome={() => setScreen("home")}
-          onSpeak={speak}
-        />
-      ) : null}
-      {screen === "find" ? (
-        <FindLetterGame
-          letters={LETTERS}
-          mistakes={progress.mistakeCounts}
-          onCorrect={markCorrect}
-          onMistake={markMistake}
-          onSpeak={speak}
-          onBack={() => setScreen("home")}
-        />
-      ) : null}
-      {screen === "picture" ? (
-        <PictureLetterGame
-          letters={LETTERS}
-          mistakes={progress.mistakeCounts}
-          onCorrect={markCorrect}
-          onMistake={markMistake}
-          onSpeak={speak}
-          onBack={() => setScreen("home")}
-        />
-      ) : null}
-      {screen === "listen" ? (
-        <ListenAndChooseGame
-          letters={LETTERS}
-          mistakes={progress.mistakeCounts}
-          onCorrect={markCorrect}
-          onMistake={markMistake}
-          onSpeak={speak}
-          onBack={() => setScreen("home")}
-        />
-      ) : null}
-      {screen === "match" ? (
-        <MatchGame
-          letters={LETTERS}
-          mistakes={progress.mistakeCounts}
-          onCorrect={markCorrect}
-          onMistake={markMistake}
-          onSpeak={speak}
-          onBack={() => setScreen("home")}
-        />
-      ) : null}
-      {screen === "stars" ? (
-        <div className="screen">
-          <WorldBackground variant="play" />
-          <Character mood="celebrate" size="hero" />
-          <div className="title">Мои звёздочки</div>
-          <img className="reward-star" src={assetUrl(ASSETS.ui.stars)} alt="" draggable={false} />
-          <div className="stars-big">★ {progress.stars}</div>
-          <button className="play-btn" onClick={() => setScreen("home")}>
-            Домой
-          </button>
-        </div>
-      ) : null}
+      {renderScreen()}
     </div>
   );
 }

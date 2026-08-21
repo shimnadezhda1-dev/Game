@@ -1,82 +1,80 @@
-import { useEffect, useMemo, useState } from "react";
 import { Character } from "./Character";
-import { LetterItem } from "../types";
-import { audioManager } from "../audio/AudioManager";
-import { randomOptions, weightedLetterPick } from "../utils/selectors";
+import { LetterItem, LetterStats } from "../types";
+import type { Point } from "../utils/point";
 import { LetterVisual } from "./LetterVisual";
 import { BottomNav } from "./BottomNav";
 import { WorldBackground } from "./WorldBackground";
 import { CARD_TONES } from "../utils/cardTones";
-import { Point, pointFromEvent } from "../utils/point";
+import { SpeakButton } from "./SpeakButton";
+import { QuestTrail } from "./QuestTrail";
+import { useRound } from "../utils/useRound";
 
 interface PictureLetterGameProps {
   letters: LetterItem[];
-  mistakes: Record<string, number>;
+  stats: Record<string, LetterStats>;
+  trailStep?: number;
+  lockTarget?: LetterItem;
   onCorrect: (letterId: string, origin?: Point) => void;
   onMistake: (letterId: string) => void;
   onSpeak: (text: string) => void;
   onBack: () => void;
+  onFinished?: () => void;
 }
 
 export function PictureLetterGame({
   letters,
-  mistakes,
+  stats,
+  trailStep = 1,
+  lockTarget,
   onCorrect,
   onMistake,
   onSpeak,
-  onBack
+  onBack,
+  onFinished
 }: PictureLetterGameProps) {
-  const [target, setTarget] = useState<LetterItem>(() => weightedLetterPick(letters, mistakes));
-  const [selected, setSelected] = useState<string | null>(null);
-  const [correct, setCorrect] = useState(false);
-
-  const options = useMemo(() => {
-    const ids = randomOptions(target.id, letters.map((l) => l.id), 3);
-    return ids.map((id) => letters.find((l) => l.id === id)!);
-  }, [target.id, letters]);
-
-  useEffect(() => {
-    onSpeak(`Что начинается на ${target.upper}?`);
-  }, [target.id, onSpeak, target.upper]);
-
-  function nextRound() {
-    setTarget((current) => weightedLetterPick(letters, mistakes, current.id));
-    setSelected(null);
-    setCorrect(false);
-  }
-
-  function choose(id: string, event: { currentTarget: EventTarget }) {
-    if (correct) return;
-    setSelected(id);
-    if (id === target.id) {
-      setCorrect(true);
-      onCorrect(target.id, pointFromEvent(event));
-      window.setTimeout(nextRound, 1700);
-    } else {
-      audioManager.playTryAgain();
-      onMistake(target.id);
-      onSpeak("Попробуй ещё разок!");
-    }
-  }
+  const round = useRound({
+    letters,
+    stats,
+    lockTarget,
+    onCorrect,
+    onMistake,
+    onSpeak,
+    onFinished,
+    speakPrompt: (letter) => `Что начинается на ${letter.upper}?`,
+    praise: (letter) => `Правильно! Это ${letter.word}!`
+  });
 
   return (
-    <div className="screen has-bottom-nav">
+    <div className="screen game-screen has-bottom-nav">
       <WorldBackground variant="play" />
-      <Character mood={correct ? "happy" : "tip"} message={correct ? "Молодец!" : "Что начинается на эту букву?"} />
-      <div className="task-title letter-task">{target.upper}</div>
+      <QuestTrail step={trailStep} />
+      <Character
+        mood={round.phase === "feedback" ? "happy" : "tip"}
+        message={round.phase === "feedback" ? "Молодец!" : `Что начинается на ${round.target.upper}?`}
+      />
+      <div className="letter-anchor">{round.target.upper}</div>
+      <SpeakButton onClick={round.replay} disabled={round.phase === "feedback"} />
       <div className="cards-row picture-row">
-        {options.map((item, index) => (
-          <button
-            key={item.id}
-            className={`option-card picture-option ${CARD_TONES[index % CARD_TONES.length]} ${
-              selected === item.id && item.id !== target.id ? "shake" : ""
-            } ${correct && item.id === target.id ? "correct pop" : ""}`}
-            onClick={(event) => choose(item.id, event)}
-          >
-            <LetterVisual letter={item} size="card" />
-            <span className="word">{item.word}</span>
-          </button>
-        ))}
+        {round.options.map((id, index) => {
+          const item = letters.find((letter) => letter.id === id);
+          if (!item) {
+            return null;
+          }
+          const isWrongPick = round.selected === id && id !== round.target.id;
+          const isCorrectPick = round.phase === "feedback" && id === round.target.id;
+          return (
+            <button
+              key={`${item.id}-${isWrongPick ? round.shakeNonce : "ok"}`}
+              className={`option-card picture-option ${CARD_TONES[index % CARD_TONES.length]} ${
+                isWrongPick ? "shake" : ""
+              } ${isCorrectPick ? "correct pop" : ""}`}
+              onClick={(event) => round.choose(id, event)}
+            >
+              <LetterVisual letter={item} size="card" />
+              <span className="word">{item.word}</span>
+            </button>
+          );
+        })}
       </div>
       <BottomNav onBack={onBack} onHome={onBack} />
     </div>

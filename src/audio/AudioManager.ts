@@ -38,7 +38,7 @@ class AudioManager {
   setEnabled(value: boolean): void {
     this.enabled = value;
     if (!value) {
-      this.stop();
+      this.stopSpeaking();
     }
   }
 
@@ -50,7 +50,7 @@ class AudioManager {
     if (!this.enabled || !("speechSynthesis" in window)) {
       return;
     }
-    this.stop();
+    this.stopSpeaking();
     const utterance = new SpeechSynthesisUtterance(softenText(text));
     utterance.lang = "ru-RU";
     utterance.rate = 0.92;
@@ -98,7 +98,7 @@ class AudioManager {
     }
   }
 
-  private stop(): void {
+  stopSpeaking(): void {
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }

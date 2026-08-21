@@ -1,50 +1,73 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LetterItem } from "../types";
 import { Character } from "./Character";
 import { LetterVisual } from "./LetterVisual";
 import { BottomNav } from "./BottomNav";
 import { WorldBackground } from "./WorldBackground";
+import { SpeakButton } from "./SpeakButton";
 
 interface LearnLettersProps {
   letter: LetterItem;
+  canGoPrev: boolean;
   onNext: () => void;
+  onPrev: () => void;
   onSpeak: (text: string) => void;
   onBack: () => void;
   onHome: () => void;
 }
 
-export function LearnLetters({ letter, onNext, onSpeak, onBack, onHome }: LearnLettersProps) {
+export function LearnLetters({
+  letter,
+  canGoPrev,
+  onNext,
+  onPrev,
+  onSpeak,
+  onBack,
+  onHome
+}: LearnLettersProps) {
   const [speaking, setSpeaking] = useState(false);
+  const timerRef = useRef<number | null>(null);
 
   function speakLetter() {
+    if (timerRef.current !== null) {
+      window.clearTimeout(timerRef.current);
+    }
     setSpeaking(true);
     onSpeak(letter.voiceText);
-    window.setTimeout(() => setSpeaking(false), 1200);
+    timerRef.current = window.setTimeout(() => setSpeaking(false), 1400);
   }
 
   useEffect(() => {
-    setSpeaking(true);
-    onSpeak(letter.voiceText);
-    const timer = window.setTimeout(() => setSpeaking(false), 1200);
-    return () => window.clearTimeout(timer);
-  }, [letter.id, letter.voiceText, onSpeak]);
+    speakLetter();
+    return () => {
+      if (timerRef.current !== null) {
+        window.clearTimeout(timerRef.current);
+      }
+    };
+  }, [letter.id]);
 
   return (
     <div className="screen learn-screen has-bottom-nav">
       <WorldBackground variant="play" />
-      <Character mood="neutral" message="Слушай и повторяй!" />
-      <div className={`hero-letter ${speaking ? "letter-bounce" : ""}`}>{letter.upper}</div>
-      <div className="hero-lower">{letter.lower}</div>
-      <div className="hero-art">
-        <LetterVisual letter={letter} size="hero" />
+      <Character mood="neutral" message="Слушай и смотри!" />
+      <div className="learn-stage">
+        <div className="learn-letter-col">
+          <div className={`hero-letter ${speaking ? "letter-bounce" : ""}`}>{letter.upper}</div>
+          <div className="hero-lower">{letter.lower}</div>
+        </div>
+        <div className="hero-art">
+          <LetterVisual letter={letter} size="hero" />
+        </div>
       </div>
       <div className="caption">
         {letter.upper} — {letter.word}
       </div>
-      <button className="listen-btn" onClick={speakLetter}>
-        🔊 Послушать
-      </button>
-      <BottomNav onBack={onBack} onNext={onNext} onHome={onHome} />
+      <SpeakButton onClick={speakLetter} />
+      <BottomNav
+        onBack={canGoPrev ? onPrev : onBack}
+        onNext={onNext}
+        onHome={onHome}
+      />
     </div>
   );
 }

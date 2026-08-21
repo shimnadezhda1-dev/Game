@@ -1,4 +1,5 @@
-import { LetterItem } from "../types";
+import { LetterItem, LetterStats, ProgressState } from "../types";
+import { LETTER_GROUPS, LETTERS } from "../data/letters";
 
 export function shuffle<T>(items: T[]): T[] {
   const arr = [...items];
@@ -9,17 +10,62 @@ export function shuffle<T>(items: T[]): T[] {
   return arr;
 }
 
+export function emptyStats(): LetterStats {
+  return { correctCount: 0, wrongCount: 0, lastPracticed: 0 };
+}
+
+export function getLetterStats(
+  stats: Record<string, LetterStats>,
+  letterId: string
+): LetterStats {
+  return stats[letterId] ?? emptyStats();
+}
+
+export function unlockedLetters(progress: ProgressState, letters: LetterItem[] = LETTERS): LetterItem[] {
+  const maxGroup = Math.max(0, progress.unlockedGroupIndex);
+  const pool = letters.filter((letter) => letter.group <= maxGroup);
+  return pool.length ? pool : letters.slice(0, 3);
+}
+
+export function isLetterMastered(progress: ProgressState, letterId: string): boolean {
+  if (progress.learnedLetterIds.includes(letterId)) {
+    return true;
+  }
+  return getLetterStats(progress.letterStats, letterId).correctCount >= 3;
+}
+
+export function masteredCount(progress: ProgressState, letters: LetterItem[] = LETTERS): number {
+  return letters.filter((letter) => isLetterMastered(progress, letter.id)).length;
+}
+
+export function maybeUnlockNextGroup(progress: ProgressState, letters: LetterItem[] = LETTERS): number {
+  const currentGroup = LETTER_GROUPS[progress.unlockedGroupIndex] ?? [];
+  if (!currentGroup.length) {
+    return progress.unlockedGroupIndex;
+  }
+  const allMastered = currentGroup.every((id) => isLetterMastered(progress, id));
+  if (!allMastered) {
+    return progress.unlockedGroupIndex;
+  }
+  const next = progress.unlockedGroupIndex + 1;
+  return next < LETTER_GROUPS.length ? next : progress.unlockedGroupIndex;
+}
+
 export function weightedLetterPick(
   letters: LetterItem[],
-  mistakeCounts: Record<string, number>,
+  stats: Record<string, LetterStats>,
   excludeId?: string
 ): LetterItem {
   const pool =
     letters.length > 1 && excludeId ? letters.filter((letter) => letter.id !== excludeId) : letters;
+  const now = Date.now();
 
   const weighted = pool.map((letter) => {
-    const mistakes = Math.min(mistakeCounts[letter.id] ?? 0, 2);
-    return { letter, weight: 1 + mistakes };
+    const item = getLetterStats(stats, letter.id);
+    const recencyBoost = item.lastPracticed && now - item.lastPracticed > 60_000 ? 0.4 : 0;
+    const weakBoost = item.correctCount === 0 ? 1.2 : Math.max(0, 2 - item.correctCount) * 0.35;
+    const weight = 1 + item.wrongCount * 1.8 + weakBoost + recencyBoost;
+    return { letter, weight };
   });
 
   const total = weighted.reduce((sum, item) => sum + item.weight, 0);

@@ -1,15 +1,17 @@
-export type GameId = "find" | "picture" | "listen" | "match";
+export type GameId = "find" | "picture" | "listen";
 
 export type Screen =
   | "home"
-  | "games"
+  | "modeSelect"
   | "learn"
+  | "adventure"
   | "find"
   | "picture"
   | "listen"
-  | "match"
   | "stars"
   | "reward";
+
+export type RoundPhase = "question" | "feedback";
 
 export interface LetterItem {
   id: string;
@@ -19,6 +21,13 @@ export interface LetterItem {
   imagePath: string;
   voiceText: string;
   difficulty: number;
+  group: number;
+}
+
+export interface LetterStats {
+  correctCount: number;
+  wrongCount: number;
+  lastPracticed: number;
 }
 
 export interface ProgressState {
@@ -28,5 +37,8 @@ export interface ProgressState {
   stars: number;
   unlockedGames: GameId[];
   mistakeCounts: Record<string, number>;
+  letterStats: Record<string, LetterStats>;
+  unlockedGroupIndex: number;
+  unlockedRewards: string[];
   soundEnabled: boolean;
 }

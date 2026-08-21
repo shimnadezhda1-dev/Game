@@ -1,89 +1,86 @@
-import { useEffect, useMemo, useState } from "react";
 import { Character } from "./Character";
-import { LetterItem } from "../types";
-import { audioManager } from "../audio/AudioManager";
-import { randomOptions, weightedLetterPick } from "../utils/selectors";
+import { LetterItem, LetterStats } from "../types";
+import type { Point } from "../utils/point";
 import { BottomNav } from "./BottomNav";
-import { Point, pointFromEvent } from "../utils/point";
 import { WorldBackground } from "./WorldBackground";
 import { CARD_TONES } from "../utils/cardTones";
+import { SpeakButton } from "./SpeakButton";
+import { QuestTrail } from "./QuestTrail";
+import { useRound } from "../utils/useRound";
 
 interface FindLetterGameProps {
   letters: LetterItem[];
-  mistakes: Record<string, number>;
+  stats: Record<string, LetterStats>;
+  trailStep?: number;
+  lockTarget?: LetterItem;
   onCorrect: (letterId: string, origin?: Point) => void;
   onMistake: (letterId: string) => void;
   onSpeak: (text: string) => void;
   onBack: () => void;
+  onFinished?: () => void;
 }
 
 export function FindLetterGame({
   letters,
-  mistakes,
+  stats,
+  trailStep = 0,
+  lockTarget,
   onCorrect,
   onMistake,
   onSpeak,
-  onBack
+  onBack,
+  onFinished
 }: FindLetterGameProps) {
-  const [target, setTarget] = useState<LetterItem>(() => weightedLetterPick(letters, mistakes));
-  const [wrongCount, setWrongCount] = useState(0);
-  const [selected, setSelected] = useState<string | null>(null);
-  const [correct, setCorrect] = useState(false);
-
-  const options = useMemo(
-    () => randomOptions(target.id, letters.map((l) => l.id), 3),
-    [target.id, letters]
-  );
-
-  useEffect(() => {
-    onSpeak(`Найди букву ${target.upper}`);
-  }, [target.id, onSpeak, target.upper]);
-
-  function nextRound() {
-    setTarget((current) => weightedLetterPick(letters, mistakes, current.id));
-    setWrongCount(0);
-    setSelected(null);
-    setCorrect(false);
-  }
-
-  function handleChoose(id: string, event: { currentTarget: EventTarget }) {
-    if (correct) return;
-    setSelected(id);
-    if (id === target.id) {
-      setCorrect(true);
-      onCorrect(target.id, pointFromEvent(event));
-      window.setTimeout(nextRound, 1700);
-    } else {
-      audioManager.playTryAgain();
-      onMistake(target.id);
-      setWrongCount((prev) => prev + 1);
-      onSpeak("Попробуй ещё разок!");
-    }
-  }
+  const round = useRound({
+    letters,
+    stats,
+    lockTarget,
+    onCorrect,
+    onMistake,
+    onSpeak,
+    onFinished,
+    speakPrompt: (letter) => `Найди букву ${letter.upper}`,
+    praise: (letter) => `Правильно! Это буква ${letter.upper}!`
+  });
 
   return (
-    <div className="screen has-bottom-nav">
+    <div className="screen game-screen has-bottom-nav">
       <WorldBackground variant="play" />
-      <Character mood={correct ? "happy" : "tip"} message={correct ? "Молодец!" : "Найди букву"} />
-      <div className="task-title">Найди: {target.upper}</div>
+      <QuestTrail step={trailStep} />
+      <Character
+        mood={round.phase === "feedback" ? "happy" : "tip"}
+        message={round.phase === "feedback" ? "Молодец!" : `Найди букву ${round.target.upper}`}
+      />
+      <SpeakButton onClick={round.replay} disabled={round.phase === "feedback"} />
+      <div className="task-pill">
+        Найди <span>{round.target.upper}</span>
+      </div>
       <div className="cards-row">
-        {options.map((id, index) => {
-          const letter = letters.find((item) => item.id === id)!;
-          const isSelected = selected === id;
-          const showHint = wrongCount >= 2 && id === target.id && !correct;
+        {round.options.map((id, index) => {
+          const letter = letters.find((item) => item.id === id);
+          if (!letter) {
+            return null;
+          }
+          const isWrongPick = round.selected === id && id !== round.target.id;
+          const isCorrectPick = round.phase === "feedback" && id === round.target.id;
+          const showHint = round.wrongCount >= 2 && id === round.target.id && round.phase === "question";
           const className = [
             "option-card",
             CARD_TONES[index % CARD_TONES.length],
-            isSelected && id !== target.id ? "shake" : "",
-            correct && id === target.id ? "correct pop" : "",
+            isWrongPick ? "shake" : "",
+            isCorrectPick ? "correct pop" : "",
             showHint ? "hint" : ""
           ]
             .join(" ")
             .trim();
           return (
-            <button key={id} className={className} onClick={(event) => handleChoose(id, event)}>
+            <button
+              key={`${id}-${isWrongPick ? round.shakeNonce : "ok"}`}
+              className={className}
+              onClick={(event) => round.choose(id, event)}
+            >
               {letter.upper}
-              {correct && id === target.id ? <span className="card-sparkle">✨</span> : null}
+              {isCorrectPick ? <span className="card-sparkle">✨</span> : null}
             </button>
           );
         })}

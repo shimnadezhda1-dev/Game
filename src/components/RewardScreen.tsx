@@ -4,14 +4,20 @@ import { assetUrl, ASSETS } from "../utils/assets";
 
 interface RewardScreenProps {
   stars: number;
+  title?: string;
+  text?: string;
   onClose: () => void;
 }
 
-export function RewardScreen({ stars, onClose }: RewardScreenProps) {
+export function RewardScreen({
+  stars,
+  title = "УРА!",
+  text = "Ты заработал звёздочку!",
+  onClose
+}: RewardScreenProps) {
   return (
     <div className="screen reward-screen">
-      <WorldBackground variant="cover" />
-      <div className="reward-veil" />
+      <WorldBackground variant="play" />
       <div className="confetti-layer" aria-hidden>
         {Array.from({ length: 14 }).map((_, index) => (
           <span key={index} className={`confetti-bit bit-${index % 6}`} />
@@ -19,10 +25,10 @@ export function RewardScreen({ stars, onClose }: RewardScreenProps) {
       </div>
       <Character mood="celebrate" size="hero" message="Ты супер!" />
       <img className="reward-star" src={assetUrl(ASSETS.ui.stars)} alt="" draggable={false} />
-      <h2 className="title reward-ura">УРА!</h2>
-      <div className="reward-text">Ты заработал звёздочку!</div>
+      <h2 className="title reward-ura">{title}</h2>
+      <div className="reward-text">{text}</div>
       <div className="stars-count">★ {stars}</div>
-      <button className="play-btn" onClick={onClose}>
+      <button className="play-btn compact-play" onClick={onClose}>
         ИГРАТЬ ДАЛЬШЕ →
       </button>
     </div>
