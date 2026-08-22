@@ -3072,24 +3072,29 @@ body {
 .home-stage {
   position: relative;
   z-index: 3;
-  width: min(920px, 96vw);
+  width: min(1100px, 96vw);
   max-height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 0;
 }
 
 .home-rainbow {
   display: block;
-  width: 72%;
-  max-width: 680px;
-  height: auto;
-  margin: 0 0 -28px;
+  width: min(94vw, 1040px);
+  height: clamp(220px, 38vh, 400px);
+  object-fit: contain;
+  object-position: center;
+  margin: 0 0 clamp(-40px, -5.5vh, -12px);
   pointer-events: none;
+  flex: 0 0 auto;
 }
 
 .home-cluster {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -3205,8 +3210,9 @@ body {
 
 @media (max-width: 720px) {
   .home-rainbow {
-    width: 86%;
-    margin-bottom: -18px;
+    width: min(96vw, 1040px);
+    height: clamp(180px, 32vh, 280px);
+    margin-bottom: -16px;
   }
 
   .home-cluster {
@@ -3221,16 +3227,21 @@ body {
 
 @media (max-height: 768px) {
   .home-rainbow {
-    width: 68%;
-    margin-bottom: -22px;
+    height: clamp(200px, 36vh, 280px);
+    margin-bottom: -28px;
   }
 
   .home-fox-art {
-    width: clamp(140px, 24vh, 210px);
+    width: clamp(140px, 22vh, 200px);
   }
 
   .screen.home-screen .home-play-btn {
-    min-height: 68px;
+    min-height: 64px;
     font-size: clamp(26px, 4.2vh, 38px);
+  }
+
+  .home-block {
+    width: clamp(52px, 8vh, 70px);
+    height: clamp(56px, 8.4vh, 74px);
   }
 }

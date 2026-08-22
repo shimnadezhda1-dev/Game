@@ -43,7 +43,7 @@ export function HomeScreen({
       <div className="home-stage">
         <img
           className="home-rainbow"
-          src={assetUrl("/assets/home/rainbow.png")}
+          src={assetUrl("/assets/home/rainbow-3d.png")}
           alt=""
           draggable={false}
         />
