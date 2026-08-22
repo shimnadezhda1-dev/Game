@@ -2,7 +2,7 @@ import { assetUrl } from "../utils/assets";
 
 const MUSIC_KEY = "happy-alphabet-music-v1";
 const NORMAL_VOLUME = 0.12;
-const DUCK_VOLUME = 0.035;
+const DUCK_VOLUME = 0.05;
 const MUSIC_SRC = "/audio/music/background.wav";
 
 class BackgroundMusicManager {
@@ -10,6 +10,7 @@ class BackgroundMusicManager {
   private enabled = true;
   private started = false;
   private ducking = false;
+  private fadeTimer: number | null = null;
   private listeners = new Set<() => void>();
 
   constructor() {
@@ -33,7 +34,7 @@ class BackgroundMusicManager {
     this.listeners.forEach((listener) => listener());
   }
 
-  private currentVolume(): number {
+  private targetVolume(): number {
     if (!this.enabled) {
       return 0;
     }
@@ -45,19 +46,53 @@ class BackgroundMusicManager {
       const audio = new Audio(assetUrl(MUSIC_SRC));
       audio.loop = true;
       audio.preload = "auto";
-      audio.volume = this.currentVolume();
+      audio.volume = this.targetVolume();
       this.audio = audio;
     }
     return this.audio;
   }
 
+  private fadeTo(target: number, ms = 320): void {
+    if (!this.audio) {
+      return;
+    }
+    if (this.fadeTimer !== null) {
+      window.clearInterval(this.fadeTimer);
+      this.fadeTimer = null;
+    }
+    const audio = this.audio;
+    const start = audio.volume;
+    if (Math.abs(start - target) < 0.004) {
+      audio.volume = target;
+      return;
+    }
+    const steps = Math.max(6, Math.round(ms / 32));
+    let step = 0;
+    this.fadeTimer = window.setInterval(() => {
+      step += 1;
+      const t = step / steps;
+      const eased = t * t * (3 - 2 * t);
+      audio.volume = start + (target - start) * eased;
+      if (step >= steps) {
+        audio.volume = target;
+        if (this.fadeTimer !== null) {
+          window.clearInterval(this.fadeTimer);
+          this.fadeTimer = null;
+        }
+      }
+    }, 32);
+  }
+
   startFromGesture(): void {
+    if (this.started && this.audio && !this.audio.paused) {
+      return;
+    }
     this.started = true;
     if (!this.enabled) {
       return;
     }
     const audio = this.ensureAudio();
-    audio.volume = this.currentVolume();
+    audio.volume = this.targetVolume();
     void audio.play().catch(() => {
       // Autoplay can still fail; next gesture retries.
     });
@@ -65,16 +100,12 @@ class BackgroundMusicManager {
 
   duck(): void {
     this.ducking = true;
-    if (this.audio) {
-      this.audio.volume = this.currentVolume();
-    }
+    this.fadeTo(this.targetVolume(), 280);
   }
 
   unduck(): void {
     this.ducking = false;
-    if (this.audio) {
-      this.audio.volume = this.currentVolume();
-    }
+    this.fadeTo(this.targetVolume(), 420);
   }
 
   setEnabled(value: boolean): void {
@@ -90,7 +121,7 @@ class BackgroundMusicManager {
       return;
     }
     if (this.audio) {
-      this.audio.volume = this.currentVolume();
+      this.fadeTo(this.targetVolume(), 240);
       if (value && this.started) {
         void this.audio.play().catch(() => undefined);
       } else {

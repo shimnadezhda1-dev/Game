@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Character } from "./Character";
+import { Rainbow } from "./Rainbow";
 import { WorldBackground } from "./WorldBackground";
-import { LettersMiniArt, RewardsMiniArt } from "./HomeActionArts";
+import { assetUrl, ASSETS } from "../utils/assets";
 
 interface HomeScreenProps {
   onGoLearn: () => void;
@@ -10,16 +11,6 @@ interface HomeScreenProps {
   onSpeak: (text: string, options?: { key?: string; onEnd?: () => void }) => void;
   foxCelebrate?: boolean;
 }
-
-const TITLE = [
-  ["В", "#ff5d7a"],
-  ["е", "#ff9f1c"],
-  ["с", "#ffd93d"],
-  ["ё", "#7ed957"],
-  ["л", "#2ec4b6"],
-  ["ы", "#4d9fff"],
-  ["й", "#7c4dff"]
-];
 
 const FIRST_VISIT_KEY = "happy-alphabet-first-visit-v1";
 
@@ -47,40 +38,33 @@ export function HomeScreen({
   return (
     <div className="screen home-screen">
       <WorldBackground variant="cover" />
-      <h1 className="logo-title" aria-label="Весёлый алфавит">
-        {TITLE.map(([letter, color], index) => (
-          <span key={`${letter}-${index}`} style={{ color }}>
-            {letter}
-          </span>
-        ))}
-        <br />
-        <span className="logo-rest">алфавит</span>
-      </h1>
+      <Rainbow />
+      <h1 className="visually-hidden">Весёлый алфавит</h1>
       <div className="home-hero">
         <div className="home-fox">
           <Character mood={foxCelebrate ? "celebrate" : "happy"} size="hero" />
         </div>
-        <button
-          className={`play-btn home-play-btn ${pulsePlay ? "home-play-hint" : ""}`}
-          onClick={onPlayGames}
-          aria-label="Играть"
-        >
-          <span className="home-play-glyph" aria-hidden="true">
-            ▶
-          </span>
-          <span className="home-play-label">ИГРАТЬ</span>
-        </button>
+        <div className="home-cta">
+          <button
+            className={`play-btn home-play-btn ${pulsePlay ? "home-play-hint" : ""}`}
+            onClick={onPlayGames}
+            aria-label="Играть"
+          >
+            <span className="home-play-glyph" aria-hidden="true">
+              ▶
+            </span>
+            <span className="home-play-label">ИГРАТЬ</span>
+          </button>
+          <button className="home-abc" onClick={onGoLearn} aria-label="Буквы">
+            <span className="toy-cube tone-pink">А</span>
+            <span className="toy-cube tone-orange">Б</span>
+            <span className="toy-cube tone-teal">В</span>
+          </button>
+        </div>
       </div>
-      <div className="home-secondary">
-        <button className="home-mini home-mini-letters" onClick={onGoLearn} aria-label="Буквы">
-          <LettersMiniArt />
-          <span className="home-mini-label">Буквы</span>
-        </button>
-        <button className="home-mini home-mini-rewards" onClick={onOpenStars} aria-label="Награды">
-          <RewardsMiniArt />
-          <span className="home-mini-label">Награды</span>
-        </button>
-      </div>
+      <button className="home-chest" onClick={onOpenStars} aria-label="Награды">
+        <img src={assetUrl(ASSETS.ui.rewards)} alt="" draggable={false} />
+      </button>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 export const VOICE_FILES = {
   welcome: "/audio/voice/welcome.mp3",
   "try-again": "/audio/voice/try-again.mp3",
+  "listen-prompt": "/audio/voice/listen-prompt.mp3",
   "letter-a": "/audio/voice/letter-a.mp3",
   "letter-b": "/audio/voice/letter-b.mp3",
   "letter-v": "/audio/voice/letter-v.mp3",
@@ -11,6 +12,11 @@ export const VOICE_FILES = {
   "find-v": "/audio/voice/find-v.mp3",
   "find-g": "/audio/voice/find-g.mp3",
   "find-d": "/audio/voice/find-d.mp3",
+  "picture-a": "/audio/voice/picture-a.mp3",
+  "picture-b": "/audio/voice/picture-b.mp3",
+  "picture-v": "/audio/voice/picture-v.mp3",
+  "picture-g": "/audio/voice/picture-g.mp3",
+  "picture-d": "/audio/voice/picture-d.mp3",
   "correct-a": "/audio/voice/correct-a.mp3",
   "correct-b": "/audio/voice/correct-b.mp3",
   "correct-v": "/audio/voice/correct-v.mp3",
@@ -31,7 +37,7 @@ export const VOICE_FILES = {
 export type VoiceKey = keyof typeof VOICE_FILES;
 
 export function letterVoiceKey(
-  kind: "letter" | "find" | "correct" | "listen" | "reward",
+  kind: "letter" | "find" | "picture" | "correct" | "listen" | "reward",
   letterId: string
 ): VoiceKey {
   return `${kind}-${letterId.toLowerCase()}` as VoiceKey;

@@ -1,10 +1,10 @@
 import { LetterItem, LetterStats } from "../types";
 import type { Point } from "../utils/point";
-import { CARD_TONES } from "../utils/cardTones";
-import { useRound } from "../utils/useRound";
 import { letterVoiceKey } from "../audio/voiceCatalog";
+import { useRound } from "../utils/useRound";
 import { GameStage } from "./GameStage";
 import { LetterTile } from "./LetterTile";
+import { SpeakButton } from "./SpeakButton";
 
 interface ListenAndChooseGameProps {
   letters: LetterItem[];
@@ -43,8 +43,12 @@ export function ListenAndChooseGame({
     onMistake,
     onSpeak,
     onFinished,
-    speakPrompt: (letter) => letter.upper,
-    speakKey: (letter) => letterVoiceKey("listen", letter.id),
+    speakPrompt: () => "Послушай и выбери букву!",
+    speakKey: () => "listen-prompt",
+    speakFollowUp: (letter) => ({
+      text: `${letter.upper}-а-а`,
+      key: letterVoiceKey("listen", letter.id)
+    }),
     praise: (letter) => `Молодец! Это буква ${letter.upper}!`,
     praiseKey: (letter) => letterVoiceKey("correct", letter.id)
   });
@@ -52,7 +56,7 @@ export function ListenAndChooseGame({
   return (
     <GameStage
       foxMood={round.phase === "feedback" ? "celebrate" : "tip"}
-      bubble={round.phase === "feedback" ? "Молодец!" : "Послушай!"}
+      bubble={round.phase === "feedback" ? "Молодец!" : "Послушай и выбери букву!"}
       onReplay={round.replay}
       replayKey={round.target.id}
       replayDisabled={round.phase === "feedback"}
@@ -60,8 +64,11 @@ export function ListenAndChooseGame({
       onNext={awaitNext ? round.continueRound : undefined}
       showNext={awaitNext && round.phase === "feedback"}
     >
+      <div className="listen-speaker">
+        <SpeakButton onClick={round.replay} disabled={round.phase === "feedback"} hintKey={round.target.id} />
+      </div>
       <div className="tiles-row">
-        {round.options.map((id, index) => {
+        {round.options.map((id) => {
           const letter = letters.find((item) => item.id === id);
           if (!letter) {
             return null;
@@ -70,7 +77,6 @@ export function ListenAndChooseGame({
             <LetterTile
               key={`${id}-${round.shakeNonce}`}
               letter={letter}
-              index={index % CARD_TONES.length}
               wrong={round.selected === id && id !== round.target.id}
               correct={round.phase === "feedback" && id === round.target.id}
               hint={round.wrongCount >= 2 && id === round.target.id && round.phase === "question"}

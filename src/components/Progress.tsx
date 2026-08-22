@@ -1,5 +1,6 @@
 import { ProgressState } from "../types";
 import { assetUrl, ASSETS } from "../utils/assets";
+import { GoldStarIcon, MusicNoteIcon, SpeakerMuteIcon } from "./ToyIcons";
 
 interface ProgressProps {
   progress: ProgressState;
@@ -9,6 +10,7 @@ interface ProgressProps {
   musicOn: boolean;
   onHome?: () => void;
   bankPulse?: boolean;
+  homeMode?: boolean;
 }
 
 export function Progress({
@@ -18,10 +20,11 @@ export function Progress({
   onToggleMusic,
   musicOn,
   onHome,
-  bankPulse
+  bankPulse,
+  homeMode = false
 }: ProgressProps) {
   return (
-    <div className="top-bar">
+    <div className={`top-bar ${homeMode ? "top-bar-home" : ""}`}>
       {onHome ? (
         <button className="icon-round home-btn" onClick={onHome} aria-label="Домой">
           <img src={assetUrl(ASSETS.ui.home)} alt="" draggable={false} />
@@ -30,30 +33,34 @@ export function Progress({
         <span />
       )}
       <div className="top-bar-right">
-        <button
-          id="star-bank"
-          className={`icon-round star-bank ${bankPulse ? "star-bank-pulse" : ""}`}
-          onClick={onOpenStars}
-          aria-label="Мои награды"
-        >
-          <img src={assetUrl(ASSETS.ui.rewards)} alt="" draggable={false} />
-          <span className="star-count">{progress.stars}</span>
-        </button>
+        {homeMode ? null : (
+          <button
+            id="star-bank"
+            className={`icon-round star-bank ${bankPulse ? "star-bank-pulse" : ""}`}
+            onClick={onOpenStars}
+            aria-label="Мои награды"
+          >
+            <GoldStarIcon />
+            <span className="star-count">{progress.stars}</span>
+          </button>
+        )}
         <button
           className={`icon-round music-btn ${musicOn ? "" : "is-off"}`}
           onClick={onToggleMusic}
           aria-label={musicOn ? "Музыка включена" : "Музыка выключена"}
           title="Музыка"
         >
-          {musicOn ? "♪" : "♩"}
+          <MusicNoteIcon />
         </button>
-        <button
-          className="icon-round sound-btn"
-          onClick={onToggleSound}
-          aria-label={progress.soundEnabled ? "Звук включён" : "Звук выключен"}
-        >
-          {progress.soundEnabled ? "🔊" : "🔇"}
-        </button>
+        {homeMode ? null : (
+          <button
+            className={`icon-round sound-btn ${progress.soundEnabled ? "" : "is-off"}`}
+            onClick={onToggleSound}
+            aria-label={progress.soundEnabled ? "Звук включён" : "Звук выключен"}
+          >
+            <SpeakerMuteIcon muted={!progress.soundEnabled} />
+          </button>
+        )}
       </div>
     </div>
   );

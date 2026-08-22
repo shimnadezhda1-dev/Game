@@ -1,22 +1,21 @@
-import { Character } from "./Character";
 import { LetterItem, LetterStats } from "../types";
 import type { Point } from "../utils/point";
-import { LetterVisual } from "./LetterVisual";
-import { BottomNav } from "./BottomNav";
-import { WorldBackground } from "./WorldBackground";
-import { CARD_TONES } from "../utils/cardTones";
-import { SpeakButton } from "./SpeakButton";
-import { QuestTrail } from "./QuestTrail";
+import { letterVoiceKey } from "../audio/voiceCatalog";
+import { letterTone } from "../utils/cardTones";
 import { useRound } from "../utils/useRound";
+import { GameStage } from "./GameStage";
+import { LetterVisual } from "./LetterVisual";
 
 interface PictureLetterGameProps {
   letters: LetterItem[];
   stats: Record<string, LetterStats>;
   trailStep?: number;
   lockTarget?: LetterItem;
+  optionIds?: string[];
+  awaitNext?: boolean;
   onCorrect: (letterId: string, origin?: Point) => void;
   onMistake: (letterId: string) => void;
-  onSpeak: (text: string) => void;
+  onSpeak: (text: string, options?: { key?: string; onEnd?: () => void }) => void;
   onBack: () => void;
   onFinished?: () => void;
 }
@@ -24,8 +23,9 @@ interface PictureLetterGameProps {
 export function PictureLetterGame({
   letters,
   stats,
-  trailStep = 1,
   lockTarget,
+  optionIds,
+  awaitNext = false,
   onCorrect,
   onMistake,
   onSpeak,
@@ -36,26 +36,36 @@ export function PictureLetterGame({
     letters,
     stats,
     lockTarget,
+    optionIds,
+    awaitNext,
     onCorrect,
     onMistake,
     onSpeak,
     onFinished,
     speakPrompt: (letter) => `Что начинается на букву ${letter.upper}?`,
-    praise: (letter) => `Молодец! Это буква ${letter.upper}!`
+    speakKey: (letter) => letterVoiceKey("picture", letter.id),
+    praise: (letter) => `Молодец! Это ${letter.word.toLowerCase()}!`,
+    praiseKey: (letter) => letterVoiceKey("correct", letter.id)
   });
 
+  const bubble =
+    round.phase === "feedback"
+      ? "Молодец!"
+      : `Что начинается на букву ${round.target.upper}?`;
+
   return (
-    <div className="screen game-screen has-bottom-nav">
-      <WorldBackground variant="play" />
-      <QuestTrail step={trailStep} />
-      <Character
-        mood={round.phase === "feedback" ? "happy" : "tip"}
-        message={round.phase === "feedback" ? "Молодец!" : `Что начинается на ${round.target.upper}?`}
-      />
-      <div className="letter-anchor">{round.target.upper}</div>
-      <SpeakButton onClick={round.replay} disabled={round.phase === "feedback"} hintKey={round.target.id} />
-      <div className="cards-row picture-row">
-        {round.options.map((id, index) => {
+    <GameStage
+      foxMood={round.phase === "feedback" ? "celebrate" : "tip"}
+      bubble={bubble}
+      onReplay={round.replay}
+      replayKey={round.target.id}
+      replayDisabled={round.phase === "feedback"}
+      onBack={onBack}
+      onNext={awaitNext ? round.continueRound : undefined}
+      showNext={awaitNext && round.phase === "feedback"}
+    >
+      <div className="tiles-row picture-tiles">
+        {round.options.map((id) => {
           const item = letters.find((letter) => letter.id === id);
           if (!item) {
             return null;
@@ -65,18 +75,24 @@ export function PictureLetterGame({
           return (
             <button
               key={`${item.id}-${isWrongPick ? round.shakeNonce : "ok"}`}
-              className={`option-card picture-option ${CARD_TONES[index % CARD_TONES.length]} ${
-                isWrongPick ? "shake" : ""
-              } ${isCorrectPick ? "correct pop" : ""}`}
+              className={`picture-tile ${letterTone(item.id)} ${isWrongPick ? "shake" : ""} ${
+                isCorrectPick ? "tile-correct" : ""
+              }`}
               onClick={(event) => round.choose(id, event)}
+              aria-label={item.word}
             >
               <LetterVisual letter={item} size="card" />
-              <span className="word">{item.word}</span>
+              {isCorrectPick ? (
+                <span className="tile-sparkles" aria-hidden="true">
+                  <i />
+                  <i />
+                  <i />
+                </span>
+              ) : null}
             </button>
           );
         })}
       </div>
-      <BottomNav onBack={onBack} onHome={onBack} />
-    </div>
+    </GameStage>
   );
 }

@@ -8,7 +8,7 @@ export const LETTERS: LetterItem[] = [
     lower: "а",
     word: "Арбуз",
     imagePath: ASSETS.letters.A,
-    voiceText: "Это буква А. А-а-а. А — арбуз!",
+    voiceText: "Это буква А! А-а-а! А — арбуз!",
     difficulty: 1,
     group: 0
   },
@@ -18,7 +18,7 @@ export const LETTERS: LetterItem[] = [
     lower: "б",
     word: "Барабан",
     imagePath: ASSETS.letters.B,
-    voiceText: "Это буква Б. Б-бэ. Б — барабан!",
+    voiceText: "Это буква Б! Б-бэ! Б — барабан!",
     difficulty: 1,
     group: 0
   },
@@ -28,7 +28,7 @@ export const LETTERS: LetterItem[] = [
     lower: "в",
     word: "Волк",
     imagePath: ASSETS.letters.V,
-    voiceText: "Это буква В. В-вэ. В — волк!",
+    voiceText: "Это буква В! В-вэ! В — волк!",
     difficulty: 1,
     group: 0
   },
@@ -38,7 +38,7 @@ export const LETTERS: LetterItem[] = [
     lower: "г",
     word: "Гриб",
     imagePath: ASSETS.letters.G,
-    voiceText: "Это буква Г. Г-гэ. Г — гриб!",
+    voiceText: "Это буква Г! Г-гэ! Г — гриб!",
     difficulty: 2,
     group: 1
   },
@@ -48,7 +48,7 @@ export const LETTERS: LetterItem[] = [
     lower: "д",
     word: "Дом",
     imagePath: ASSETS.letters.D,
-    voiceText: "Это буква Д. Д-дэ. Д — дом!",
+    voiceText: "Это буква Д! Д-дэ! Д — дом!",
     difficulty: 2,
     group: 1
   }

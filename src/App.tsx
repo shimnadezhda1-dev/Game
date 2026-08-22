@@ -180,13 +180,11 @@ function App() {
     });
   }
 
-  function prevLearnLetter() {
+  function selectLearnLetter(id: string) {
     setProgress((prev) => {
       const pool = unlockedLetters(prev);
-      return {
-        ...prev,
-        currentLearnIndex: (prev.currentLearnIndex - 1 + pool.length) % pool.length
-      };
+      const index = pool.findIndex((item) => item.id === id);
+      return { ...prev, currentLearnIndex: index >= 0 ? index : prev.currentLearnIndex };
     });
   }
 
@@ -262,9 +260,9 @@ function App() {
         return (
           <LearnLetters
             letter={learnLetter}
-            canGoPrev={progress.currentLearnIndex % playLetters.length > 0}
+            letters={playLetters}
+            onSelectLetter={selectLearnLetter}
             onNext={nextLearnLetter}
-            onPrev={prevLearnLetter}
             onBack={backHome}
             onHome={backHome}
             onSpeak={speak}
@@ -331,7 +329,11 @@ function App() {
   }
 
   return (
-    <div className={`app-shell ${screen === "home" || screen === "adventure" || screen === "modeSelect" ? "home-fit" : ""}`}>
+    <div
+      className={`app-shell ${
+        screen === "stars" ? "" : "home-fit"
+      }`}
+    >
       <Progress
         progress={progress}
         onOpenStars={() => go("stars")}
@@ -340,6 +342,7 @@ function App() {
         musicOn={musicOn}
         onHome={screen === "home" ? undefined : backHome}
         bankPulse={bankPulse}
+        homeMode={screen === "home"}
       />
       {flight ? <FlyingStar {...flight} /> : null}
       {renderScreen()}

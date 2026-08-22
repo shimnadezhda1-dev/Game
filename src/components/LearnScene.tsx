@@ -1,4 +1,5 @@
 import { LetterItem } from "../types";
+import { letterTone } from "../utils/cardTones";
 import { LetterVisual } from "./LetterVisual";
 
 interface LearnSceneProps {
@@ -8,10 +9,7 @@ interface LearnSceneProps {
 export function LearnScene({ letter }: LearnSceneProps) {
   return (
     <div className="learn-scene">
-      <div className="scene-letter-stack">
-        <div className="scene-glyph">{letter.upper}</div>
-        <div className="scene-lower">{letter.lower}</div>
-      </div>
+      <div className={`scene-glyph ${letterTone(letter.id)}`}>{letter.upper}</div>
       <div className="scene-object">
         <LetterVisual letter={letter} size="hero" />
       </div>

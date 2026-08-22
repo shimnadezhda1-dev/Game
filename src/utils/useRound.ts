@@ -4,6 +4,11 @@ import { audioManager } from "../audio/AudioManager";
 import { pointFromEvent, type Point } from "./point";
 import { randomOptions, weightedLetterPick } from "./selectors";
 
+interface SpeakFollowUp {
+  text: string;
+  key?: string;
+}
+
 interface UseRoundArgs {
   letters: LetterItem[];
   stats: Record<string, LetterStats>;
@@ -12,12 +17,13 @@ interface UseRoundArgs {
   lockTarget?: LetterItem;
   speakPrompt: (letter: LetterItem) => string;
   speakKey?: (letter: LetterItem) => string;
+  speakFollowUp?: (letter: LetterItem) => SpeakFollowUp | null;
   praise: (letter: LetterItem) => string;
   praiseKey?: (letter: LetterItem) => string;
   awaitNext?: boolean;
   onCorrect: (letterId: string, origin?: Point) => void;
   onMistake: (letterId: string) => void;
-  onSpeak: (text: string, options?: { key?: string }) => void;
+  onSpeak: (text: string, options?: { key?: string; onEnd?: () => void }) => void;
   onFinished?: () => void;
 }
 
@@ -31,6 +37,7 @@ export function useRound({
   lockTarget,
   speakPrompt,
   speakKey,
+  speakFollowUp,
   praise,
   praiseKey,
   awaitNext = false,
@@ -53,20 +60,24 @@ export function useRound({
   const onSpeakRef = useRef(onSpeak);
   const speakPromptRef = useRef(speakPrompt);
   const speakKeyRef = useRef(speakKey);
+  const speakFollowUpRef = useRef(speakFollowUp);
   const praiseRef = useRef(praise);
   const praiseKeyRef = useRef(praiseKey);
   const awaitNextRef = useRef(awaitNext);
   const onFinishedRef = useRef(onFinished);
+  const phaseRef = useRef(phase);
 
   statsRef.current = stats;
   lettersRef.current = letters;
   onSpeakRef.current = onSpeak;
   speakPromptRef.current = speakPrompt;
   speakKeyRef.current = speakKey;
+  speakFollowUpRef.current = speakFollowUp;
   praiseRef.current = praise;
   praiseKeyRef.current = praiseKey;
   awaitNextRef.current = awaitNext;
   onFinishedRef.current = onFinished;
+  phaseRef.current = phase;
 
   const clearTimer = useCallback(() => {
     if (timerRef.current !== null) {
@@ -98,14 +109,30 @@ export function useRound({
     [target.id, optionCount, optionIds]
   );
 
+  const speakQuestion = useCallback(
+    (letter: LetterItem) => {
+      const follow = speakFollowUpRef.current?.(letter) ?? null;
+      onSpeakRef.current(speakPromptRef.current(letter), {
+        key: speakKeyRef.current?.(letter),
+        onEnd: follow
+          ? () => {
+              if (phaseRef.current !== "question") {
+                return;
+              }
+              onSpeakRef.current(follow.text, { key: follow.key });
+            }
+          : undefined
+      });
+    },
+    []
+  );
+
   useEffect(() => {
     if (phase !== "question") {
       return;
     }
-    onSpeakRef.current(speakPromptRef.current(target), {
-      key: speakKeyRef.current?.(target)
-    });
-  }, [target, phase]);
+    speakQuestion(target);
+  }, [target, phase, speakQuestion]);
 
   useEffect(() => () => clearTimer(), [clearTimer]);
 
@@ -113,10 +140,8 @@ export function useRound({
     if (lockedRef.current) {
       return;
     }
-    onSpeakRef.current(speakPromptRef.current(target), {
-      key: speakKeyRef.current?.(target)
-    });
-  }, [target]);
+    speakQuestion(target);
+  }, [target, speakQuestion]);
 
   const finishRound = useCallback(() => {
     lockedRef.current = false;

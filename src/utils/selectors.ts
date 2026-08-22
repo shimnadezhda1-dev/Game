@@ -38,7 +38,7 @@ export function masteredCount(progress: ProgressState, letters: LetterItem[] = L
   return letters.filter((letter) => isLetterMastered(progress, letter.id)).length;
 }
 
-export function maybeUnlockNextGroup(progress: ProgressState, letters: LetterItem[] = LETTERS): number {
+export function maybeUnlockNextGroup(progress: ProgressState): number {
   const currentGroup = LETTER_GROUPS[progress.unlockedGroupIndex] ?? [];
   if (!currentGroup.length) {
     return progress.unlockedGroupIndex;

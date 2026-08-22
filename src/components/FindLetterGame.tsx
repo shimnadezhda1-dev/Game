@@ -1,12 +1,11 @@
-import { useMemo } from "react";
 import { LetterItem, LetterStats } from "../types";
 import type { Point } from "../utils/point";
-import { CARD_TONES } from "../utils/cardTones";
-import { useRound } from "../utils/useRound";
 import { letterVoiceKey } from "../audio/voiceCatalog";
 import { GameStage } from "./GameStage";
 import { LetterHint } from "./LetterHint";
 import { LetterTile } from "./LetterTile";
+import { useRound } from "../utils/useRound";
+import { useMemo } from "react";
 
 interface FindLetterGameProps {
   letters: LetterItem[];
@@ -71,7 +70,7 @@ export function FindLetterGame({
     >
       {hint !== "none" ? <LetterHint letter={round.target} showImage={hint === "image"} /> : null}
       <div className="tiles-row">
-        {round.options.map((id, index) => {
+        {round.options.map((id) => {
           const letter = letters.find((item) => item.id === id);
           if (!letter) {
             return null;
@@ -80,7 +79,6 @@ export function FindLetterGame({
             <LetterTile
               key={`${id}-${round.shakeNonce}`}
               letter={letter}
-              index={index % CARD_TONES.length}
               wrong={round.selected === id && id !== round.target.id}
               correct={round.phase === "feedback" && id === round.target.id}
               hint={round.wrongCount >= 2 && id === round.target.id && round.phase === "question"}

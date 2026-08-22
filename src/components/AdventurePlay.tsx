@@ -3,12 +3,13 @@ import { LetterItem, LetterStats, ProgressState } from "../types";
 import type { Point } from "../utils/point";
 import { FindLetterGame } from "./FindLetterGame";
 import { ListenAndChooseGame } from "./ListenAndChooseGame";
+import { PictureLetterGame } from "./PictureLetterGame";
 import { GameStage } from "./GameStage";
 import { LearnScene } from "./LearnScene";
 import { isLetterMastered, shuffle } from "../utils/selectors";
 import { letterVoiceKey } from "../audio/voiceCatalog";
 
-type Step = "learn" | "findHint" | "findLetter" | "listenChoose" | "reward";
+type Step = "learn" | "findHint" | "findLetter" | "findPicture" | "listenChoose" | "reward";
 
 interface AdventurePlayProps {
   letters: LetterItem[];
@@ -40,6 +41,18 @@ function lessonOptions(targetId: string, allIds: string[]): string[] {
   return shuffle([targetId, ...others.slice(-2)]);
 }
 
+function listenOptions(targetId: string, allIds: string[]): string[] {
+  const first = allIds.slice(0, 3);
+  if (first.includes(targetId) && first.length === 3) {
+    return shuffle(first);
+  }
+  return lessonOptions(targetId, allIds);
+}
+
+function learnBubble(letter: LetterItem): string {
+  return `Это буква ${letter.upper}!\n${letter.upper}-а-а!\n${letter.upper} — ${letter.word.toLowerCase()}!`;
+}
+
 export function AdventurePlay({
   letters,
   stats,
@@ -53,10 +66,9 @@ export function AdventurePlay({
   const [letter, setLetter] = useState<LetterItem>(() => pickLetter(letters, progress));
   const [step, setStep] = useState<Step>("learn");
   const [nextReady, setNextReady] = useState(false);
-  const optionIds = useMemo(
-    () => lessonOptions(letter.id, letters.map((item) => item.id)),
-    [letter.id]
-  );
+  const allIds = letters.map((item) => item.id);
+  const optionIds = useMemo(() => lessonOptions(letter.id, allIds), [letter.id]);
+  const listenIds = useMemo(() => listenOptions(letter.id, allIds), [letter.id]);
 
   useEffect(() => {
     setNextReady(false);
@@ -80,23 +92,6 @@ export function AdventurePlay({
     return () => window.clearTimeout(timer);
   }, [step, letter.id]);
 
-  function goFindHint() {
-    setStep("findHint");
-  }
-
-  function goFindLetter() {
-    setStep("findLetter");
-  }
-
-  function goListen() {
-    setStep("listenChoose");
-  }
-
-  function goReward() {
-    setStep("reward");
-    setNextReady(false);
-  }
-
   function finishLetter() {
     onLetterMastered(letter.id);
     const next = pickNextLetter(letters, progress, letter.id);
@@ -113,13 +108,13 @@ export function AdventurePlay({
         lockTarget={letter}
         optionIds={optionIds}
         hint="image"
-        prompt={`А теперь найди букву ${letter.upper}!`}
+        prompt={`Найди букву ${letter.upper}!`}
         awaitNext
         onCorrect={onCorrect}
         onMistake={onMistake}
         onSpeak={onSpeak}
         onBack={onBack}
-        onFinished={goFindLetter}
+        onFinished={() => setStep("findLetter")}
       />
     );
   }
@@ -138,7 +133,24 @@ export function AdventurePlay({
         onMistake={onMistake}
         onSpeak={onSpeak}
         onBack={onBack}
-        onFinished={goListen}
+        onFinished={() => setStep("findPicture")}
+      />
+    );
+  }
+
+  if (step === "findPicture") {
+    return (
+      <PictureLetterGame
+        letters={letters}
+        stats={stats}
+        lockTarget={letter}
+        optionIds={optionIds}
+        awaitNext
+        onCorrect={onCorrect}
+        onMistake={onMistake}
+        onSpeak={onSpeak}
+        onBack={onBack}
+        onFinished={() => setStep("listenChoose")}
       />
     );
   }
@@ -149,13 +161,13 @@ export function AdventurePlay({
         letters={letters}
         stats={stats}
         lockTarget={letter}
-        optionIds={optionIds}
+        optionIds={listenIds}
         awaitNext
         onCorrect={onCorrect}
         onMistake={onMistake}
         onSpeak={onSpeak}
         onBack={onBack}
-        onFinished={goReward}
+        onFinished={() => setStep("reward")}
       />
     );
   }
@@ -164,7 +176,7 @@ export function AdventurePlay({
     return (
       <GameStage
         foxMood="celebrate"
-        bubble="Ура!"
+        bubble={`Ура! Ты выучил букву ${letter.upper}!`}
         onReplay={() =>
           onSpeak(`Ура! Ты выучил букву ${letter.upper}!`, {
             key: letterVoiceKey("reward", letter.id)
@@ -175,9 +187,12 @@ export function AdventurePlay({
         showNext={nextReady}
       >
         <div className="reward-scene">
-          <div className="adventure-star" aria-hidden="true">
-            ★
+          <div className="confetti-layer reward-confetti" aria-hidden>
+            {Array.from({ length: 8 }).map((_, index) => (
+              <span key={index} className={`confetti-bit bit-${index % 6}`} />
+            ))}
           </div>
+          <div className="gold-star" aria-hidden="true" />
           <LearnScene letter={letter} />
         </div>
       </GameStage>
@@ -187,7 +202,7 @@ export function AdventurePlay({
   return (
     <GameStage
       foxMood="happy"
-      bubble={`Это буква ${letter.upper}!`}
+      bubble={learnBubble(letter)}
       onReplay={() =>
         onSpeak(letter.voiceText, {
           key: letterVoiceKey("letter", letter.id),
@@ -196,7 +211,7 @@ export function AdventurePlay({
       }
       replayKey={letter.id}
       onBack={onBack}
-      onNext={goFindHint}
+      onNext={() => setStep("findHint")}
       showNext={nextReady}
     >
       <LearnScene letter={letter} />

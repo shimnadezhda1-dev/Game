@@ -1,5 +1,5 @@
 import { LetterItem } from "../types";
-import { CARD_TONES } from "../utils/cardTones";
+import { letterTone } from "../utils/cardTones";
 
 interface LetterTileProps {
   letter: LetterItem;
@@ -10,10 +10,10 @@ interface LetterTileProps {
   onClick: (event: { currentTarget: EventTarget }) => void;
 }
 
-export function LetterTile({ letter, index = 0, wrong, correct, hint, onClick }: LetterTileProps) {
+export function LetterTile({ letter, wrong, correct, hint, onClick }: LetterTileProps) {
   const className = [
     "letter-tile",
-    CARD_TONES[index % CARD_TONES.length],
+    letterTone(letter.id),
     wrong ? "shake" : "",
     correct ? "tile-correct" : "",
     hint ? "hint" : ""

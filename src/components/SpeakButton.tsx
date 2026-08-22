@@ -40,13 +40,13 @@ export function SpeakButton({ onClick, label = "Послушать", disabled, h
       <svg className="speaker-icon" viewBox="0 0 64 64" aria-hidden="true">
         <path
           d="M8 26h12l16-12v36L20 38H8a4 4 0 0 1-4-4v-4a4 4 0 0 1 4-4z"
-          fill="#16324f"
+          fill="#fff"
         />
         <path
           className="wave-path wave-a"
           d="M42 24c3 3 3 13 0 16"
           fill="none"
-          stroke="#16324f"
+          stroke="#fff"
           strokeWidth="4"
           strokeLinecap="round"
         />
@@ -54,7 +54,7 @@ export function SpeakButton({ onClick, label = "Послушать", disabled, h
           className="wave-path wave-b"
           d="M50 18c6 6 6 22 0 28"
           fill="none"
-          stroke="#16324f"
+          stroke="#fff"
           strokeWidth="4"
           strokeLinecap="round"
         />
