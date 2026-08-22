@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { assetUrl, ASSETS } from "../utils/assets";
+import { ToyLetter } from "./ToyLetter";
 
 interface HomeScreenProps {
   onGoLearn: () => void;
@@ -34,25 +35,7 @@ export function HomeScreen({
   return (
     <div className="screen home-screen">
       <div className="home-backdrop" aria-hidden="true">
-        <div className="home-sky" />
-        <span className="home-balloon hb-a" />
-        <span className="home-balloon hb-b" />
-        <span className="home-balloon hb-c" />
-        <span className="home-cloud hc-a" />
-        <span className="home-cloud hc-b" />
-        <div className="home-hills">
-          <span className="home-hill hl" />
-          <span className="home-hill hm" />
-          <span className="home-hill hr" />
-        </div>
-        <span className="home-tree ht-a" />
-        <span className="home-tree ht-b" />
-        <span className="home-tree ht-c" />
-        <span className="home-flower hf-a" />
-        <span className="home-flower hf-b" />
-        <span className="home-flower hf-c" />
-        <span className="home-flower hf-d" />
-        <span className="home-flower hf-e" />
+        <img className="home-meadow" src={assetUrl("/assets/home/meadow.png")} alt="" draggable={false} />
       </div>
 
       <h1 className="visually-hidden">Весёлый алфавит</h1>
@@ -65,12 +48,14 @@ export function HomeScreen({
           draggable={false}
         />
         <div className="home-cluster">
-          <img
-            className="home-fox-art"
-            src={assetUrl("/assets/home/fox.png")}
-            alt=""
-            draggable={false}
-          />
+          <div className="home-fox-wrap">
+            <img
+              className="home-fox-art"
+              src={assetUrl("/assets/home/fox.png")}
+              alt=""
+              draggable={false}
+            />
+          </div>
           <div className="home-cta">
             <button
               className={`play-btn home-play-btn ${pulsePlay ? "home-play-hint" : ""}`}
@@ -83,9 +68,15 @@ export function HomeScreen({
               <span className="home-play-label">ИГРАТЬ</span>
             </button>
             <button className="home-abc" onClick={onGoLearn} aria-label="Буквы">
-              <span className="home-block home-block-a">А</span>
-              <span className="home-block home-block-b">Б</span>
-              <span className="home-block home-block-v">В</span>
+              <span className="home-block home-block-a">
+                <ToyLetter letterId="A" glyph="А" size="tile" />
+              </span>
+              <span className="home-block home-block-b">
+                <ToyLetter letterId="B" glyph="Б" size="tile" />
+              </span>
+              <span className="home-block home-block-v">
+                <ToyLetter letterId="V" glyph="В" size="tile" />
+              </span>
             </button>
           </div>
         </div>
