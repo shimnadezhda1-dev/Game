@@ -50,7 +50,7 @@ export function HomeScreen({
   return (
     <div className="screen home-screen">
       <div className="home-layer home-layer-bg" aria-hidden="true">
-        <img className="home-meadow" src={assetUrl("/assets/letters/meadow-bg.png")} alt="" draggable={false} />
+        <img className="home-meadow" src={assetUrl("/assets/home/meadow-nonsun.png")} alt="" draggable={false} />
       </div>
 
       <img
