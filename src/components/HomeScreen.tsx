@@ -65,7 +65,7 @@ export function HomeScreen({
       <div className="home-cluster">
         <img
           className="home-fox-art"
-          src={assetUrl("/assets/home/fox-jumping.png")}
+          src={assetUrl("/assets/home/fox-home.png")}
           alt=""
           draggable={false}
         />

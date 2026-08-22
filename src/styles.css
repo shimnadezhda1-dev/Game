@@ -3102,10 +3102,12 @@ html:has(.home-immersive) #root {
 .home-sun {
   position: absolute;
   z-index: 20;
-  top: clamp(35px, 5vh, 70px);
-  right: clamp(110px, 10vw, 190px);
-  width: clamp(100px, 9vw, 155px);
+  top: 6vh;
+  left: 50%;
+  right: auto;
+  width: clamp(100px, 8vw, 145px);
   height: auto;
+  transform: translateX(-50%);
   object-fit: contain;
   pointer-events: none;
 }
@@ -3242,8 +3244,8 @@ html:has(.home-immersive) #root {
   }
 
   .home-sun {
-    width: clamp(92px, 8.5vw, 130px);
-    right: clamp(96px, 11vw, 170px);
+    top: 5vh;
+    width: clamp(92px, 7.5vw, 120px);
   }
 
   .screen.home-screen .home-play-btn {
