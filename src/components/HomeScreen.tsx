@@ -49,13 +49,20 @@ export function HomeScreen({
 
   return (
     <div className="screen home-screen">
-      <div className="home-backdrop" aria-hidden="true">
+      <div className="home-layer home-layer-bg" aria-hidden="true">
         <img className="home-meadow" src={assetUrl("/assets/letters/meadow-bg.png")} alt="" draggable={false} />
       </div>
 
       <img
         className="home-rainbow"
-        src={assetUrl("/assets/home/rainbow-3d.png")}
+        src={assetUrl("/assets/home/rainbow-clean.png")}
+        alt=""
+        draggable={false}
+      />
+
+      <img
+        className="home-sun"
+        src={assetUrl("/assets/home/sun.png")}
         alt=""
         draggable={false}
       />
@@ -65,7 +72,7 @@ export function HomeScreen({
       <div className="home-cluster">
         <img
           className="home-fox-art"
-          src={assetUrl("/assets/home/fox.png")}
+          src={assetUrl("/assets/home/fox-jump.png")}
           alt=""
           draggable={false}
         />
@@ -81,9 +88,7 @@ export function HomeScreen({
             <span className="home-play-label">ИГРАТЬ</span>
           </button>
           <button className="home-abc" onClick={onGoLearn} aria-label="Буквы А Б В">
-            <span className="home-block home-block-a">А</span>
-            <span className="home-block home-block-b">Б</span>
-            <span className="home-block home-block-v">В</span>
+            <img src={assetUrl("/assets/home/abc-tiles.png")} alt="А Б В" draggable={false} />
           </button>
         </div>
       </div>

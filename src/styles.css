@@ -3042,7 +3042,17 @@ body {
   }
 }
 
-/* ===== Home mockup lock: full-bleed scene matching approved reference ===== */
+/* ===== Home mockup lock: layered scene from approved final assets ===== */
+
+html:has(.home-immersive),
+html:has(.home-immersive) body,
+html:has(.home-immersive) #root {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #7ad7ff;
+}
 
 .app-shell.home-immersive {
   width: 100% !important;
@@ -3052,6 +3062,7 @@ body {
   height: 100dvh;
   max-height: 100dvh;
   overflow: hidden;
+  background: #7ad7ff;
 }
 
 .app-shell.home-immersive .top-bar {
@@ -3067,10 +3078,12 @@ body {
   padding: 0 !important;
   gap: 0 !important;
   overflow: hidden !important;
-  background: transparent !important;
+  background: #7ad7ff !important;
   border-radius: 0 !important;
+  box-shadow: none !important;
 }
 
+.home-layer-bg,
 .home-backdrop {
   position: absolute;
   inset: 0;
@@ -3083,62 +3096,72 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center bottom;
+  object-position: center center;
 }
 
 .home-rainbow {
   position: absolute;
-  z-index: 1;
-  top: 0;
+  z-index: 10;
+  top: 11%;
   left: 50%;
-  width: 82%;
-  max-width: 1680px;
+  width: min(62vw, 980px);
   height: auto;
   transform: translateX(-50%);
   object-fit: contain;
-  object-position: center top;
+  pointer-events: none;
+}
+
+.home-sun {
+  position: absolute;
+  z-index: 15;
+  top: 3.5%;
+  right: 8.5%;
+  width: clamp(88px, 11vw, 168px);
+  height: auto;
+  object-fit: contain;
   pointer-events: none;
 }
 
 .home-cluster {
   position: absolute;
-  z-index: 5;
+  z-index: 30;
   left: 50%;
-  top: 50%;
+  top: 54%;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: clamp(6px, 1.2vw, 18px);
-  transform: translate(-50%, -6%);
+  gap: clamp(8px, 1.6vw, 28px);
+  transform: translate(-50%, -12%);
 }
 
 .home-fox-art {
   position: relative;
-  z-index: 5;
+  z-index: 30;
   display: block;
   width: auto;
-  height: clamp(200px, 42vh, 360px);
+  height: clamp(190px, 40vh, 340px);
   object-fit: contain;
-  object-position: center;
-  filter: drop-shadow(0 16px 10px rgb(0 0 0 / 24%));
-  pointer-events: none;
   background: none;
+  border: none;
+  box-shadow: none;
+  filter: none;
+  pointer-events: none;
 }
 
 .screen.home-screen .home-cta {
   position: relative;
-  z-index: 5;
+  z-index: 40;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(6px, 1vh, 10px);
+  gap: clamp(8px, 1.4vh, 14px);
 }
 
 .screen.home-screen .home-play-btn {
-  width: min(420px, 38vw);
-  min-height: clamp(76px, 12vh, 108px);
-  padding: 12px 32px;
+  width: clamp(300px, 27vw, 470px);
+  min-height: clamp(72px, 11vh, 104px);
+  padding: 12px 28px;
   border-radius: 48px;
   border: 6px solid #fff8dc;
   color: #5b3d14;
@@ -3147,57 +3170,34 @@ body {
     0 12px 0 #e07a00,
     0 18px 22px rgb(0 0 0 / 16%),
     inset 0 8px 0 rgb(255 255 255 / 42%);
-  font-size: clamp(32px, 5.4vh, 52px);
+  font-size: clamp(30px, 4.8vh, 50px);
 }
 
 .screen.home-screen .home-abc {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 12px;
+  display: block;
   margin: 0;
   padding: 0;
   border: none;
   background: none;
   cursor: pointer;
-  min-height: 0;
+  line-height: 0;
+  width: clamp(220px, 22vw, 360px);
 }
 
-.home-block {
-  display: grid;
-  place-items: center;
-  width: clamp(70px, 11vh, 104px);
-  height: clamp(76px, 12vh, 112px);
-  border-radius: 22px;
-  color: #fff;
-  font-size: clamp(34px, 6vh, 54px);
-  font-weight: 900;
-  line-height: 1;
-  box-shadow:
-    0 9px 0 rgb(0 0 0 / 18%),
-    inset 0 8px 0 rgb(255 255 255 / 38%),
-    inset 0 -8px 0 rgb(0 0 0 / 12%);
-}
-
-.home-block-a {
-  background: linear-gradient(180deg, #ffb3c4, #ff5d7a);
-}
-
-.home-block-b {
-  background: linear-gradient(180deg, #ffe566, #ff9f1c);
-  transform: translateY(-6px);
-}
-
-.home-block-v {
-  background: linear-gradient(180deg, #8fe8ff, #3ec6f0);
+.screen.home-screen .home-abc img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  pointer-events: none;
 }
 
 .home-ui {
   position: absolute;
-  top: clamp(12px, 2.2vh, 22px);
-  z-index: 10;
-  width: clamp(56px, 9vh, 72px);
-  height: clamp(56px, 9vh, 72px);
+  top: 2.5%;
+  z-index: 100;
+  width: clamp(52px, 7.5vh, 68px);
+  height: clamp(52px, 7.5vh, 68px);
   border-radius: 50%;
   border: 4px solid #eaffc8;
   padding: 0;
@@ -3211,11 +3211,11 @@ body {
 }
 
 .home-ui-home {
-  left: clamp(12px, 1.8vw, 24px);
+  left: 2.4%;
 }
 
 .home-ui-sound {
-  right: clamp(12px, 1.8vw, 24px);
+  right: 2.4%;
 }
 
 .home-ui .toy-icon,
@@ -3229,48 +3229,51 @@ body {
   opacity: 0.45;
 }
 
-.screen.home-screen .home-chest {
-  display: none;
+.screen.home-screen .home-chest,
+.screen.home-screen .home-balloons,
+.screen.home-screen .home-balloon,
+.screen.home-screen .toy-sun {
+  display: none !important;
 }
 
 @media (max-width: 720px) {
   .home-rainbow {
-    width: 94%;
+    width: 78vw;
+    top: 8%;
   }
 
   .home-cluster {
     flex-direction: column;
-    top: 46%;
-    gap: 4px;
-  }
-
-  .screen.home-screen .home-cta {
+    top: 50%;
     gap: 6px;
   }
 
   .screen.home-screen .home-play-btn {
     width: min(360px, 78vw);
   }
+
+  .screen.home-screen .home-abc {
+    width: min(280px, 70vw);
+  }
 }
 
 @media (max-height: 768px) {
   .home-rainbow {
-    width: 80%;
+    width: min(60vw, 860px);
+    top: 9%;
   }
 
   .home-fox-art {
-    height: clamp(168px, 36vh, 250px);
+    height: clamp(150px, 34vh, 240px);
+  }
+
+  .home-sun {
+    width: clamp(64px, 9vw, 110px);
   }
 
   .screen.home-screen .home-play-btn {
-    min-height: 72px;
-    font-size: clamp(28px, 5vh, 40px);
-  }
-
-  .home-block {
-    width: clamp(62px, 10vh, 84px);
-    height: clamp(66px, 10.6vh, 90px);
-    font-size: clamp(30px, 5.2vh, 44px);
+    min-height: 68px;
+    font-size: clamp(26px, 4.6vh, 38px);
   }
 }
 
