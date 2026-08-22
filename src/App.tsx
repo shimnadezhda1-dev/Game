@@ -258,6 +258,8 @@ function App() {
             onPlayGames={startAdventure}
             onOpenStars={() => go("stars")}
             onSpeak={speak}
+            onToggleMusic={toggleMusic}
+            musicOn={musicOn}
             foxCelebrate={progress.stars >= 20}
           />
         );
@@ -343,6 +345,8 @@ function App() {
             onPlayGames={startAdventure}
             onOpenStars={() => go("stars")}
             onSpeak={speak}
+            onToggleMusic={toggleMusic}
+            musicOn={musicOn}
           />
         );
     }
@@ -352,7 +356,7 @@ function App() {
     <div
       className={`app-shell ${
         screen === "stars" ? "" : "home-fit"
-      }`}
+      } ${screen === "home" ? "home-immersive" : ""}`}
     >
       <Progress
         progress={progress}
