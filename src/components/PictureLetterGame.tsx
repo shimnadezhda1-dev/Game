@@ -1,7 +1,6 @@
 import { LetterItem, LetterStats } from "../types";
 import type { Point } from "../utils/point";
 import { letterVoiceKey } from "../audio/voiceCatalog";
-import { letterTone } from "../utils/cardTones";
 import { useRound } from "../utils/useRound";
 import { GameStage } from "./GameStage";
 import { LetterVisual } from "./LetterVisual";
@@ -75,7 +74,7 @@ export function PictureLetterGame({
           return (
             <button
               key={`${item.id}-${isWrongPick ? round.shakeNonce : "ok"}`}
-              className={`picture-tile ${letterTone(item.id)} ${isWrongPick ? "shake" : ""} ${
+              className={`picture-tile ${isWrongPick ? "shake" : ""} ${
                 isCorrectPick ? "tile-correct" : ""
               }`}
               onClick={(event) => round.choose(id, event)}

@@ -3,6 +3,7 @@ import { Character } from "./Character";
 import { Rainbow } from "./Rainbow";
 import { WorldBackground } from "./WorldBackground";
 import { assetUrl, ASSETS } from "../utils/assets";
+import { ToyLetter } from "./ToyLetter";
 
 interface HomeScreenProps {
   onGoLearn: () => void;
@@ -31,7 +32,7 @@ export function HomeScreen({
     localStorage.setItem(FIRST_VISIT_KEY, "1");
     onSpeak("Привет! Давай играть с буквами!", { key: "welcome" });
     setPulsePlay(true);
-    const timer = window.setTimeout(() => setPulsePlay(false), 2400);
+    const timer = window.setTimeout(() => setPulsePlay(false), 2200);
     return () => window.clearTimeout(timer);
   }, [onSpeak]);
 
@@ -42,7 +43,7 @@ export function HomeScreen({
       <h1 className="visually-hidden">Весёлый алфавит</h1>
       <div className="home-hero">
         <div className="home-fox">
-          <Character mood={foxCelebrate ? "celebrate" : "happy"} size="hero" />
+          <Character mood={foxCelebrate ? "celebrate" : "tip"} size="hero" />
         </div>
         <div className="home-cta">
           <button
@@ -56,9 +57,15 @@ export function HomeScreen({
             <span className="home-play-label">ИГРАТЬ</span>
           </button>
           <button className="home-abc" onClick={onGoLearn} aria-label="Буквы">
-            <span className="toy-cube tone-pink">А</span>
-            <span className="toy-cube tone-orange">Б</span>
-            <span className="toy-cube tone-teal">В</span>
+            <span className="home-abc-tile">
+              <ToyLetter letterId="A" glyph="А" size="tile" />
+            </span>
+            <span className="home-abc-tile">
+              <ToyLetter letterId="B" glyph="Б" size="tile" />
+            </span>
+            <span className="home-abc-tile">
+              <ToyLetter letterId="V" glyph="В" size="tile" />
+            </span>
           </button>
         </div>
       </div>

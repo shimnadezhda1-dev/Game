@@ -1,6 +1,7 @@
 import { ProgressState } from "../types";
 import { assetUrl, ASSETS } from "../utils/assets";
-import { GoldStarIcon, MusicNoteIcon, SpeakerMuteIcon } from "./ToyIcons";
+import { GoldStar } from "./GoldStar";
+import { MusicNoteIcon, SpeakerMuteIcon } from "./ToyIcons";
 
 interface ProgressProps {
   progress: ProgressState;
@@ -40,7 +41,7 @@ export function Progress({
             onClick={onOpenStars}
             aria-label="Мои награды"
           >
-            <GoldStarIcon />
+            <GoldStar size="tiny" />
             <span className="star-count">{progress.stars}</span>
           </button>
         )}

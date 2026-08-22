@@ -92,6 +92,9 @@ class BackgroundMusicManager {
       return;
     }
     const audio = this.ensureAudio();
+    if (!audio.paused && !audio.ended) {
+      return;
+    }
     audio.volume = this.targetVolume();
     void audio.play().catch(() => {
       // Autoplay can still fail; next gesture retries.

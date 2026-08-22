@@ -5,7 +5,9 @@ import { FindLetterGame } from "./FindLetterGame";
 import { ListenAndChooseGame } from "./ListenAndChooseGame";
 import { PictureLetterGame } from "./PictureLetterGame";
 import { GameStage } from "./GameStage";
+import { GoldStar } from "./GoldStar";
 import { LearnScene } from "./LearnScene";
+import { ToyLetter } from "./ToyLetter";
 import { isLetterMastered, shuffle } from "../utils/selectors";
 import { letterVoiceKey } from "../audio/voiceCatalog";
 
@@ -192,8 +194,8 @@ export function AdventurePlay({
               <span key={index} className={`confetti-bit bit-${index % 6}`} />
             ))}
           </div>
-          <div className="gold-star" aria-hidden="true" />
-          <LearnScene letter={letter} />
+          <GoldStar size="hero" />
+          <ToyLetter letterId={letter.id} glyph={letter.upper} size="hint" />
         </div>
       </GameStage>
     );

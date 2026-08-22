@@ -46,6 +46,16 @@ function App() {
     return backgroundMusic.subscribe(() => setMusicOn(backgroundMusic.isEnabled()));
   }, []);
 
+  useEffect(() => {
+    const unlock = () => backgroundMusic.startFromGesture();
+    window.addEventListener("pointerdown", unlock);
+    window.addEventListener("keydown", unlock);
+    return () => {
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("keydown", unlock);
+    };
+  }, []);
+
   const playLetters = useMemo(
     () => LETTERS.filter((letter) => letter.group <= progress.unlockedGroupIndex),
     [progress.unlockedGroupIndex]
@@ -197,7 +207,12 @@ function App() {
   }
 
   function toggleMusic() {
-    backgroundMusic.toggle();
+    if (!musicOn) {
+      backgroundMusic.setEnabled(true);
+      backgroundMusic.startFromGesture();
+      return;
+    }
+    backgroundMusic.setEnabled(false);
   }
 
   function onLetterMastered(letterId: string) {

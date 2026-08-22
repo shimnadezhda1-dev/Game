@@ -1,6 +1,7 @@
 import { Character } from "./Character";
 import { WorldBackground } from "./WorldBackground";
 import { NextArrowIcon } from "./ToyIcons";
+import { GoldStar } from "./GoldStar";
 
 interface RewardScreenProps {
   stars: number;
@@ -19,7 +20,7 @@ export function RewardScreen({ stars, onClose }: RewardScreenProps) {
         ))}
       </div>
       <Character mood="celebrate" size="hero" />
-      <div className="gold-star" aria-hidden="true" />
+      <GoldStar size="hero" />
       <div className="stars-big">{stars}</div>
       <button className="nav-arrow nav-next adventure-go" onClick={onClose} aria-label="Дальше">
         <NextArrowIcon />

@@ -1,5 +1,6 @@
 import { LetterItem } from "../types";
 import { letterTone } from "../utils/cardTones";
+import { ToyLetter } from "./ToyLetter";
 
 interface LetterTileProps {
   letter: LetterItem;
@@ -24,7 +25,7 @@ export function LetterTile({ letter, wrong, correct, hint, onClick }: LetterTile
   return (
     <button className={className} onClick={onClick} aria-label={letter.upper}>
       <span className="tile-face">
-        <span className="tile-glyph">{letter.upper}</span>
+        <ToyLetter letterId={letter.id} glyph={letter.upper} size="tile" />
       </span>
       {correct ? (
         <span className="tile-sparkles" aria-hidden="true">

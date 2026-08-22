@@ -1831,6 +1831,11 @@ body {
     inset 0 -10px 0 rgb(0 0 0 / 10%);
 }
 
+.letter-tile .toy-letter-tile {
+  width: 78%;
+  height: 90%;
+}
+
 .tile-glyph {
   font-size: clamp(48px, 10vh, 84px);
   font-weight: 900;
@@ -2661,5 +2666,378 @@ body {
   .home-chest {
     left: 8px;
     transform: none;
+  }
+}
+
+/* ===== Reference layout lock ===== */
+
+.app-shell {
+  max-width: 1180px;
+}
+
+.rainbow {
+  top: -4%;
+  width: min(170vw, 1240px);
+  height: clamp(190px, 44vh, 380px);
+  z-index: 1;
+}
+
+.rainbow-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.rainbow-cloud {
+  width: 92px;
+  height: 38px;
+  bottom: 6%;
+  box-shadow:
+    22px 4px 0 #fff,
+    44px -8px 0 #fff,
+    12px -16px 0 10px #fff,
+    0 10px 0 rgb(0 0 0 / 10%);
+}
+
+.home-screen {
+  padding-top: clamp(96px, 22vh, 190px);
+}
+
+.home-hero {
+  gap: clamp(8px, 2vw, 24px);
+}
+
+.home-cta {
+  gap: 8px;
+}
+
+.home-abc {
+  margin-top: 2px;
+  gap: 12px;
+}
+
+.home-abc-tile {
+  display: grid;
+  place-items: center;
+  width: clamp(68px, 11vh, 96px);
+  height: clamp(74px, 12vh, 104px);
+  border-radius: 22px;
+  background: linear-gradient(180deg, #fffef8, #ffe7b0);
+  box-shadow:
+    0 8px 0 rgb(0 0 0 / 16%),
+    inset 0 7px 0 rgb(255 255 255 / 45%);
+}
+
+.home-abc-tile:nth-child(1) {
+  transform: rotate(-8deg);
+}
+
+.home-abc-tile:nth-child(2) {
+  transform: translateY(-8px);
+}
+
+.home-abc-tile:nth-child(3) {
+  transform: rotate(8deg);
+}
+
+.home-abc-tile .toy-letter {
+  width: 82%;
+  height: 82%;
+}
+
+.fox-embed,
+.home-fox .fox-embed,
+.home-screen .character-hero .fox-embed,
+.character-hero .fox-embed,
+.character-guide .fox-embed {
+  background: none;
+  overflow: visible;
+  border-radius: 0;
+}
+
+.fox-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 16px 12px rgb(0 0 0 / 22%));
+}
+
+.home-fox .fox-embed,
+.home-screen .character-hero .fox-embed {
+  width: clamp(190px, 38vh, 340px);
+  height: clamp(190px, 38vh, 340px);
+}
+
+.character-guide {
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.character-guide .character-bubble {
+  order: -1;
+  max-width: min(240px, 28vw);
+  text-align: center;
+}
+
+.character-guide .fox-embed {
+  width: clamp(130px, 24vh, 220px);
+  height: clamp(130px, 24vh, 220px);
+}
+
+.character-bubble {
+  border-radius: 28px;
+  padding: 12px 16px;
+  box-shadow: 0 10px 0 #ffe08a, 0 16px 22px rgb(0 0 0 / 12%);
+}
+
+.character-bubble:before {
+  left: 50%;
+  bottom: -18px;
+  border: 12px solid transparent;
+  border-top-color: #fffef8;
+  border-right-color: transparent;
+  transform: translateX(-50%);
+}
+
+.character-guide .character-bubble:before {
+  left: 50%;
+  bottom: -16px;
+}
+
+.game-stage-screen {
+  overflow: hidden;
+}
+
+.game-stage {
+  max-width: 1080px;
+  margin: 0 auto;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: minmax(150px, 250px) minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "guide main replay"
+    "guide main next";
+  gap: 8px 10px;
+  align-items: stretch;
+}
+
+.stage-guide {
+  grid-area: guide;
+  align-self: center;
+  justify-content: center;
+  width: auto;
+}
+
+.stage-main {
+  grid-area: main;
+  min-height: 0;
+}
+
+.stage-replay {
+  grid-area: replay;
+  align-self: start;
+}
+
+.stage-next,
+.stage-next-slot {
+  grid-area: next;
+  justify-self: end;
+  align-self: end;
+}
+
+.stage-next {
+  animation: next-pop 0.55s ease 1;
+}
+
+@keyframes next-pop {
+  0% {
+    transform: scale(0.86);
+  }
+  60% {
+    transform: translateY(-8px) scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.learn-scene {
+  width: 100%;
+  max-width: 720px;
+  background: none;
+  box-shadow: none;
+  padding: 0;
+  gap: clamp(8px, 2vw, 20px);
+}
+
+.toy-letter-hero {
+  width: clamp(140px, 32vh, 280px);
+  height: clamp(154px, 35vh, 300px);
+}
+
+.toy-letter-tile {
+  width: 86%;
+  height: 86%;
+}
+
+.toy-letter-hint {
+  width: clamp(56px, 10vh, 84px);
+  height: clamp(62px, 11vh, 92px);
+}
+
+.scene-object {
+  width: auto;
+  display: grid;
+  place-items: center;
+}
+
+.scene-object .letter-image-hero {
+  max-height: min(38vh, 300px);
+  width: auto;
+  max-width: min(46vw, 320px);
+}
+
+.letter-hint {
+  padding: 10px 18px;
+  gap: 14px;
+  border-radius: 28px;
+  background: #fffef8;
+  box-shadow: 0 10px 0 #ffe08a, inset 0 6px 0 rgb(255 255 255 / 50%);
+}
+
+.letter-hint .letter-image-card {
+  width: clamp(64px, 12vh, 96px);
+  height: clamp(64px, 12vh, 96px);
+}
+
+.picture-tile {
+  background: linear-gradient(180deg, #fffef8, #ffe9b8);
+  min-height: clamp(120px, 22vh, 188px);
+  border-radius: 28px;
+  box-shadow: 0 10px 0 #e0b86a, inset 0 8px 0 rgb(255 255 255 / 42%);
+}
+
+.gold-star-svg.gold-star-hero {
+  width: clamp(140px, 26vh, 240px);
+  height: clamp(140px, 26vh, 240px);
+}
+
+.gold-star-svg.gold-star-tiny {
+  width: 28px;
+  height: 28px;
+}
+
+.star-bank .gold-star-tiny {
+  width: 28px;
+  height: 28px;
+}
+
+.grass-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 11vh;
+  background: linear-gradient(180deg, transparent, #62c84a 70%);
+}
+
+.flower.f-e {
+  left: 44%;
+  color: #ff6b7a;
+  background: #ffd93d;
+}
+
+.flower.f-f {
+  right: 28%;
+  color: #7ed957;
+  background: #ffd93d;
+}
+
+.tree-c {
+  left: 78%;
+  bottom: 9vh;
+  transform: scale(0.7);
+}
+
+.balloon-d {
+  left: 48%;
+  top: 18%;
+  background: #7ed957;
+  animation-delay: -2.4s;
+}
+
+.balloon-e {
+  right: 8%;
+  top: 28%;
+  background: #7c4dff;
+  animation-delay: -4.2s;
+}
+
+.hills {
+  height: 32vh;
+  opacity: 1;
+}
+
+@media (max-width: 720px) {
+  .game-stage {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      "guide replay"
+      "main main"
+      ". next";
+  }
+
+  .character-guide {
+    flex-direction: row;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .character-guide .character-bubble {
+    order: 0;
+    max-width: min(210px, 58vw);
+  }
+
+  .character-guide .character-bubble:before {
+    left: -12px;
+    bottom: 18px;
+    border-top-color: transparent;
+    border-right-color: #fffef8;
+    transform: none;
+  }
+
+  .character-guide .fox-embed {
+    width: clamp(88px, 16vh, 128px);
+    height: clamp(88px, 16vh, 128px);
+  }
+
+  .learn-scene {
+    flex-direction: row;
+  }
+
+  .toy-letter-hero {
+    width: clamp(92px, 22vh, 160px);
+    height: clamp(100px, 24vh, 176px);
+  }
+
+  .rainbow {
+    height: clamp(140px, 32vh, 240px);
+  }
+}
+
+@media (max-height: 700px) {
+  .rainbow {
+    height: clamp(150px, 34vh, 240px);
+  }
+
+  .home-fox .fox-embed,
+  .home-screen .character-hero .fox-embed {
+    width: clamp(140px, 30vh, 240px);
+    height: clamp(140px, 30vh, 240px);
   }
 }
