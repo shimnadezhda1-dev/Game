@@ -3099,24 +3099,12 @@ html:has(.home-immersive) #root {
   object-position: center center;
 }
 
-.home-rainbow {
-  position: absolute;
-  z-index: 10;
-  top: 7vh;
-  left: 50%;
-  width: min(62vw, 980px);
-  height: auto;
-  transform: translateX(-50%);
-  object-fit: contain;
-  pointer-events: none;
-}
-
 .home-sun {
   position: absolute;
-  z-index: 15;
-  top: 3vh;
-  right: 6vw;
-  width: clamp(98px, 12vw, 140px);
+  z-index: 20;
+  top: clamp(35px, 5vh, 70px);
+  right: clamp(110px, 10vw, 190px);
+  width: clamp(100px, 9vw, 155px);
   height: auto;
   object-fit: contain;
   pointer-events: none;
@@ -3196,18 +3184,18 @@ html:has(.home-immersive) #root {
   position: absolute;
   top: 2.5%;
   z-index: 100;
-  width: clamp(52px, 7.5vh, 68px);
-  height: clamp(52px, 7.5vh, 68px);
+  width: clamp(70px, 5vw, 92px);
+  height: clamp(70px, 5vw, 92px);
   border-radius: 50%;
-  border: 4px solid #eaffc8;
+  border: 4px solid #e8fbff;
   padding: 0;
   display: grid;
   place-items: center;
   cursor: pointer;
-  background: linear-gradient(180deg, #9be86a 0%, #4cbf16 55%, #2f9a00 100%);
+  background: linear-gradient(180deg, #7ee8ff 0%, #2ec4f0 55%, #1390d0 100%);
   box-shadow:
-    0 7px 0 #237a00,
-    inset 0 5px 0 rgb(255 255 255 / 38%);
+    0 8px 0 #0d6ea0,
+    inset 0 5px 0 rgb(255 255 255 / 42%);
 }
 
 .home-ui-home {
@@ -3225,10 +3213,6 @@ html:has(.home-immersive) #root {
   display: block;
 }
 
-.home-ui.is-off {
-  opacity: 0.45;
-}
-
 .screen.home-screen .home-chest,
 .screen.home-screen .home-balloons,
 .screen.home-screen .home-balloon,
@@ -3237,11 +3221,6 @@ html:has(.home-immersive) #root {
 }
 
 @media (max-width: 720px) {
-  .home-rainbow {
-    width: 78vw;
-    top: 6vh;
-  }
-
   .home-cluster {
     flex-direction: column;
     top: 50%;
@@ -3258,17 +3237,13 @@ html:has(.home-immersive) #root {
 }
 
 @media (max-height: 768px) {
-  .home-rainbow {
-    width: min(60vw, 860px);
-    top: 6vh;
-  }
-
   .home-fox-art {
     height: clamp(150px, 34vh, 240px);
   }
 
   .home-sun {
-    width: clamp(90px, 11vw, 120px);
+    width: clamp(92px, 8.5vw, 130px);
+    right: clamp(96px, 11vw, 170px);
   }
 
   .screen.home-screen .home-play-btn {

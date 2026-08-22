@@ -21,7 +21,7 @@ function HomeHouseIcon() {
         d="M8 30 L32 10 L56 30 V54 A6 6 0 0 1 50 60 H14 A6 6 0 0 1 8 54 Z"
         fill="#fff"
       />
-      <rect x="26" y="38" width="12" height="18" rx="3" fill="#3cb000" />
+      <rect x="26" y="38" width="12" height="18" rx="3" fill="#0b6f9a" />
     </svg>
   );
 }
@@ -50,19 +50,12 @@ export function HomeScreen({
   return (
     <div className="screen home-screen">
       <div className="home-layer home-layer-bg" aria-hidden="true">
-        <img className="home-meadow" src={assetUrl("/assets/home/meadow-nonsun.png")} alt="" draggable={false} />
+        <img className="home-meadow" src={assetUrl("/assets/home/home-meadow.png")} alt="" draggable={false} />
       </div>
 
       <img
-        className="home-rainbow"
-        src={assetUrl("/assets/home/rainbow-clean.png")}
-        alt=""
-        draggable={false}
-      />
-
-      <img
         className="home-sun"
-        src={assetUrl("/assets/home/sun.png")}
+        src={assetUrl("/assets/home/sun-smiling.png")}
         alt=""
         draggable={false}
       />
@@ -72,7 +65,7 @@ export function HomeScreen({
       <div className="home-cluster">
         <img
           className="home-fox-art"
-          src={assetUrl("/assets/home/fox-jump.png")}
+          src={assetUrl("/assets/home/fox-jumping.png")}
           alt=""
           draggable={false}
         />
@@ -88,7 +81,7 @@ export function HomeScreen({
             <span className="home-play-label">ИГРАТЬ</span>
           </button>
           <button className="home-abc" onClick={onGoLearn} aria-label="Буквы А Б В">
-            <img src={assetUrl("/assets/home/abc-tiles.png")} alt="А Б В" draggable={false} />
+            <img src={assetUrl("/assets/home/letters-abv.png")} alt="А Б В" draggable={false} />
           </button>
         </div>
       </div>
@@ -98,7 +91,7 @@ export function HomeScreen({
       </button>
 
       <button
-        className={`home-ui home-ui-sound ${musicOn ? "" : "is-off"}`}
+        className="home-ui home-ui-sound"
         onClick={onToggleMusic}
         aria-label={musicOn ? "Музыка включена" : "Музыка выключена"}
       >
