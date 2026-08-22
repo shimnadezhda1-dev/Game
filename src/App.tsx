@@ -6,13 +6,12 @@ import { PictureLetterGame } from "./components/PictureLetterGame";
 import { ListenAndChooseGame } from "./components/ListenAndChooseGame";
 import { Progress } from "./components/Progress";
 import { RewardScreen } from "./components/RewardScreen";
-import { GameHubScreen } from "./components/GameHubScreen";
 import { FlyingStar } from "./components/FlyingStar";
 import { StarsScreen } from "./components/StarsScreen";
 import { AdventurePlay } from "./components/AdventurePlay";
 import { LETTERS } from "./data/letters";
 import { audioManager } from "./audio/AudioManager";
-import { GameId, ProgressState, Screen } from "./types";
+import { ProgressState, Screen } from "./types";
 import { loadProgress, saveProgress } from "./utils/storage";
 import { preloadImages } from "./utils/preload";
 import { assetUrl, ASSETS } from "./utils/assets";
@@ -180,10 +179,6 @@ function App() {
     });
   }
 
-  function openGame(game: GameId) {
-    go(game);
-  }
-
   function toggleSound() {
     setProgress((prev) => {
       const soundEnabled = !prev.soundEnabled;
@@ -228,20 +223,24 @@ function App() {
         return (
           <HomeScreen
             onGoLearn={() => go("learn")}
-            onPlayGames={() => go("modeSelect")}
+            onPlayGames={() => go("adventure")}
             onOpenStars={() => go("stars")}
             onSpeak={speak}
             foxCelebrate={progress.stars >= 20}
           />
         );
       case "modeSelect":
+      case "adventure":
         return (
-          <GameHubScreen
-            unlockedGames={progress.unlockedGames}
-            onOpenGame={openGame}
-            onStartAdventure={() => go("adventure")}
-            onBack={backHome}
+          <AdventurePlay
+            letters={LETTERS}
+            stats={progress.letterStats}
+            progress={progress}
+            onCorrect={markCorrect}
+            onMistake={markMistake}
             onSpeak={speak}
+            onBack={backHome}
+            onLetterMastered={onLetterMastered}
           />
         );
       case "learn":
@@ -254,19 +253,6 @@ function App() {
             onBack={backHome}
             onHome={backHome}
             onSpeak={speak}
-          />
-        );
-      case "adventure":
-        return (
-          <AdventurePlay
-            letters={playLetters}
-            stats={progress.letterStats}
-            progress={progress}
-            onCorrect={markCorrect}
-            onMistake={markMistake}
-            onSpeak={speak}
-            onBack={backToHub}
-            onLetterMastered={onLetterMastered}
           />
         );
       case "find":
@@ -322,7 +308,7 @@ function App() {
         return (
           <HomeScreen
             onGoLearn={() => go("learn")}
-            onPlayGames={() => go("modeSelect")}
+            onPlayGames={() => go("adventure")}
             onOpenStars={() => go("stars")}
             onSpeak={speak}
           />

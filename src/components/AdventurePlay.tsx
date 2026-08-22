@@ -8,13 +8,19 @@ import { PictureLetterGame } from "./PictureLetterGame";
 import { ListenAndChooseGame } from "./ListenAndChooseGame";
 import { WorldBackground } from "./WorldBackground";
 import { SpeakButton } from "./SpeakButton";
-import { QuestTrail } from "./QuestTrail";
 import { BottomNav } from "./BottomNav";
 import { isLetterMastered } from "../utils/selectors";
 
-type Step = "intro" | "find" | "picture" | "listen" | "reward";
+type Step =
+  | "intro"
+  | "learn"
+  | "findLetter"
+  | "findPicture"
+  | "listenChoose"
+  | "reward"
+  | "nextLetter";
 
-const STEPS: Step[] = ["intro", "find", "picture", "listen", "reward"];
+const STEPS: Step[] = ["intro", "findLetter", "findPicture", "listenChoose", "reward"];
 
 interface AdventurePlayProps {
   letters: LetterItem[];
@@ -31,6 +37,16 @@ function pickLetter(letters: LetterItem[], progress: ProgressState): LetterItem 
   return letters.find((letter) => !isLetterMastered(progress, letter.id)) ?? letters[0];
 }
 
+function pickNextLetter(
+  letters: LetterItem[],
+  progress: ProgressState,
+  currentId: string
+): LetterItem {
+  const index = letters.findIndex((letter) => letter.id === currentId);
+  const rotated = [...letters.slice(index + 1), ...letters.slice(0, Math.max(index, 0))];
+  return rotated.find((letter) => !isLetterMastered(progress, letter.id)) ?? rotated[0] ?? letters[0];
+}
+
 export function AdventurePlay({
   letters,
   stats,
@@ -45,32 +61,31 @@ export function AdventurePlay({
   const [step, setStep] = useState<Step>("intro");
 
   useEffect(() => {
-    if (step === "intro") {
+    if (step === "intro" || step === "learn") {
       onSpeak(letter.voiceText);
     }
     if (step === "reward") {
-      onSpeak(`Ура! Ты познакомился с буквой ${letter.upper}!`);
+      onSpeak(`Ура! Ты выучил букву ${letter.upper}!`);
     }
   }, [step, letter.id]);
 
   function goNextStep() {
     setStep((current) => {
-      const index = STEPS.indexOf(current);
-      return STEPS[Math.min(index + 1, STEPS.length - 1)];
+      const normalized = current === "learn" ? "intro" : current;
+      const index = STEPS.indexOf(normalized);
+      return STEPS[Math.min(Math.max(index, 0) + 1, STEPS.length - 1)];
     });
   }
 
   function finishLetter() {
+    setStep("nextLetter");
     onLetterMastered(letter.id);
-    const remaining = letters.filter(
-      (item) => item.id !== letter.id && !isLetterMastered(progress, item.id)
-    );
-    const next = remaining[0] ?? letters.find((item) => item.id !== letter.id) ?? letter;
+    const next = pickNextLetter(letters, progress, letter.id);
     setLetter(next);
     setStep("intro");
   }
 
-  if (step === "find") {
+  if (step === "findLetter") {
     return (
       <FindLetterGame
         letters={letters}
@@ -86,7 +101,7 @@ export function AdventurePlay({
     );
   }
 
-  if (step === "picture") {
+  if (step === "findPicture") {
     return (
       <PictureLetterGame
         letters={letters}
@@ -102,7 +117,7 @@ export function AdventurePlay({
     );
   }
 
-  if (step === "listen") {
+  if (step === "listenChoose") {
     return (
       <ListenAndChooseGame
         letters={letters}
@@ -122,13 +137,20 @@ export function AdventurePlay({
     return (
       <div className="screen game-screen has-bottom-nav">
         <WorldBackground variant="play" />
-        <QuestTrail step={4} />
-        <Character mood="celebrate" size="hero" message="Ура!" />
+        <div className="confetti-layer" aria-hidden>
+          {Array.from({ length: 14 }).map((_, index) => (
+            <span key={index} className={`confetti-bit bit-${index % 6}`} />
+          ))}
+        </div>
+        <Character mood="celebrate" size="hero" />
+        <div className="adventure-star" aria-hidden="true">
+          ★
+        </div>
         <div className="hero-letter">{letter.upper}</div>
         <div className="hero-art compact-art">
           <LetterVisual letter={letter} size="hero" />
         </div>
-        <div className="caption">Ты познакомился с буквой {letter.upper}!</div>
+        <SpeakButton onClick={() => onSpeak(`Ура! Ты выучил букву ${letter.upper}!`)} />
         <button className="nav-arrow nav-next adventure-go" onClick={finishLetter} aria-label="Дальше">
           →
         </button>
@@ -140,8 +162,7 @@ export function AdventurePlay({
   return (
     <div className="screen learn-screen has-bottom-nav">
       <WorldBackground variant="play" />
-      <QuestTrail step={0} />
-      <Character mood="happy" message="Пойдём искать буквы!" />
+      <Character mood="happy" />
       <div className="learn-stage">
         <div className="learn-letter-col">
           <div className="hero-letter">{letter.upper}</div>
@@ -150,9 +171,6 @@ export function AdventurePlay({
         <div className="hero-art">
           <LetterVisual letter={letter} size="hero" />
         </div>
-      </div>
-      <div className="caption">
-        {letter.upper} — {letter.word}
       </div>
       <SpeakButton onClick={() => onSpeak(letter.voiceText)} />
       <button className="nav-arrow nav-next adventure-go pulse-hint" onClick={goNextStep} aria-label="Дальше">

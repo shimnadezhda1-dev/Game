@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
+import { Character } from "./Character";
 import { WorldBackground } from "./WorldBackground";
-import { LearnActionArt, PlayActionArt, RewardsActionArt } from "./HomeActionArts";
+import { LettersMiniArt, RewardsMiniArt } from "./HomeActionArts";
 
 interface HomeScreenProps {
   onGoLearn: () => void;
@@ -55,29 +56,29 @@ export function HomeScreen({
         <br />
         <span className="logo-rest">алфавит</span>
       </h1>
-      <p className="subtitle">Играй • Слушай • Запоминай</p>
-      <div className="home-actions">
-        <button className="kid-card kid-card-learn" onClick={onGoLearn} aria-label="Учим буквы">
-          <span className="kid-card-art">
-            <LearnActionArt />
-          </span>
-          <span className="kid-card-label">Учим буквы</span>
-        </button>
+      <div className="home-hero">
+        <div className="home-fox">
+          <Character mood={foxCelebrate ? "celebrate" : "happy"} size="hero" />
+        </div>
         <button
-          className={`kid-card kid-card-play ${pulsePlay ? "home-play-hint" : ""}`}
+          className={`play-btn home-play-btn ${pulsePlay ? "home-play-hint" : ""}`}
           onClick={onPlayGames}
           aria-label="Играть"
         >
-          <span className="kid-card-art">
-            <PlayActionArt celebrate={foxCelebrate} />
+          <span className="home-play-glyph" aria-hidden="true">
+            ▶
           </span>
-          <span className="kid-card-label">Играть</span>
+          <span className="home-play-label">ИГРАТЬ</span>
         </button>
-        <button className="kid-card kid-card-rewards" onClick={onOpenStars} aria-label="Мои награды">
-          <span className="kid-card-art">
-            <RewardsActionArt />
-          </span>
-          <span className="kid-card-label">Мои награды</span>
+      </div>
+      <div className="home-secondary">
+        <button className="home-mini home-mini-letters" onClick={onGoLearn} aria-label="Буквы">
+          <LettersMiniArt />
+          <span className="home-mini-label">Буквы</span>
+        </button>
+        <button className="home-mini home-mini-rewards" onClick={onOpenStars} aria-label="Награды">
+          <RewardsMiniArt />
+          <span className="home-mini-label">Награды</span>
         </button>
       </div>
     </div>
