@@ -3086,94 +3086,52 @@ body {
   object-position: center bottom;
 }
 
-.home-balloons {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-}
-
-.home-balloon {
-  position: absolute;
-  width: clamp(22px, 3.2vw, 36px);
-  height: clamp(28px, 4vw, 46px);
-  border-radius: 50% 50% 50% 50% / 42% 42% 58% 58%;
-  box-shadow:
-    inset -6px -8px 0 rgb(0 0 0 / 12%),
-    inset 5px 6px 0 rgb(255 255 255 / 35%);
-}
-
-.home-balloon:after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 100%;
-  width: 1px;
-  height: clamp(28px, 6vh, 48px);
-  background: rgb(255 255 255 / 55%);
-}
-
-.hb-1 { left: 4%; top: 18%; background: linear-gradient(180deg, #ff9ab0, #ff5d7a); }
-.hb-2 { left: 8%; top: 32%; background: linear-gradient(180deg, #9adbff, #3aa0ff); animation: float 6s ease-in-out infinite; }
-.hb-3 { left: 2.5%; top: 42%; background: linear-gradient(180deg, #c6f56a, #7ed957); animation-delay: -2s; }
-.hb-4 { right: 5%; top: 22%; background: linear-gradient(180deg, #e0c4ff, #9b6dff); }
-.hb-5 { right: 9%; top: 36%; background: linear-gradient(180deg, #ffe566, #ffb703); animation: float 5.5s ease-in-out infinite; animation-delay: -1.4s; }
-.hb-6 { right: 3%; top: 46%; background: linear-gradient(180deg, #9af0e4, #2ec4b6); animation-delay: -3s; }
-
-.screen.home-screen .home-sun {
-  top: clamp(10px, 2.2vh, 22px);
-  right: clamp(72px, 8vw, 130px);
-  width: clamp(72px, 12vh, 118px);
-  height: clamp(72px, 12vh, 118px);
-  z-index: 3;
-}
-
 .home-rainbow {
   position: absolute;
-  z-index: 2;
+  z-index: 1;
   top: 0;
   left: 50%;
-  width: 82%;
-  max-width: 1680px;
-  height: auto;
+  width: min(82vw, 1500px);
+  height: min(46vh, 420px);
   transform: translateX(-50%);
   object-fit: contain;
   object-position: center top;
   pointer-events: none;
 }
 
+.home-sun {
+  position: absolute;
+  top: clamp(14px, 3vh, 28px);
+  right: clamp(78px, 9vw, 140px);
+  z-index: 3;
+  width: clamp(78px, 13vh, 124px);
+  height: clamp(78px, 13vh, 124px);
+  pointer-events: none;
+  filter: drop-shadow(0 8px 6px rgb(0 0 0 / 18%));
+}
+
+.home-sun-art {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
 .home-cluster {
   position: absolute;
-  z-index: 4;
+  z-index: 5;
   left: 50%;
-  top: 50%;
+  top: 52%;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: clamp(6px, 1.2vw, 18px);
-  transform: translate(-50%, -6%);
-}
-
-.home-fox-wrap {
-  position: relative;
-  display: grid;
-  place-items: center;
-}
-
-.home-fox-wrap:before {
-  content: "";
-  position: absolute;
-  width: 92%;
-  height: 92%;
-  border-radius: 50%;
-  background: radial-gradient(circle, #fffef0ee 0%, #ffe9a866 42%, transparent 72%);
-  z-index: 0;
+  gap: clamp(8px, 1.4vw, 22px);
+  transform: translate(-50%, -8%);
 }
 
 .home-fox-art {
   position: relative;
-  z-index: 1;
+  z-index: 5;
   display: block;
   width: auto;
   height: clamp(200px, 42vh, 360px);
@@ -3181,14 +3139,16 @@ body {
   object-position: center;
   filter: drop-shadow(0 16px 10px rgb(0 0 0 / 24%));
   pointer-events: none;
+  background: none;
 }
 
 .screen.home-screen .home-cta {
+  position: relative;
+  z-index: 5;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(6px, 1vh, 10px);
-  z-index: 4;
+  gap: clamp(8px, 1.2vh, 12px);
 }
 
 .screen.home-screen .home-play-btn {
@@ -3197,6 +3157,7 @@ body {
   padding: 12px 32px;
   border-radius: 48px;
   border: 6px solid #fff8dc;
+  color: #5b3d14;
   background-image: linear-gradient(180deg, #ffe566 0%, #ffb703 52%, #ff9a00 100%);
   box-shadow:
     0 12px 0 #e07a00,
@@ -3209,7 +3170,7 @@ body {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  gap: 10px;
+  gap: 12px;
   margin: 0;
   padding: 0;
   border: none;
@@ -3221,23 +3182,21 @@ body {
 .home-block {
   display: grid;
   place-items: center;
-  width: clamp(70px, 11vh, 104px);
-  height: clamp(76px, 12vh, 112px);
+  width: clamp(72px, 11.5vh, 108px);
+  height: clamp(72px, 11.5vh, 108px);
   border-radius: 22px;
+  color: #fff;
+  font-size: clamp(36px, 6.4vh, 58px);
+  font-weight: 900;
+  line-height: 1;
   box-shadow:
     0 9px 0 rgb(0 0 0 / 18%),
     inset 0 8px 0 rgb(255 255 255 / 38%),
     inset 0 -8px 0 rgb(0 0 0 / 12%);
 }
 
-.home-block .toy-letter {
-  width: 82%;
-  height: 86%;
-}
-
 .home-block-a {
   background: linear-gradient(180deg, #ffb3c4, #ff5d7a);
-  transform: rotate(-8deg);
 }
 
 .home-block-b {
@@ -3246,50 +3205,59 @@ body {
 }
 
 .home-block-v {
-  background: linear-gradient(180deg, #9af0e4, #2ec4b6);
-  transform: rotate(8deg);
+  background: linear-gradient(180deg, #8fe8ff, #3ec6f0);
 }
 
-.home-music {
+.home-ui {
   position: absolute;
-  top: clamp(12px, 2vh, 20px);
-  right: clamp(12px, 1.8vw, 24px);
-  z-index: 6;
-  width: clamp(52px, 8vh, 68px);
-  height: clamp(52px, 8vh, 68px);
+  top: clamp(12px, 2.2vh, 22px);
+  z-index: 10;
+  width: clamp(56px, 9vh, 72px);
+  height: clamp(56px, 9vh, 72px);
   border-radius: 50%;
-  border: 3px solid #fff8dc;
+  border: 4px solid #eaffc8;
   padding: 0;
   display: grid;
   place-items: center;
   cursor: pointer;
-  background: linear-gradient(180deg, #9adbff, #3aa0ff);
+  background: linear-gradient(180deg, #9be86a 0%, #4cbf16 55%, #2f9a00 100%);
   box-shadow:
-    0 6px 0 #1d7bd6,
-    inset 0 5px 0 rgb(255 255 255 / 32%);
+    0 7px 0 #237a00,
+    inset 0 5px 0 rgb(255 255 255 / 38%);
 }
 
-.home-music .toy-icon {
+.home-ui-home {
+  left: clamp(12px, 1.8vw, 24px);
+}
+
+.home-ui-sound {
+  right: clamp(12px, 1.8vw, 24px);
+}
+
+.home-ui .toy-icon,
+.home-ui-icon {
   width: 58%;
   height: 58%;
+  display: block;
 }
 
-.home-music.is-off {
-  opacity: 0.42;
+.home-ui.is-off {
+  opacity: 0.45;
+}
+
+.screen.home-screen .home-chest {
+  display: none;
 }
 
 @media (max-width: 720px) {
   .home-rainbow {
     width: 94%;
+    height: 36vh;
   }
 
   .home-cluster {
     flex-direction: column;
-    top: 46%;
-    gap: 4px;
-  }
-
-  .screen.home-screen .home-cta {
+    top: 48%;
     gap: 6px;
   }
 
@@ -3300,7 +3268,8 @@ body {
 
 @media (max-height: 768px) {
   .home-rainbow {
-    width: 80%;
+    width: 78%;
+    height: 42vh;
   }
 
   .home-fox-art {
@@ -3313,13 +3282,15 @@ body {
   }
 
   .home-block {
-    width: clamp(62px, 10vh, 84px);
-    height: clamp(66px, 10.6vh, 90px);
+    width: clamp(64px, 10.4vh, 88px);
+    height: clamp(64px, 10.4vh, 88px);
+    font-size: clamp(32px, 5.6vh, 46px);
   }
 
-  .screen.home-screen .home-sun {
-    width: clamp(64px, 11vh, 88px);
-    height: clamp(64px, 11vh, 88px);
+  .home-sun {
+    width: clamp(68px, 12vh, 96px);
+    height: clamp(68px, 12vh, 96px);
+    right: clamp(70px, 8vw, 120px);
   }
 }
 
