@@ -1,9 +1,5 @@
 import { useEffect, useState } from "react";
-import { Character } from "./Character";
-import { Rainbow } from "./Rainbow";
-import { WorldBackground } from "./WorldBackground";
 import { assetUrl, ASSETS } from "../utils/assets";
-import { ToyLetter } from "./ToyLetter";
 
 interface HomeScreenProps {
   onGoLearn: () => void;
@@ -19,8 +15,7 @@ export function HomeScreen({
   onGoLearn,
   onPlayGames,
   onOpenStars,
-  onSpeak,
-  foxCelebrate
+  onSpeak
 }: HomeScreenProps) {
   const [pulsePlay, setPulsePlay] = useState(false);
 
@@ -38,37 +33,64 @@ export function HomeScreen({
 
   return (
     <div className="screen home-screen">
-      <WorldBackground variant="cover" />
-      <Rainbow />
-      <h1 className="visually-hidden">Весёлый алфавит</h1>
-      <div className="home-hero">
-        <div className="home-fox">
-          <Character mood={foxCelebrate ? "celebrate" : "tip"} size="hero" />
+      <div className="home-backdrop" aria-hidden="true">
+        <div className="home-sky" />
+        <span className="home-balloon hb-a" />
+        <span className="home-balloon hb-b" />
+        <span className="home-balloon hb-c" />
+        <span className="home-cloud hc-a" />
+        <span className="home-cloud hc-b" />
+        <div className="home-hills">
+          <span className="home-hill hl" />
+          <span className="home-hill hm" />
+          <span className="home-hill hr" />
         </div>
-        <div className="home-cta">
-          <button
-            className={`play-btn home-play-btn ${pulsePlay ? "home-play-hint" : ""}`}
-            onClick={onPlayGames}
-            aria-label="Играть"
-          >
-            <span className="home-play-glyph" aria-hidden="true">
-              ▶
-            </span>
-            <span className="home-play-label">ИГРАТЬ</span>
-          </button>
-          <button className="home-abc" onClick={onGoLearn} aria-label="Буквы">
-            <span className="home-abc-tile">
-              <ToyLetter letterId="A" glyph="А" size="tile" />
-            </span>
-            <span className="home-abc-tile">
-              <ToyLetter letterId="B" glyph="Б" size="tile" />
-            </span>
-            <span className="home-abc-tile">
-              <ToyLetter letterId="V" glyph="В" size="tile" />
-            </span>
-          </button>
+        <span className="home-tree ht-a" />
+        <span className="home-tree ht-b" />
+        <span className="home-tree ht-c" />
+        <span className="home-flower hf-a" />
+        <span className="home-flower hf-b" />
+        <span className="home-flower hf-c" />
+        <span className="home-flower hf-d" />
+        <span className="home-flower hf-e" />
+      </div>
+
+      <h1 className="visually-hidden">Весёлый алфавит</h1>
+
+      <div className="home-stage">
+        <img
+          className="home-rainbow"
+          src={assetUrl("/assets/home/rainbow.png")}
+          alt=""
+          draggable={false}
+        />
+        <div className="home-cluster">
+          <img
+            className="home-fox-art"
+            src={assetUrl("/assets/home/fox.png")}
+            alt=""
+            draggable={false}
+          />
+          <div className="home-cta">
+            <button
+              className={`play-btn home-play-btn ${pulsePlay ? "home-play-hint" : ""}`}
+              onClick={onPlayGames}
+              aria-label="Играть"
+            >
+              <span className="home-play-glyph" aria-hidden="true">
+                ▶
+              </span>
+              <span className="home-play-label">ИГРАТЬ</span>
+            </button>
+            <button className="home-abc" onClick={onGoLearn} aria-label="Буквы">
+              <span className="home-block home-block-a">А</span>
+              <span className="home-block home-block-b">Б</span>
+              <span className="home-block home-block-v">В</span>
+            </button>
+          </div>
         </div>
       </div>
+
       <button className="home-chest" onClick={onOpenStars} aria-label="Награды">
         <img src={assetUrl(ASSETS.ui.rewards)} alt="" draggable={false} />
       </button>
