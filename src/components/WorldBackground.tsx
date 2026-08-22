@@ -27,6 +27,7 @@ export function WorldBackground({ variant = "play" }: WorldBackgroundProps) {
         <span className="hill hill-right" />
         <span className="hill hill-mid" />
       </div>
+      <div className="butterfly" />
       <div className="flowers">
         <span className="flower f-a" />
         <span className="flower f-b" />

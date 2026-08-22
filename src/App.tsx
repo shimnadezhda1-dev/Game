@@ -11,6 +11,7 @@ import { StarsScreen } from "./components/StarsScreen";
 import { AdventurePlay } from "./components/AdventurePlay";
 import { LETTERS } from "./data/letters";
 import { audioManager } from "./audio/AudioManager";
+import { backgroundMusic } from "./audio/BackgroundMusicManager";
 import { ProgressState, Screen } from "./types";
 import { loadProgress, saveProgress } from "./utils/storage";
 import { preloadImages } from "./utils/preload";
@@ -34,11 +35,16 @@ function App() {
   const [screen, setScreen] = useState<Screen>("home");
   const [returnScreen, setReturnScreen] = useState<Screen>("home");
   const [progress, setProgress] = useState<ProgressState>(() => loadProgress());
+  const [musicOn, setMusicOn] = useState(() => backgroundMusic.isEnabled());
   const [flight, setFlight] = useState<Flight | null>(null);
   const [bankPulse, setBankPulse] = useState(false);
   const [rewardCopy, setRewardCopy] = useState({ title: "УРА!", text: "Ты заработал звёздочку!" });
   const pendingRewardRef = useRef<StarReward | null>(null);
   const starTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return backgroundMusic.subscribe(() => setMusicOn(backgroundMusic.isEnabled()));
+  }, []);
 
   const playLetters = useMemo(
     () => LETTERS.filter((letter) => letter.group <= progress.unlockedGroupIndex),
@@ -73,9 +79,14 @@ function App() {
     };
   }, []);
 
-  const speak = useCallback((text: string) => {
-    audioManager.speak(text);
+  const speak = useCallback((text: string, options?: { key?: string; onEnd?: () => void }) => {
+    audioManager.speak(text, options);
   }, []);
+
+  function startAdventure() {
+    backgroundMusic.startFromGesture();
+    go("adventure");
+  }
 
   function go(next: Screen) {
     audioManager.stopSpeaking();
@@ -187,6 +198,10 @@ function App() {
     });
   }
 
+  function toggleMusic() {
+    backgroundMusic.toggle();
+  }
+
   function onLetterMastered(letterId: string) {
     setProgress((prev) => {
       const next: ProgressState = {
@@ -223,7 +238,7 @@ function App() {
         return (
           <HomeScreen
             onGoLearn={() => go("learn")}
-            onPlayGames={() => go("adventure")}
+            onPlayGames={startAdventure}
             onOpenStars={() => go("stars")}
             onSpeak={speak}
             foxCelebrate={progress.stars >= 20}
@@ -260,7 +275,6 @@ function App() {
           <FindLetterGame
             letters={playLetters}
             stats={progress.letterStats}
-            trailStep={progress.stars % 5}
             onCorrect={markCorrect}
             onMistake={markMistake}
             onSpeak={speak}
@@ -308,7 +322,7 @@ function App() {
         return (
           <HomeScreen
             onGoLearn={() => go("learn")}
-            onPlayGames={() => go("adventure")}
+            onPlayGames={startAdventure}
             onOpenStars={() => go("stars")}
             onSpeak={speak}
           />
@@ -317,11 +331,13 @@ function App() {
   }
 
   return (
-    <div className={`app-shell ${screen === "home" ? "home-fit" : ""}`}>
+    <div className={`app-shell ${screen === "home" || screen === "adventure" || screen === "modeSelect" ? "home-fit" : ""}`}>
       <Progress
         progress={progress}
         onOpenStars={() => go("stars")}
         onToggleSound={toggleSound}
+        onToggleMusic={toggleMusic}
+        musicOn={musicOn}
         onHome={screen === "home" ? undefined : backHome}
         bankPulse={bankPulse}
       />

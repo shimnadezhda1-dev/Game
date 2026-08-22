@@ -5,11 +5,21 @@ interface ProgressProps {
   progress: ProgressState;
   onOpenStars: () => void;
   onToggleSound: () => void;
+  onToggleMusic: () => void;
+  musicOn: boolean;
   onHome?: () => void;
   bankPulse?: boolean;
 }
 
-export function Progress({ progress, onOpenStars, onToggleSound, onHome, bankPulse }: ProgressProps) {
+export function Progress({
+  progress,
+  onOpenStars,
+  onToggleSound,
+  onToggleMusic,
+  musicOn,
+  onHome,
+  bankPulse
+}: ProgressProps) {
   return (
     <div className="top-bar">
       {onHome ? (
@@ -28,6 +38,14 @@ export function Progress({ progress, onOpenStars, onToggleSound, onHome, bankPul
         >
           <img src={assetUrl(ASSETS.ui.rewards)} alt="" draggable={false} />
           <span className="star-count">{progress.stars}</span>
+        </button>
+        <button
+          className={`icon-round music-btn ${musicOn ? "" : "is-off"}`}
+          onClick={onToggleMusic}
+          aria-label={musicOn ? "Музыка включена" : "Музыка выключена"}
+          title="Музыка"
+        >
+          {musicOn ? "♪" : "♩"}
         </button>
         <button
           className="icon-round sound-btn"

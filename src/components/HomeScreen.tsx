@@ -7,7 +7,7 @@ interface HomeScreenProps {
   onGoLearn: () => void;
   onPlayGames: () => void;
   onOpenStars: () => void;
-  onSpeak: (text: string) => void;
+  onSpeak: (text: string, options?: { key?: string; onEnd?: () => void }) => void;
   foxCelebrate?: boolean;
 }
 
@@ -38,7 +38,7 @@ export function HomeScreen({
       return;
     }
     localStorage.setItem(FIRST_VISIT_KEY, "1");
-    onSpeak("Привет! Давай играть с буквами!");
+    onSpeak("Привет! Давай играть с буквами!", { key: "welcome" });
     setPulsePlay(true);
     const timer = window.setTimeout(() => setPulsePlay(false), 2400);
     return () => window.clearTimeout(timer);

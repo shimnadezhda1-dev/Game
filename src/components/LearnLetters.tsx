@@ -1,17 +1,15 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { LetterItem } from "../types";
-import { Character } from "./Character";
-import { LetterVisual } from "./LetterVisual";
-import { BottomNav } from "./BottomNav";
-import { WorldBackground } from "./WorldBackground";
-import { SpeakButton } from "./SpeakButton";
+import { GameStage } from "./GameStage";
+import { LearnScene } from "./LearnScene";
+import { letterVoiceKey } from "../audio/voiceCatalog";
 
 interface LearnLettersProps {
   letter: LetterItem;
   canGoPrev: boolean;
   onNext: () => void;
   onPrev: () => void;
-  onSpeak: (text: string) => void;
+  onSpeak: (text: string, options?: { key?: string; onEnd?: () => void }) => void;
   onBack: () => void;
   onHome: () => void;
 }
@@ -22,64 +20,34 @@ export function LearnLetters({
   onNext,
   onPrev,
   onSpeak,
-  onBack,
-  onHome
+  onBack
 }: LearnLettersProps) {
-  const [speaking, setSpeaking] = useState(false);
-  const timerRef = useRef<number | null>(null);
-  const welcomedRef = useRef(false);
+  const [ready, setReady] = useState(false);
 
   function speakLetter() {
-    if (timerRef.current !== null) {
-      window.clearTimeout(timerRef.current);
-    }
-    setSpeaking(true);
-    onSpeak(letter.voiceText);
-    timerRef.current = window.setTimeout(() => setSpeaking(false), 1400);
+    onSpeak(letter.voiceText, {
+      key: letterVoiceKey("letter", letter.id),
+      onEnd: () => setReady(true)
+    });
   }
 
   useEffect(() => {
-    if (!welcomedRef.current) {
-      welcomedRef.current = true;
-      onSpeak("Давай познакомимся с буквами!");
-      const intro = window.setTimeout(speakLetter, 1800);
-      return () => {
-        window.clearTimeout(intro);
-        if (timerRef.current !== null) {
-          window.clearTimeout(timerRef.current);
-        }
-      };
-    }
-    speakLetter();
-    return () => {
-      if (timerRef.current !== null) {
-        window.clearTimeout(timerRef.current);
-      }
-    };
+    setReady(false);
+    const timer = window.setTimeout(speakLetter, 500);
+    return () => window.clearTimeout(timer);
   }, [letter.id]);
 
   return (
-    <div className="screen learn-screen has-bottom-nav">
-      <WorldBackground variant="play" />
-      <Character mood="neutral" message="Слушай и смотри!" />
-      <div className="learn-stage">
-        <div className="learn-letter-col">
-          <div className={`hero-letter ${speaking ? "letter-bounce" : ""}`}>{letter.upper}</div>
-          <div className="hero-lower">{letter.lower}</div>
-        </div>
-        <div className="hero-art">
-          <LetterVisual letter={letter} size="hero" />
-        </div>
-      </div>
-      <div className="caption">
-        {letter.upper} — {letter.word}
-      </div>
-      <SpeakButton onClick={speakLetter} />
-      <BottomNav
-        onBack={canGoPrev ? onPrev : onBack}
-        onNext={onNext}
-        onHome={onHome}
-      />
-    </div>
+    <GameStage
+      foxMood="happy"
+      bubble={`Это буква ${letter.upper}!`}
+      onReplay={speakLetter}
+      replayKey={letter.id}
+      onBack={canGoPrev ? onPrev : onBack}
+      onNext={onNext}
+      showNext={ready}
+    >
+      <LearnScene letter={letter} />
+    </GameStage>
   );
 }

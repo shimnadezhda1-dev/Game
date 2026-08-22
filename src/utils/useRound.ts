@@ -8,12 +8,16 @@ interface UseRoundArgs {
   letters: LetterItem[];
   stats: Record<string, LetterStats>;
   optionCount?: number;
+  optionIds?: string[];
   lockTarget?: LetterItem;
   speakPrompt: (letter: LetterItem) => string;
+  speakKey?: (letter: LetterItem) => string;
   praise: (letter: LetterItem) => string;
+  praiseKey?: (letter: LetterItem) => string;
+  awaitNext?: boolean;
   onCorrect: (letterId: string, origin?: Point) => void;
   onMistake: (letterId: string) => void;
-  onSpeak: (text: string) => void;
+  onSpeak: (text: string, options?: { key?: string }) => void;
   onFinished?: () => void;
 }
 
@@ -23,9 +27,13 @@ export function useRound({
   letters,
   stats,
   optionCount = 3,
+  optionIds,
   lockTarget,
   speakPrompt,
+  speakKey,
   praise,
+  praiseKey,
+  awaitNext = false,
   onCorrect,
   onMistake,
   onSpeak,
@@ -44,14 +52,20 @@ export function useRound({
   const lettersRef = useRef(letters);
   const onSpeakRef = useRef(onSpeak);
   const speakPromptRef = useRef(speakPrompt);
+  const speakKeyRef = useRef(speakKey);
   const praiseRef = useRef(praise);
+  const praiseKeyRef = useRef(praiseKey);
+  const awaitNextRef = useRef(awaitNext);
   const onFinishedRef = useRef(onFinished);
 
   statsRef.current = stats;
   lettersRef.current = letters;
   onSpeakRef.current = onSpeak;
   speakPromptRef.current = speakPrompt;
+  speakKeyRef.current = speakKey;
   praiseRef.current = praise;
+  praiseKeyRef.current = praiseKey;
+  awaitNextRef.current = awaitNext;
   onFinishedRef.current = onFinished;
 
   const clearTimer = useCallback(() => {
@@ -73,19 +87,24 @@ export function useRound({
   }, [lockTarget, target.id, clearTimer]);
 
   const options = useMemo(
-    () => randomOptions(
-      target.id,
-      lettersRef.current.map((letter) => letter.id),
-      optionCount
-    ),
-    [target.id, optionCount]
+    () =>
+      optionIds?.length
+        ? optionIds
+        : randomOptions(
+            target.id,
+            lettersRef.current.map((letter) => letter.id),
+            optionCount
+          ),
+    [target.id, optionCount, optionIds]
   );
 
   useEffect(() => {
     if (phase !== "question") {
       return;
     }
-    onSpeakRef.current(speakPromptRef.current(target));
+    onSpeakRef.current(speakPromptRef.current(target), {
+      key: speakKeyRef.current?.(target)
+    });
   }, [target, phase]);
 
   useEffect(() => () => clearTimer(), [clearTimer]);
@@ -94,7 +113,9 @@ export function useRound({
     if (lockedRef.current) {
       return;
     }
-    onSpeakRef.current(speakPromptRef.current(target));
+    onSpeakRef.current(speakPromptRef.current(target), {
+      key: speakKeyRef.current?.(target)
+    });
   }, [target]);
 
   const finishRound = useCallback(() => {
@@ -120,10 +141,14 @@ export function useRound({
       lockedRef.current = true;
       setSelected(id);
       setPhase("feedback");
-      onSpeakRef.current(praiseRef.current(target));
+      onSpeakRef.current(praiseRef.current(target), {
+        key: praiseKeyRef.current?.(target)
+      });
       onCorrect(target.id, pointFromEvent(event));
-      clearTimer();
-      timerRef.current = window.setTimeout(finishRound, FEEDBACK_MS);
+      if (!awaitNextRef.current) {
+        clearTimer();
+        timerRef.current = window.setTimeout(finishRound, FEEDBACK_MS);
+      }
       return;
     }
     setSelected(id);
@@ -131,7 +156,7 @@ export function useRound({
     setWrongCount((value) => value + 1);
     audioManager.playTryAgain();
     onMistake(target.id);
-    onSpeakRef.current("Попробуй ещё!");
+    onSpeakRef.current("Попробуй ещё!", { key: "try-again" });
   }
 
   return {
@@ -142,6 +167,7 @@ export function useRound({
     wrongCount,
     shakeNonce,
     replay,
+    continueRound: finishRound,
     choose
   };
 }

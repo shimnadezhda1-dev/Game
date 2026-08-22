@@ -18,12 +18,14 @@ const FOX_SRC: Record<FoxMood, string> = {
 export function Character({ mood, message, size = "normal" }: CharacterProps) {
   return (
     <div className={`character character-${mood} character-${size}`}>
-      <img
-        className="fox-img"
-        src={assetUrl(FOX_SRC[mood])}
-        alt=""
-        draggable={false}
-      />
+      <div className="fox-embed">
+        <img
+          className="fox-img"
+          src={assetUrl(FOX_SRC[mood])}
+          alt=""
+          draggable={false}
+        />
+      </div>
       {message ? <div className="character-bubble">{message}</div> : null}
     </div>
   );
