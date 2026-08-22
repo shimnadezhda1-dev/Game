@@ -6,7 +6,7 @@ import { ListenAndChooseGame } from "./ListenAndChooseGame";
 import { PictureLetterGame } from "./PictureLetterGame";
 import { GameStage } from "./GameStage";
 import { GoldStar } from "./GoldStar";
-import { LearnScene } from "./LearnScene";
+import { LearnLetters } from "./LearnLetters";
 import { ToyLetter } from "./ToyLetter";
 import { isLetterMastered, shuffle } from "../utils/selectors";
 import { letterVoiceKey } from "../audio/voiceCatalog";
@@ -51,10 +51,6 @@ function listenOptions(targetId: string, allIds: string[]): string[] {
   return lessonOptions(targetId, allIds);
 }
 
-function learnBubble(letter: LetterItem): string {
-  return `Это буква ${letter.upper}!\n${letter.upper}-а-а!\n${letter.upper} — ${letter.word.toLowerCase()}!`;
-}
-
 export function AdventurePlay({
   letters,
   stats,
@@ -74,22 +70,14 @@ export function AdventurePlay({
 
   useEffect(() => {
     setNextReady(false);
-    if (step !== "learn" && step !== "reward") {
+    if (step !== "reward") {
       return;
     }
     const timer = window.setTimeout(() => {
-      if (step === "learn") {
-        onSpeak(letter.voiceText, {
-          key: letterVoiceKey("letter", letter.id),
-          onEnd: () => setNextReady(true)
-        });
-      }
-      if (step === "reward") {
-        onSpeak(`Ура! Ты выучил букву ${letter.upper}!`, {
-          key: letterVoiceKey("reward", letter.id),
-          onEnd: () => setNextReady(true)
-        });
-      }
+      onSpeak(`Ура! Ты выучил букву ${letter.upper}!`, {
+        key: letterVoiceKey("reward", letter.id),
+        onEnd: () => setNextReady(true)
+      });
     }, 700);
     return () => window.clearTimeout(timer);
   }, [step, letter.id]);
@@ -202,21 +190,12 @@ export function AdventurePlay({
   }
 
   return (
-    <GameStage
-      foxMood="happy"
-      bubble={learnBubble(letter)}
-      onReplay={() =>
-        onSpeak(letter.voiceText, {
-          key: letterVoiceKey("letter", letter.id),
-          onEnd: () => setNextReady(true)
-        })
-      }
-      replayKey={letter.id}
-      onBack={onBack}
+    <LearnLetters
+      letter={letter}
+      stars={progress.stars}
+      onSpeak={onSpeak}
+      onHome={onBack}
       onNext={() => setStep("findHint")}
-      showNext={nextReady}
-    >
-      <LearnScene letter={letter} />
-    </GameStage>
+    />
   );
 }

@@ -154,8 +154,8 @@ class AudioManager {
     }
     const utterance = new SpeechSynthesisUtterance(softenText(chunks[index]));
     utterance.lang = "ru-RU";
-    utterance.rate = 0.74;
-    utterance.pitch = 1.06;
+    utterance.rate = 0.68;
+    utterance.pitch = 1.02;
     utterance.volume = 1;
     if (this.voice) {
       utterance.voice = this.voice;

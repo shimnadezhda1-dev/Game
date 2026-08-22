@@ -1,58 +1,77 @@
 import { useEffect, useState } from "react";
 import { LetterItem } from "../types";
-import { GameStage } from "./GameStage";
 import { LearnScene } from "./LearnScene";
+import { GoldStar } from "./GoldStar";
+import { NextArrowIcon } from "./ToyIcons";
 import { letterVoiceKey } from "../audio/voiceCatalog";
-import { letterTone } from "../utils/cardTones";
+import { assetUrl, ASSETS } from "../utils/assets";
 
 interface LearnLettersProps {
   letter: LetterItem;
-  letters: LetterItem[];
-  onSelectLetter: (id: string) => void;
+  stars: number;
+  letters?: LetterItem[];
+  onSelectLetter?: (id: string) => void;
   onNext: () => void;
   onSpeak: (text: string, options?: { key?: string; onEnd?: () => void }) => void;
-  onBack: () => void;
+  onBack?: () => void;
   onHome: () => void;
 }
 
-export function LearnLetters({ letter, letters, onSelectLetter, onNext, onSpeak }: LearnLettersProps) {
-  const [ready, setReady] = useState(false);
+export function LearnLetters({ letter, stars, onNext, onSpeak, onHome }: LearnLettersProps) {
+  const [pulseNext, setPulseNext] = useState(false);
 
-  function speakLetter() {
+  function speakLetter(withPulse: boolean) {
     onSpeak(letter.voiceText, {
       key: letterVoiceKey("letter", letter.id),
-      onEnd: () => setReady(true)
+      onEnd: () => {
+        if (!withPulse) {
+          return;
+        }
+        setPulseNext(true);
+        window.setTimeout(() => setPulseNext(false), 2200);
+      }
     });
   }
 
   useEffect(() => {
-    setReady(false);
-    const timer = window.setTimeout(speakLetter, 500);
+    setPulseNext(false);
+    const timer = window.setTimeout(() => speakLetter(true), 500);
     return () => window.clearTimeout(timer);
   }, [letter.id]);
 
   return (
-    <GameStage
-      foxMood="happy"
-      bubble={`Это буква ${letter.upper}!\n${letter.upper}-а-а!\n${letter.upper} — ${letter.word.toLowerCase()}!`}
-      onReplay={speakLetter}
-      replayKey={letter.id}
-      onNext={onNext}
-      showNext={ready}
-    >
-      <LearnScene letter={letter} />
-      <div className="browse-letters">
-        {letters.map((item) => (
-          <button
-            key={item.id}
-            className={`toy-cube ${letterTone(item.id)} ${item.id === letter.id ? "is-current" : ""}`}
-            onClick={() => onSelectLetter(item.id)}
-            aria-label={item.upper}
-          >
-            {item.upper}
-          </button>
-        ))}
+    <div className="screen learn-screen">
+      <div className="learn-backdrop" aria-hidden="true">
+        <img className="learn-meadow" src={assetUrl(ASSETS.learn.meadow)} alt="" draggable={false} />
       </div>
-    </GameStage>
+
+      <button className="learn-home" onClick={onHome} aria-label="Домой">
+        <span aria-hidden="true">🏠</span>
+      </button>
+
+      <div className="learn-hud-right">
+        <div className="learn-stars" aria-label={`Звёзды: ${stars}`}>
+          <GoldStar size="tiny" />
+          <span>{stars}</span>
+        </div>
+        <button
+          className="learn-sound"
+          onClick={() => speakLetter(false)}
+          aria-label="Послушать"
+        >
+          <span aria-hidden="true">🔊</span>
+        </button>
+      </div>
+
+      <LearnScene letter={letter} />
+
+      <button
+        className={`learn-next ${pulseNext ? "learn-next-pulse" : ""}`}
+        onClick={onNext}
+        aria-label="Дальше"
+      >
+        <NextArrowIcon />
+      </button>
+    </div>
   );
 }

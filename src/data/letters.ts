@@ -8,6 +8,8 @@ export const LETTERS: LetterItem[] = [
     lower: "а",
     word: "Арбуз",
     imagePath: ASSETS.letters.A,
+    letterImage: ASSETS.letterGlyphs.A,
+    objectImage: ASSETS.objects.watermelon,
     voiceText: "Это буква А! А-а-а! А — арбуз!",
     difficulty: 1,
     group: 0

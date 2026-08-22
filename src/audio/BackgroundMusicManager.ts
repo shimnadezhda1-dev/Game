@@ -2,7 +2,7 @@ import { assetUrl } from "../utils/assets";
 
 const MUSIC_KEY = "happy-alphabet-music-v1";
 const NORMAL_VOLUME = 0.12;
-const DUCK_VOLUME = 0.05;
+const DUCK_VOLUME = 0.024;
 const MUSIC_SRC = "/audio/music/background.wav";
 
 class BackgroundMusicManager {

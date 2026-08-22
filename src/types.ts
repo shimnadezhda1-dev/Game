@@ -19,6 +19,8 @@ export interface LetterItem {
   lower: string;
   word: string;
   imagePath: string;
+  letterImage?: string;
+  objectImage?: string;
   voiceText: string;
   difficulty: number;
   group: number;

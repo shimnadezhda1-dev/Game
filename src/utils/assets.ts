@@ -12,11 +12,21 @@ export const ASSETS = {
     G: "/assets/letters/g-mushroom.png",
     D: "/assets/letters/d-house.png"
   },
+  letterGlyphs: {
+    A: "/assets/letters/A.png"
+  },
+  objects: {
+    watermelon: "/assets/objects/watermelon.png"
+  },
+  learn: {
+    meadow: "/assets/letters/meadow-bg.png"
+  },
   fox: {
     idle: "/assets/character/fox-idle.png",
     happy: "/assets/character/fox-happy.png",
     tip: "/assets/character/fox-tip.png",
-    celebrate: "/assets/character/fox-celebrate.png"
+    celebrate: "/assets/character/fox-celebrate.png",
+    teacher: "/assets/fox/fox-teacher.png"
   },
   ui: {
     cubes: "/assets/ui/learn-cubes.png",

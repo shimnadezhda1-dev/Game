@@ -71,6 +71,10 @@ function App() {
       assetUrl(ASSETS.fox.happy),
       assetUrl(ASSETS.fox.tip),
       assetUrl(ASSETS.fox.celebrate),
+      assetUrl(ASSETS.fox.teacher),
+      assetUrl(ASSETS.learn.meadow),
+      assetUrl(ASSETS.letterGlyphs.A),
+      assetUrl(ASSETS.objects.watermelon),
       assetUrl(ASSETS.ui.cubes),
       assetUrl(ASSETS.ui.play),
       assetUrl(ASSETS.ui.stars),
@@ -276,6 +280,7 @@ function App() {
           <LearnLetters
             letter={learnLetter}
             letters={playLetters}
+            stars={progress.stars}
             onSelectLetter={selectLearnLetter}
             onNext={nextLearnLetter}
             onBack={backHome}
