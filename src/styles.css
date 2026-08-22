@@ -3097,35 +3097,28 @@ body {
   z-index: 2;
   display: flex;
   flex-direction: row;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   gap: 8px 18px;
 }
 
 .home-fox-wrap {
   position: relative;
-  display: grid;
-  place-items: center;
-}
-
-.home-fox-wrap:before {
-  content: "";
-  position: absolute;
-  width: 88%;
-  height: 88%;
-  border-radius: 50%;
-  background: radial-gradient(circle, #fff6c2cc 0%, #ffe08a55 48%, transparent 72%);
-  z-index: 0;
+  display: block;
+  background: none;
+  border: none;
+  box-shadow: none;
 }
 
 .home-fox-art {
   position: relative;
   z-index: 1;
   display: block;
-  width: clamp(168px, 28vh, 260px);
-  height: auto;
+  width: auto;
+  height: clamp(176px, 30vh, 250px);
   object-fit: contain;
-  filter: drop-shadow(0 16px 10px rgb(0 0 0 / 26%));
+  object-position: bottom center;
+  filter: drop-shadow(0 14px 8px rgb(0 0 0 / 22%));
   pointer-events: none;
 }
 
@@ -3232,7 +3225,8 @@ body {
   }
 
   .home-fox-art {
-    width: clamp(140px, 22vh, 200px);
+    height: clamp(150px, 26vh, 210px);
+    width: auto;
   }
 
   .screen.home-screen .home-play-btn {

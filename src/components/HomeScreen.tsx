@@ -51,7 +51,7 @@ export function HomeScreen({
           <div className="home-fox-wrap">
             <img
               className="home-fox-art"
-              src={assetUrl("/assets/home/fox.png")}
+                  src={assetUrl("/assets/home/fox-main.png")}
               alt=""
               draggable={false}
             />
