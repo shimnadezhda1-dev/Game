@@ -3400,7 +3400,7 @@ html:has(.learn-screen) #root {
 .learn-scene-content {
   position: absolute;
   left: 50%;
-  bottom: 14vh;
+  bottom: 38vh;
   z-index: 20;
   display: flex;
   align-items: flex-end;
@@ -3517,11 +3517,27 @@ html:has(.learn-screen) #root {
   bottom: clamp(12px, 2.4vh, 24px);
   width: clamp(72px, 12vh, 104px);
   height: clamp(72px, 12vh, 104px);
-  background: linear-gradient(180deg, #b6f26d 0%, #7ed957 48%, #3bb000 100%);
+  background: linear-gradient(180deg, #42a5f5 0%, #2196f3 48%, #1976d2 100%);
   box-shadow:
-    0 9px 0 #278000,
+    0 9px 0 #1565c0,
     0 14px 18px rgb(0 0 0 / 18%),
     inset 0 7px 0 rgb(255 255 255 / 42%);
+}
+
+.learn-next:hover {
+  background: linear-gradient(180deg, #64b5f6 0%, #42a5f5 48%, #2196f3 100%);
+}
+
+.learn-next:active {
+  background: linear-gradient(180deg, #2196f3 0%, #1976d2 48%, #1565c0 100%);
+}
+
+.learn-next:disabled {
+  background: #90caf9;
+}
+
+.learn-next:disabled .toy-icon {
+  opacity: 0.6;
 }
 
 .learn-next .toy-icon {
@@ -3545,7 +3561,7 @@ html:has(.learn-screen) #root {
 
 @media (max-height: 768px) {
   .learn-scene-content {
-    bottom: 11vh;
+    bottom: 32vh;
     width: min(820px, 88vw);
     gap: 8px;
   }
@@ -3577,7 +3593,7 @@ html:has(.learn-screen) #root {
 @media (max-width: 900px) {
   .learn-scene-content {
     width: min(94vw, 720px);
-    bottom: 16vh;
+    bottom: 36vh;
     gap: 6px;
   }
 
