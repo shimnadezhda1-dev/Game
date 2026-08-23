@@ -8,10 +8,16 @@ import { GameStage } from "./GameStage";
 import { GoldStar } from "./GoldStar";
 import { LearnLetters } from "./LearnLetters";
 import { ToyLetter } from "./ToyLetter";
-import { isLetterMastered, randomOptions, shuffle } from "../utils/selectors";
+import { randomOptions, shuffle } from "../utils/selectors";
 import { findLetterPrompt } from "../utils/letterCopy";
 import { letterVoiceKey } from "../audio/voiceCatalog";
-import { contentReadyLetters, isContentReady, nextContentReadyLetter } from "../data/letters";
+import { contentReadyLetters } from "../data/letters";
+import {
+  letterByIndex,
+  nextLetterIndex,
+  optionPoolIds,
+  startPlayLetterIndex
+} from "../utils/letterProgress";
 
 type Step = "learn" | "findHint" | "findLetter" | "findPicture" | "listenChoose" | "reward" | "complete";
 
@@ -43,18 +49,6 @@ interface AdventurePlayProps {
   onLetterMastered: (letterId: string) => void;
 }
 
-function pickLetter(letters: LetterItem[], progress: ProgressState): LetterItem | null {
-  const playable = contentReadyLetters(letters);
-  if (!playable.length) {
-    return null;
-  }
-  const unmastered = playable.find((item) => !isLetterMastered(progress, item.id));
-  if (unmastered) {
-    return unmastered;
-  }
-  return playable[playable.length - 1];
-}
-
 function lessonOptions(targetId: string, allIds: string[]): string[] {
   return randomOptions(targetId, allIds, 3);
 }
@@ -77,29 +71,22 @@ export function AdventurePlay({
   onBack,
   onLetterMastered
 }: AdventurePlayProps) {
-  const startLetter = pickLetter(letters, progress);
-  const playable = contentReadyLetters(letters);
-  const [letter, setLetter] = useState<LetterItem>(() => startLetter ?? playable[0] ?? letters[0]);
+  const assetReadyIds = contentReadyLetters(letters).map((item) => item.id);
+  const [currentLetterIndex, setCurrentLetterIndex] = useState(() => startPlayLetterIndex(progress));
   const [step, setStep] = useState<Step>("learn");
   const [nextReady, setNextReady] = useState(false);
-  const playableIds = playable.map((item) => item.id);
-  const optionIds = useMemo(() => lessonOptions(letter.id, playableIds), [letter.id, playableIds.join(",")]);
-  const listenIds = useMemo(() => listenOptions(letter.id, playableIds), [letter.id, playableIds.join(",")]);
-  const hasNextLesson = Boolean(nextContentReadyLetter(letters, letter.id));
-
-  useEffect(() => {
-    if (isContentReady(letter)) {
-      return;
-    }
-    if (import.meta.env.DEV) {
-      console.warn(`[alphabet] Skipped incomplete letter ${letter.upper}`);
-    }
-    const fallback = pickLetter(letters, progress);
-    if (fallback) {
-      setLetter(fallback);
-      setStep("learn");
-    }
-  }, [letter, letters, progress]);
+  const letter = letterByIndex(letters, currentLetterIndex);
+  const currentStageIndex = STAGE_FLOW.indexOf(toFlowStep(step) ?? "learn");
+  const optionPool = optionPoolIds(letter.id, assetReadyIds);
+  const optionIds = useMemo(
+    () => lessonOptions(letter.id, optionPool),
+    [letter.id, optionPool.join(",")]
+  );
+  const listenIds = useMemo(
+    () => listenOptions(letter.id, optionPool),
+    [letter.id, optionPool.join(",")]
+  );
+  const hasNextLesson = nextLetterIndex(currentLetterIndex, letters.length) !== null;
 
   useEffect(() => {
     setNextReady(false);
@@ -117,29 +104,19 @@ export function AdventurePlay({
 
   function finishLetter() {
     onLetterMastered(letter.id);
-    const next = nextContentReadyLetter(letters, letter.id);
-    if (!next) {
-      if (import.meta.env.DEV) {
-        const following = letters.find((item) => item.id === letter.id);
-        console.warn(
-          `[alphabet] Stopped after ${letter.upper}: next letter is not content-ready.`,
-          following
-        );
-      }
+    const next = nextLetterIndex(currentLetterIndex, letters.length);
+    if (next === null) {
+      setStep("complete");
       return;
     }
-    setLetter(next);
+    setCurrentLetterIndex(next);
     setStep("learn");
     setNextReady(false);
   }
 
   function goStagePrev() {
     setStep((current) => {
-      const flow = toFlowStep(current);
-      if (!flow) {
-        return current;
-      }
-      const index = STAGE_FLOW.indexOf(flow);
+      const index = STAGE_FLOW.indexOf(toFlowStep(current) ?? "learn");
       if (index <= 0) {
         return current;
       }
@@ -161,10 +138,8 @@ export function AdventurePlay({
     });
   }
 
-  const flowStep = toFlowStep(step);
-  const flowIndex = flowStep ? STAGE_FLOW.indexOf(flowStep) : -1;
-  const showStagePrev = flowIndex > 0;
-  const showStageNext = flowIndex >= 0 && flowIndex < STAGE_FLOW.length - 1;
+  const showStagePrev = currentStageIndex > 0 && step !== "complete";
+  const showStageNext = currentStageIndex >= 0 && currentStageIndex < STAGE_FLOW.length - 1;
   const onStagePrev = showStagePrev ? goStagePrev : undefined;
   const onStageNext = showStageNext ? goStageNext : undefined;
 
@@ -181,7 +156,7 @@ export function AdventurePlay({
   if (step === "findHint") {
     return (
       <FindLetterGame
-        letters={playable}
+        letters={letters}
         stats={stats}
         lockTarget={letter}
         optionIds={optionIds}
@@ -203,7 +178,7 @@ export function AdventurePlay({
   if (step === "findLetter") {
     return (
       <FindLetterGame
-        letters={playable}
+        letters={letters}
         stats={stats}
         lockTarget={letter}
         optionIds={optionIds}
@@ -225,7 +200,7 @@ export function AdventurePlay({
   if (step === "findPicture") {
     return (
       <PictureLetterGame
-        letters={playable}
+        letters={letters}
         stats={stats}
         lockTarget={letter}
         optionIds={optionIds}
@@ -245,7 +220,7 @@ export function AdventurePlay({
   if (step === "listenChoose") {
     return (
       <ListenAndChooseGame
-        letters={playable}
+        letters={letters}
         stats={stats}
         lockTarget={letter}
         optionIds={listenIds}

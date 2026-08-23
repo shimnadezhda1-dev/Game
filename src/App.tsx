@@ -39,6 +39,7 @@ function App() {
   const [flight, setFlight] = useState<Flight | null>(null);
   const [bankPulse, setBankPulse] = useState(false);
   const [rewardCopy, setRewardCopy] = useState({ title: "УРА!", text: "Ты заработал звёздочку!" });
+  const [playEpoch, setPlayEpoch] = useState(0);
   const pendingRewardRef = useRef<StarReward | null>(null);
   const starTimerRef = useRef<number | null>(null);
 
@@ -99,6 +100,7 @@ function App() {
 
   function startAdventure() {
     backgroundMusic.startFromGesture();
+    setPlayEpoch((epoch) => epoch + 1);
     go("adventure");
   }
 
@@ -267,6 +269,7 @@ function App() {
       case "adventure":
         return (
           <AdventurePlay
+            key={playEpoch}
             letters={LETTERS}
             stats={progress.letterStats}
             progress={progress}

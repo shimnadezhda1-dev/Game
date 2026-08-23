@@ -30,21 +30,46 @@ function migrateStats(parsed: Partial<ProgressState>): Record<string, LetterStat
   return stats;
 }
 
+export const STORAGE_KEYS = {
+  progress: STORAGE_KEY,
+  firstVisit: "happy-alphabet-first-visit-v1",
+  music: "happy-alphabet-music-v1"
+} as const;
+
 export function loadProgress(): ProgressState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
       return defaultProgress;
     }
-    const parsed = JSON.parse(raw) as Partial<ProgressState> & { screen?: unknown };
+    const parsed = JSON.parse(raw) as Partial<ProgressState> & {
+      screen?: unknown;
+      currentLetter?: unknown;
+      currentLetterIndex?: unknown;
+      selectedLetter?: unknown;
+      activeLetter?: unknown;
+    };
     const stars = typeof parsed.stars === "number" ? parsed.stars : 0;
-    const learned = parsed.learnedLetterIds ?? [];
+    const learned = Array.isArray(parsed.learnedLetterIds) ? parsed.learnedLetterIds : [];
     const inferredGroup = LETTER_GROUPS[0].every((id) => learned.includes(id)) ? 1 : 0;
-    const { screen: _ignoredScreen, ...progressFields } = parsed;
+    const {
+      screen: _ignoredScreen,
+      currentLetter: _ignoredCurrentLetter,
+      currentLetterIndex: _ignoredLetterIndex,
+      selectedLetter: _ignoredSelected,
+      activeLetter: _ignoredActive,
+      ...progressFields
+    } = parsed;
+    const learnIndex =
+      typeof parsed.currentLearnIndex === "number" && parsed.currentLearnIndex >= 0
+        ? parsed.currentLearnIndex
+        : 0;
     return {
       ...defaultProgress,
       ...progressFields,
       stars,
+      learnedLetterIds: learned,
+      currentLearnIndex: learnIndex,
       unlockedGames: DEFAULT_UNLOCKED,
       mistakeCounts: parsed.mistakeCounts ?? {},
       letterStats: migrateStats(parsed),
