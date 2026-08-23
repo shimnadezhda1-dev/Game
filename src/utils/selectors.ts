@@ -23,8 +23,11 @@ export function getLetterStats(
 
 export function unlockedLetters(progress: ProgressState, letters: LetterItem[] = LETTERS): LetterItem[] {
   const maxGroup = Math.max(0, progress.unlockedGroupIndex);
-  const pool = letters.filter((letter) => letter.group <= maxGroup);
-  return pool.length ? pool : letters.slice(0, 3);
+  const pool = letters.filter((letter) => letter.contentReady && letter.group <= maxGroup);
+  if (pool.length) {
+    return pool;
+  }
+  return letters.filter((letter) => letter.contentReady).slice(0, 3);
 }
 
 export function isLetterMastered(progress: ProgressState, letterId: string): boolean {

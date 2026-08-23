@@ -23,6 +23,7 @@ interface ListenAndChooseGameProps {
   onPrev?: () => void;
   onStageNext?: () => void;
   onFinished?: () => void;
+  showInternalNext?: boolean;
 }
 
 const LETTER_TONE: Record<string, string> = {
@@ -56,7 +57,8 @@ export function ListenAndChooseGame({
   onBack,
   onPrev,
   onStageNext,
-  onFinished
+  onFinished,
+  showInternalNext = true
 }: ListenAndChooseGameProps) {
   const stableOptions = useMemo(() => optionIds, [optionIds?.join(",")]);
   const round = useRound({
@@ -178,7 +180,7 @@ export function ListenAndChooseGame({
 
       <StageNav onPrev={onPrev} onNext={onStageNext} />
 
-      {awaitNext && celebrating ? (
+      {awaitNext && celebrating && showInternalNext ? (
         <button type="button" className="learn-next internal-next" onClick={round.continueRound} aria-label="Дальше">
           <NextArrowIcon />
         </button>

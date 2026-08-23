@@ -8,7 +8,6 @@ import { StageNav } from "./StageNav";
 import { NextArrowIcon } from "./ToyIcons";
 import { assetUrl, ASSETS } from "../utils/assets";
 import { letterObjectSrc } from "../utils/letterCopy";
-import { LetterPlaceholder } from "./LetterPlaceholder";
 
 interface PictureLetterGameProps {
   letters: LetterItem[];
@@ -110,6 +109,9 @@ export function PictureLetterGame({
               return null;
             }
             const art = letterObjectSrc(item, "picture");
+            if (!art) {
+              return null;
+            }
             const isChosenCorrect = round.phase === "feedback" && id === round.target.id;
             const isWatermelon = id === "A";
             return (
@@ -119,16 +121,12 @@ export function PictureLetterGame({
                 onClick={(event) => round.choose(id, event)}
                 aria-label={item.word || item.upper}
               >
-                {art ? (
-                  <img
-                    className={isWatermelon ? "picture-choice-watermelon" : undefined}
-                    src={assetUrl(art)}
-                    alt={item.word}
-                    draggable={false}
-                  />
-                ) : (
-                  <LetterPlaceholder letter={item} />
-                )}
+                <img
+                  className={isWatermelon ? "picture-choice-watermelon" : undefined}
+                  src={assetUrl(art)}
+                  alt={item.word}
+                  draggable={false}
+                />
               </button>
             );
           })}

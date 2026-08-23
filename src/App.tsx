@@ -9,7 +9,7 @@ import { RewardScreen } from "./components/RewardScreen";
 import { FlyingStar } from "./components/FlyingStar";
 import { StarsScreen } from "./components/StarsScreen";
 import { AdventurePlay } from "./components/AdventurePlay";
-import { LETTERS } from "./data/letters";
+import { LETTERS, contentReadyLetters } from "./data/letters";
 import { audioManager } from "./audio/AudioManager";
 import { backgroundMusic } from "./audio/BackgroundMusicManager";
 import { ProgressState, Screen } from "./types";
@@ -32,7 +32,7 @@ interface Flight {
 }
 
 function App() {
-  const [screen, setScreen] = useState<Screen>("home");
+  const [screen, setScreen] = useState<Screen>("home"); // never restored from localStorage
   const [returnScreen, setReturnScreen] = useState<Screen>("home");
   const [progress, setProgress] = useState<ProgressState>(() => loadProgress());
   const [musicOn, setMusicOn] = useState(() => backgroundMusic.isEnabled());
@@ -57,8 +57,8 @@ function App() {
   }, []);
 
   const playLetters = useMemo(
-    () => LETTERS.filter((letter) => letter.group <= progress.unlockedGroupIndex),
-    [progress.unlockedGroupIndex]
+    () => unlockedLetters(progress, LETTERS),
+    [progress]
   );
   const learnLetter =
     playLetters[progress.currentLearnIndex % playLetters.length] ?? playLetters[0] ?? LETTERS[0];
@@ -329,7 +329,7 @@ function App() {
         );
       case "stars":
         return (
-          <StarsScreen progress={progress} letters={LETTERS} onBack={backHome} onSpeak={speak} />
+          <StarsScreen progress={progress} letters={contentReadyLetters(LETTERS)} onBack={backHome} onSpeak={speak} />
         );
       case "reward":
         return (

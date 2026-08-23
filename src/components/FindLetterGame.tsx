@@ -12,7 +12,6 @@ import { assetUrl, ASSETS } from "../utils/assets";
 import { findLetterPrompt, letterChoiceSrc, letterGlyphSrc, letterObjectSrc } from "../utils/letterCopy";
 import { planFindColors } from "../utils/findColors";
 import { ToyLetter } from "./ToyLetter";
-import { LetterPlaceholder } from "./LetterPlaceholder";
 import { useMemo } from "react";
 
 interface FindLetterGameProps {
@@ -144,9 +143,7 @@ export function FindLetterGame({
                 alt={target.word}
                 draggable={false}
               />
-            ) : (
-              <LetterPlaceholder letter={target} className="find-hint-object" />
-            )}
+            ) : null}
           </div>
 
           <div className="find-choices">

@@ -27,6 +27,7 @@ export interface LetterItem {
   voiceText: string;
   successText?: string;
   needsContent?: boolean;
+  contentReady: boolean;
   difficulty: number;
   group: number;
 }

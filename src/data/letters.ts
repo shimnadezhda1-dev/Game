@@ -10,15 +10,17 @@ function letterEntry(letter: Omit<LetterItem, "voiceText">): LetterItem {
 }
 
 function laterLetter(
-  letter: Omit<LetterItem, "voiceText" | "imagePath" | "difficulty" | "group"> & {
+  letter: Omit<LetterItem, "voiceText" | "imagePath" | "difficulty" | "group" | "contentReady"> & {
     difficulty?: number;
     group?: number;
+    contentReady?: boolean;
   }
 ): LetterItem {
   return letterEntry({
     imagePath: "",
     difficulty: letter.difficulty ?? 2,
     group: letter.group ?? 2,
+    contentReady: false,
     ...letter
   });
 }
@@ -36,7 +38,8 @@ export const LETTERS: LetterItem[] = [
     pictureImage: ASSETS.picture.watermelon,
     choiceImage: ASSETS.find.choiceA,
     difficulty: 1,
-    group: 0
+    group: 0,
+    contentReady: true
   }),
   letterEntry({
     id: "B",
@@ -50,7 +53,8 @@ export const LETTERS: LetterItem[] = [
     pictureImage: ASSETS.objects.drum,
     choiceImage: ASSETS.find.choiceB,
     difficulty: 1,
-    group: 0
+    group: 0,
+    contentReady: true
   }),
   letterEntry({
     id: "V",
@@ -64,7 +68,8 @@ export const LETTERS: LetterItem[] = [
     pictureImage: ASSETS.objects.wolf,
     choiceImage: ASSETS.find.choiceV,
     difficulty: 1,
-    group: 0
+    group: 0,
+    contentReady: true
   }),
   letterEntry({
     id: "G",
@@ -78,7 +83,8 @@ export const LETTERS: LetterItem[] = [
     pictureImage: ASSETS.picture.mushroom,
     choiceImage: ASSETS.find.choiceG,
     difficulty: 2,
-    group: 1
+    group: 1,
+    contentReady: true
   }),
   letterEntry({
     id: "D",
@@ -92,7 +98,8 @@ export const LETTERS: LetterItem[] = [
     pictureImage: ASSETS.picture.house,
     choiceImage: ASSETS.find.choiceD,
     difficulty: 2,
-    group: 1
+    group: 1,
+    contentReady: true
   }),
   laterLetter({ id: "E", upper: "Е", lower: "е", word: "Енот" }),
   laterLetter({ id: "Yo", upper: "Ё", lower: "ё", word: "", needsContent: true }),
@@ -132,6 +139,14 @@ export const LETTER_GROUPS = [
 
 export const SPECIAL_CONTENT_LETTER_IDS = ["Yo", "J", "Hard", "Yery", "Soft"] as const;
 
+export function isContentReady(letter: Pick<LetterItem, "contentReady">): boolean {
+  return letter.contentReady === true;
+}
+
+export function contentReadyLetters(letters: LetterItem[] = LETTERS): LetterItem[] {
+  return letters.filter(isContentReady);
+}
+
 export function nextAlphabetLetter(
   letters: LetterItem[],
   currentId: string
@@ -141,4 +156,15 @@ export function nextAlphabetLetter(
     return null;
   }
   return letters[index + 1];
+}
+
+export function nextContentReadyLetter(
+  letters: LetterItem[],
+  currentId: string
+): LetterItem | null {
+  const next = nextAlphabetLetter(letters, currentId);
+  if (!next || !isContentReady(next)) {
+    return null;
+  }
+  return next;
 }

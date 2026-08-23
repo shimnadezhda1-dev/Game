@@ -36,13 +36,14 @@ export function loadProgress(): ProgressState {
     if (!raw) {
       return defaultProgress;
     }
-    const parsed = JSON.parse(raw) as Partial<ProgressState>;
+    const parsed = JSON.parse(raw) as Partial<ProgressState> & { screen?: unknown };
     const stars = typeof parsed.stars === "number" ? parsed.stars : 0;
     const learned = parsed.learnedLetterIds ?? [];
     const inferredGroup = LETTER_GROUPS[0].every((id) => learned.includes(id)) ? 1 : 0;
+    const { screen: _ignoredScreen, ...progressFields } = parsed;
     return {
       ...defaultProgress,
-      ...parsed,
+      ...progressFields,
       stars,
       unlockedGames: DEFAULT_UNLOCKED,
       mistakeCounts: parsed.mistakeCounts ?? {},
