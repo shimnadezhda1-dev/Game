@@ -12,6 +12,8 @@ import { randomOptions, shuffle } from "../utils/selectors";
 import { findLetterPrompt } from "../utils/letterCopy";
 import { letterVoiceKey } from "../audio/voiceCatalog";
 import { contentReadyLetters } from "../data/letters";
+import { assetUrl, ASSETS } from "../utils/assets";
+import { preloadImages } from "../utils/preload";
 import {
   letterByIndex,
   nextLetterIndex,
@@ -87,6 +89,28 @@ export function AdventurePlay({
     [letter.id, optionPool.join(",")]
   );
   const hasNextLesson = nextLetterIndex(currentLetterIndex, letters.length) !== null;
+
+  useEffect(() => {
+    const paths = [
+      letter.letterImage,
+      letter.objectImage,
+      letter.findObjectImage,
+      letter.pictureImage,
+      letter.choiceImage
+    ].filter((path): path is string => Boolean(path));
+    const nextStagePreview =
+      step === "learn"
+        ? ASSETS.find.meadow
+        : step === "findHint" || step === "findLetter"
+          ? ASSETS.picture.meadow
+          : step === "findPicture"
+            ? ASSETS.listen.meadow
+            : null;
+    if (nextStagePreview) {
+      paths.push(nextStagePreview);
+    }
+    preloadImages(paths.map((path) => assetUrl(path)));
+  }, [letter.id, step]);
 
   useEffect(() => {
     setNextReady(false);

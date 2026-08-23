@@ -99,6 +99,8 @@ export function ListenAndChooseGame({
           src={assetUrl(ASSETS.listen.meadow)}
           alt=""
           draggable={false}
+          fetchPriority="high"
+          decoding="async"
         />
       </div>
 

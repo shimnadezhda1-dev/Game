@@ -50,12 +50,13 @@ export function LearnLetters({ letter, stars, onNext, onSpeak, onHome, onStageNe
   return (
     <div className="screen learn-screen">
       <div className="learn-backdrop" aria-hidden="true">
-        <img className="learn-meadow" src={assetUrl(ASSETS.learn.meadow)} alt="" draggable={false} />
+        <img className="learn-meadow" src={assetUrl(ASSETS.learn.meadow)} alt="" draggable={false} fetchPriority="high" decoding="async" />
       </div>
 
       <img
         className="learn-sun"
-        src={assetUrl("/assets/home/sun-smiling.png")}
+        src={assetUrl("/assets/home/sun-smiling.webp")}
+        decoding="async"
         alt=""
         draggable={false}
       />

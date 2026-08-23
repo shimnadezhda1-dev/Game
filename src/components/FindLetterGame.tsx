@@ -87,7 +87,7 @@ export function FindLetterGame({
         style={{ ["--find-target-color" as string]: colorPlan.targetDisplayCss }}
       >
         <div className="find-backdrop" aria-hidden="true">
-          <img className="find-meadow" src={assetUrl(ASSETS.find.meadow)} alt="" draggable={false} />
+          <img className="find-meadow" src={assetUrl(ASSETS.find.meadow)} alt="" draggable={false} fetchPriority="high" decoding="async" />
         </div>
 
         <button className="learn-home" onClick={onBack} aria-label="На главную">
@@ -114,6 +114,7 @@ export function FindLetterGame({
           src={assetUrl(ASSETS.find.fox)}
           alt=""
           draggable={false}
+          decoding="async"
         />
 
         <div className="find-board">

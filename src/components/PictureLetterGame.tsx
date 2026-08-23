@@ -73,6 +73,8 @@ export function PictureLetterGame({
           src={assetUrl(ASSETS.picture.meadow)}
           alt=""
           draggable={false}
+          fetchPriority="high"
+          decoding="async"
         />
       </div>
 

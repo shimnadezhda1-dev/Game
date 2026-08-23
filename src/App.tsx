@@ -15,7 +15,7 @@ import { backgroundMusic } from "./audio/BackgroundMusicManager";
 import { ProgressState, Screen } from "./types";
 import { loadProgress, saveProgress } from "./utils/storage";
 import { preloadImages } from "./utils/preload";
-import { assetUrl, ASSETS } from "./utils/assets";
+import { assetUrl } from "./utils/assets";
 import type { Point } from "./utils/point";
 import {
   getLetterStats,
@@ -67,20 +67,10 @@ function App() {
   useEffect(() => {
     audioManager.setEnabled(progress.soundEnabled);
     preloadImages([
-      ...LETTERS.filter((letter) => letter.imagePath).map((letter) => assetUrl(letter.imagePath)),
-      assetUrl(ASSETS.fox.idle),
-      assetUrl(ASSETS.fox.happy),
-      assetUrl(ASSETS.fox.tip),
-      assetUrl(ASSETS.fox.celebrate),
-      assetUrl(ASSETS.fox.teacher),
-      assetUrl(ASSETS.learn.meadow),
-      assetUrl(ASSETS.letterGlyphs.A),
-      assetUrl(ASSETS.objects.watermelon),
-      assetUrl(ASSETS.ui.cubes),
-      assetUrl(ASSETS.ui.play),
-      assetUrl(ASSETS.ui.stars),
-      assetUrl(ASSETS.ui.rewards),
-      assetUrl(ASSETS.ui.home)
+      assetUrl("/assets/home/home-meadow.webp"),
+      assetUrl("/assets/home/fox-home.webp"),
+      assetUrl("/assets/home/sun-smiling.webp"),
+      assetUrl("/assets/home/letters-abv.webp")
     ]);
   }, []);
 

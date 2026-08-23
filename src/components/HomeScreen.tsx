@@ -50,12 +50,21 @@ export function HomeScreen({
   return (
     <div className="screen home-screen">
       <div className="home-layer home-layer-bg" aria-hidden="true">
-        <img className="home-meadow" src={assetUrl("/assets/home/home-meadow.png")} alt="" draggable={false} />
+        <img
+          className="home-meadow"
+          src={assetUrl("/assets/home/home-meadow.webp")}
+          alt=""
+          draggable={false}
+          fetchPriority="high"
+          decoding="async"
+        />
       </div>
 
       <img
         className="home-sun"
-        src={assetUrl("/assets/home/sun-smiling.png")}
+        src={assetUrl("/assets/home/sun-smiling.webp")}
+        fetchPriority="high"
+        decoding="async"
         alt=""
         draggable={false}
       />
@@ -65,7 +74,9 @@ export function HomeScreen({
       <div className="home-cluster">
         <img
           className="home-fox-art"
-          src={assetUrl("/assets/home/fox-home.png")}
+          src={assetUrl("/assets/home/fox-home.webp")}
+          fetchPriority="high"
+          decoding="async"
           alt=""
           draggable={false}
         />
@@ -81,7 +92,12 @@ export function HomeScreen({
             <span className="home-play-label">ИГРАТЬ</span>
           </button>
           <button className="home-abc" onClick={onGoLearn} aria-label="Буквы А Б В">
-            <img src={assetUrl("/assets/home/letters-abv.png")} alt="А Б В" draggable={false} />
+            <img
+              src={assetUrl("/assets/home/letters-abv.webp")}
+              alt="А Б В"
+              draggable={false}
+              decoding="async"
+            />
           </button>
         </div>
       </div>

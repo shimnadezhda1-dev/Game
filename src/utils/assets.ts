@@ -6,62 +6,62 @@ export function assetUrl(path: string): string {
 
 export const ASSETS = {
   letters: {
-    A: "/assets/letters/a-watermelon.png",
-    B: "/assets/letters/b-drum.png",
-    V: "/assets/letters/v-wolf.png",
-    G: "/assets/letters/g-mushroom.png",
-    D: "/assets/letters/d-house.png"
+    A: "/assets/letters/a-watermelon.webp",
+    B: "/assets/letters/b-drum.webp",
+    V: "/assets/letters/v-wolf.webp",
+    G: "/assets/letters/g-mushroom.webp",
+    D: "/assets/letters/d-house.webp"
   },
   letterGlyphs: {
-    A: "/assets/letters/A.png",
-    B: "/assets/letters/B.png",
-    V: "/assets/letters/V.png",
-    G: "/assets/letters/G.png",
-    D: "/assets/letters/D.png"
+    A: "/assets/letters/A.webp",
+    B: "/assets/letters/B.webp",
+    V: "/assets/letters/V.webp",
+    G: "/assets/letters/G.webp",
+    D: "/assets/letters/D.webp"
   },
   objects: {
-    watermelon: "/assets/objects/watermelon.png",
-    drum: "/assets/letters/b-drum.png",
-    wolf: "/assets/letters/v-wolf.png",
-    mushroom: "/assets/picture/mushroom.png",
-    house: "/assets/picture/house.png"
+    watermelon: "/assets/objects/watermelon.webp",
+    drum: "/assets/letters/b-drum.webp",
+    wolf: "/assets/letters/v-wolf.webp",
+    mushroom: "/assets/picture/mushroom.webp",
+    house: "/assets/picture/house.webp"
   },
   learn: {
-    meadow: "/assets/letters/meadow-bg.png"
+    meadow: "/assets/letters/meadow-bg.webp"
   },
   find: {
-    meadow: "/assets/find/meadow.png",
-    fox: "/assets/find/fox.png",
-    letterA: "/assets/find/letter-a.png",
-    watermelon: "/assets/find/watermelon.png",
-    choiceA: "/assets/find/choice-a.png",
-    choiceB: "/assets/find/choice-b.png",
-    choiceV: "/assets/find/choice-v.png",
-    choiceG: "/assets/find/choice-g.png",
-    choiceD: "/assets/find/choice-d.png"
+    meadow: "/assets/find/meadow.webp",
+    fox: "/assets/find/fox.webp",
+    letterA: "/assets/find/letter-a.webp",
+    watermelon: "/assets/find/watermelon.webp",
+    choiceA: "/assets/find/choice-a.webp",
+    choiceB: "/assets/find/choice-b.webp",
+    choiceV: "/assets/find/choice-v.webp",
+    choiceG: "/assets/find/choice-g.webp",
+    choiceD: "/assets/find/choice-d.webp"
   },
   picture: {
-    meadow: "/assets/picture/meadow.png",
-    fox: "/assets/picture/fox.png",
-    watermelon: "/assets/picture/watermelon.png",
-    mushroom: "/assets/picture/mushroom.png",
-    house: "/assets/picture/house.png"
+    meadow: "/assets/picture/meadow.webp",
+    fox: "/assets/picture/fox.webp",
+    watermelon: "/assets/picture/watermelon.webp",
+    mushroom: "/assets/picture/mushroom.webp",
+    house: "/assets/picture/house.webp"
   },
   listen: {
-    meadow: "/assets/listen/meadow.png"
+    meadow: "/assets/listen/meadow.webp"
   },
   fox: {
-    idle: "/assets/character/fox-idle.png",
-    happy: "/assets/character/fox-happy.png",
-    tip: "/assets/character/fox-tip.png",
-    celebrate: "/assets/character/fox-celebrate.png",
-    teacher: "/assets/fox/fox-teacher.png"
+    idle: "/assets/character/fox-idle.webp",
+    happy: "/assets/character/fox-happy.webp",
+    tip: "/assets/character/fox-tip.webp",
+    celebrate: "/assets/character/fox-celebrate.webp",
+    teacher: "/assets/fox/fox-teacher.webp"
   },
   ui: {
-    cubes: "/assets/ui/learn-cubes.png",
-    play: "/assets/ui/play-letters.png",
-    stars: "/assets/ui/stars.png",
-    rewards: "/assets/ui/rewards-chest.png",
-    home: "/assets/ui/home-house.png"
+    cubes: "/assets/ui/learn-cubes.webp",
+    play: "/assets/ui/play-letters.webp",
+    stars: "/assets/ui/stars.webp",
+    rewards: "/assets/ui/rewards-chest.webp",
+    home: "/assets/ui/home-house.webp"
   }
 } as const;
