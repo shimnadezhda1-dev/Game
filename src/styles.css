@@ -3256,13 +3256,23 @@ html:has(.home-immersive) #root {
 
 /* ===== Letter intro: meadow scene from final assets ===== */
 
+html:has(.learn-screen),
+html:has(.learn-screen) body,
+html:has(.learn-screen) #root {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
 .screen.learn-screen {
-  position: absolute;
+  position: fixed;
   inset: 0;
   z-index: 8;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
   padding: 0 !important;
   gap: 0 !important;
   overflow: hidden !important;
@@ -3289,7 +3299,7 @@ html:has(.home-immersive) #root {
 .learn-sound,
 .learn-next {
   position: absolute;
-  z-index: 6;
+  z-index: 100;
   display: grid;
   place-items: center;
   padding: 0;
@@ -3316,7 +3326,7 @@ html:has(.home-immersive) #root {
   position: absolute;
   top: clamp(10px, 2vh, 18px);
   right: clamp(10px, 1.6vw, 20px);
-  z-index: 6;
+  z-index: 100;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -3360,35 +3370,81 @@ html:has(.home-immersive) #root {
     inset 0 6px 0 rgb(255 255 255 / 40%);
 }
 
+.learn-sun {
+  position: absolute;
+  z-index: 5;
+  top: 4.5vh;
+  left: 50%;
+  width: clamp(88px, 7.5vw, 128px);
+  height: auto;
+  transform: translateX(-50%);
+  object-fit: contain;
+  pointer-events: none;
+}
+
 .learn-stage {
-  position: relative;
+  position: absolute;
+  inset: 0;
   z-index: 3;
-  width: min(1180px, 96vw);
+  width: 100%;
   height: 100%;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: clamp(4px, 1.6vw, 18px);
-  padding: clamp(72px, 12vh, 110px) clamp(88px, 12vw, 130px) clamp(18px, 4vh, 36px);
+  display: block;
+  padding: 0;
   background: none;
   box-shadow: none;
   border-radius: 0;
+  min-height: 0;
+  flex: none;
 }
 
-.learn-fox-col {
-  position: relative;
+.learn-scene-content {
+  position: absolute;
+  left: 50%;
+  bottom: 14vh;
+  z-index: 20;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  flex: 0 1 auto;
+  gap: clamp(10px, 1.8vw, 26px);
+  width: min(900px, 84vw);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.learn-fox-area,
+.learn-fox-col {
+  position: relative;
+  z-index: 25;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  flex: 0 0 auto;
   min-width: 0;
+}
+
+.learn-letter-area {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.learn-object-area {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  flex: 0 0 auto;
 }
 
 .learn-bubble {
   position: absolute;
-  left: 58%;
-  bottom: 72%;
-  z-index: 4;
+  left: 50%;
+  bottom: 92%;
+  z-index: 30;
   margin: 0;
   padding: clamp(10px, 1.6vh, 16px) clamp(14px, 1.8vw, 22px);
   border-radius: 28px;
@@ -3400,10 +3456,11 @@ html:has(.home-immersive) #root {
     inset 0 6px 0 rgb(255 255 255 / 80%);
   color: #2b1b4a;
   font-weight: 800;
-  font-size: clamp(18px, 3.1vh, 30px);
+  font-size: clamp(16px, 2.6vh, 26px);
   line-height: 1.15;
   text-align: center;
-  max-width: min(280px, 32vw);
+  max-width: min(240px, 26vw);
+  transform: translateX(-42%);
   pointer-events: none;
 }
 
@@ -3428,7 +3485,7 @@ html:has(.home-immersive) #root {
 .learn-fox-art {
   display: block;
   width: auto;
-  height: clamp(168px, 38vh, 300px);
+  height: clamp(168px, 22vh, 248px);
   object-fit: contain;
   object-position: bottom center;
   filter: drop-shadow(0 14px 8px rgb(0 0 0 / 22%));
@@ -3438,23 +3495,21 @@ html:has(.home-immersive) #root {
 .learn-letter-art {
   display: block;
   width: auto;
-  height: clamp(240px, 54vh, 430px);
+  height: clamp(300px, 38vh, 430px);
   object-fit: contain;
   object-position: bottom center;
   filter: drop-shadow(0 16px 10px rgb(0 0 0 / 22%));
   pointer-events: none;
-  flex: 0 1 auto;
 }
 
 .learn-object-art {
   display: block;
   width: auto;
-  height: clamp(170px, 40vh, 320px);
+  height: clamp(220px, 30vh, 340px);
   object-fit: contain;
   object-position: bottom center;
   filter: drop-shadow(0 14px 8px rgb(0 0 0 / 22%));
   pointer-events: none;
-  flex: 0 1 auto;
 }
 
 .learn-next {
@@ -3489,36 +3544,44 @@ html:has(.home-immersive) #root {
 }
 
 @media (max-height: 768px) {
-  .learn-stage {
-    padding: 84px 96px 16px;
+  .learn-scene-content {
+    bottom: 11vh;
+    width: min(820px, 88vw);
     gap: 8px;
   }
 
   .learn-fox-art {
-    height: clamp(140px, 32vh, 210px);
+    height: clamp(140px, 24vh, 200px);
   }
 
   .learn-letter-art {
-    height: clamp(220px, 52vh, 360px);
+    height: clamp(240px, 36vh, 340px);
   }
 
   .learn-object-art {
-    height: clamp(140px, 32vh, 210px);
+    height: clamp(170px, 28vh, 250px);
   }
 
   .learn-bubble {
-    font-size: clamp(16px, 2.8vh, 22px);
+    font-size: clamp(15px, 2.5vh, 20px);
     padding: 8px 12px;
+    max-width: min(200px, 30vw);
+  }
+
+  .learn-sun {
+    width: clamp(72px, 7vw, 100px);
+    top: 3.5vh;
   }
 }
 
 @media (max-width: 900px) {
-  .learn-stage {
-    padding: 78px 16px 70px;
-    gap: 4px;
+  .learn-scene-content {
+    width: min(94vw, 720px);
+    bottom: 16vh;
+    gap: 6px;
   }
 
   .learn-bubble {
-    max-width: min(220px, 42vw);
+    max-width: min(200px, 40vw);
   }
 }

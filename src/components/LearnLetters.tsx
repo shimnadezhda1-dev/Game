@@ -45,6 +45,13 @@ export function LearnLetters({ letter, stars, onNext, onSpeak, onHome }: LearnLe
         <img className="learn-meadow" src={assetUrl(ASSETS.learn.meadow)} alt="" draggable={false} />
       </div>
 
+      <img
+        className="learn-sun"
+        src={assetUrl("/assets/home/sun-smiling.png")}
+        alt=""
+        draggable={false}
+      />
+
       <button className="learn-home" onClick={onHome} aria-label="Домой">
         <span aria-hidden="true">🏠</span>
       </button>
