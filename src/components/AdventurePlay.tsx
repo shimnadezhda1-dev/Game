@@ -13,6 +13,19 @@ import { letterVoiceKey } from "../audio/voiceCatalog";
 
 type Step = "learn" | "findHint" | "findLetter" | "findPicture" | "listenChoose" | "reward";
 
+const STAGE_FLOW = ["learn", "findHint", "findPicture", "listenChoose"] as const;
+type FlowStep = (typeof STAGE_FLOW)[number];
+
+function toFlowStep(step: Step): FlowStep {
+  if (step === "findLetter") {
+    return "findHint";
+  }
+  if (step === "reward") {
+    return "listenChoose";
+  }
+  return step;
+}
+
 interface AdventurePlayProps {
   letters: LetterItem[];
   stats: Record<string, LetterStats>;
@@ -90,6 +103,13 @@ export function AdventurePlay({
     setNextReady(false);
   }
 
+  const flowIndex = STAGE_FLOW.indexOf(toFlowStep(step));
+  const prevStage = flowIndex > 0 ? STAGE_FLOW[flowIndex - 1] : undefined;
+  const nextStage =
+    flowIndex >= 0 && flowIndex < STAGE_FLOW.length - 1 ? STAGE_FLOW[flowIndex + 1] : undefined;
+  const onStagePrev = prevStage ? () => setStep(prevStage) : undefined;
+  const onStageNext = nextStage ? () => setStep(nextStage) : undefined;
+
   if (step === "findHint") {
     return (
       <FindLetterGame
@@ -105,7 +125,8 @@ export function AdventurePlay({
         onMistake={onMistake}
         onSpeak={onSpeak}
         onBack={onBack}
-        onPrev={() => setStep("learn")}
+        onPrev={onStagePrev}
+        onStageNext={onStageNext}
         onFinished={() => setStep("findPicture")}
       />
     );
@@ -126,7 +147,8 @@ export function AdventurePlay({
         onMistake={onMistake}
         onSpeak={onSpeak}
         onBack={onBack}
-        onPrev={() => setStep("learn")}
+        onPrev={onStagePrev}
+        onStageNext={onStageNext}
         onFinished={() => setStep("findPicture")}
       />
     );
@@ -145,7 +167,8 @@ export function AdventurePlay({
         onMistake={onMistake}
         onSpeak={onSpeak}
         onBack={onBack}
-        onPrev={() => setStep("findHint")}
+        onPrev={onStagePrev}
+        onStageNext={onStageNext}
         onFinished={() => setStep("listenChoose")}
       />
     );
@@ -164,7 +187,8 @@ export function AdventurePlay({
         onMistake={onMistake}
         onSpeak={onSpeak}
         onBack={onBack}
-        onPrev={() => setStep("findPicture")}
+        onPrev={onStagePrev}
+        onStageNext={onStageNext}
         onFinished={finishLetter}
       />
     );
@@ -204,6 +228,7 @@ export function AdventurePlay({
       onSpeak={onSpeak}
       onHome={onBack}
       onNext={() => setStep("findHint")}
+      onStageNext={onStageNext}
     />
   );
 }

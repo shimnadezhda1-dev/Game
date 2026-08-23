@@ -6,6 +6,7 @@ import { LetterHint } from "./LetterHint";
 import { LetterTile } from "./LetterTile";
 import { GoldStar } from "./GoldStar";
 import { StageNav } from "./StageNav";
+import { NextArrowIcon } from "./ToyIcons";
 import { useRound } from "../utils/useRound";
 import { assetUrl, ASSETS } from "../utils/assets";
 import { useMemo } from "react";
@@ -25,6 +26,7 @@ interface FindLetterGameProps {
   onSpeak: (text: string, options?: { key?: string; onEnd?: () => void }) => void;
   onBack: () => void;
   onPrev?: () => void;
+  onStageNext?: () => void;
   onFinished?: () => void;
 }
 
@@ -53,6 +55,7 @@ export function FindLetterGame({
   onSpeak,
   onBack,
   onPrev,
+  onStageNext,
   onFinished
 }: FindLetterGameProps) {
   const stableOptions = useMemo(() => optionIds, [optionIds?.join(",")]);
@@ -176,11 +179,13 @@ export function FindLetterGame({
           </div>
         </div>
 
-        <StageNav
-          onPrev={onPrev}
-          onNext={awaitNext ? round.continueRound : undefined}
-          showNext={awaitNext && round.phase === "feedback"}
-        />
+        <StageNav onPrev={onPrev} onNext={onStageNext} />
+
+        {awaitNext && round.phase === "feedback" ? (
+          <button className="learn-next" onClick={round.continueRound} aria-label="Дальше">
+            <NextArrowIcon />
+          </button>
+        ) : null}
       </div>
     );
   }

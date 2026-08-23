@@ -5,6 +5,7 @@ import { letterVoiceKey } from "../audio/voiceCatalog";
 import { useRound } from "../utils/useRound";
 import { GoldStar } from "./GoldStar";
 import { StageNav } from "./StageNav";
+import { NextArrowIcon } from "./ToyIcons";
 import { assetUrl, ASSETS } from "../utils/assets";
 
 interface ListenAndChooseGameProps {
@@ -20,6 +21,7 @@ interface ListenAndChooseGameProps {
   onSpeak: (text: string, options?: { key?: string; onEnd?: () => void }) => void;
   onBack: () => void;
   onPrev?: () => void;
+  onStageNext?: () => void;
   onFinished?: () => void;
 }
 
@@ -43,6 +45,7 @@ export function ListenAndChooseGame({
   onSpeak,
   onBack,
   onPrev,
+  onStageNext,
   onFinished
 }: ListenAndChooseGameProps) {
   const stableOptions = useMemo(() => optionIds, [optionIds?.join(",")]);
@@ -163,11 +166,13 @@ export function ListenAndChooseGame({
         </div>
       )}
 
-      <StageNav
-        onPrev={onPrev}
-        onNext={awaitNext ? round.continueRound : undefined}
-        showNext={awaitNext && celebrating}
-      />
+      <StageNav onPrev={onPrev} onNext={onStageNext} />
+
+      {awaitNext && celebrating ? (
+        <button className="learn-next" onClick={round.continueRound} aria-label="Дальше">
+          <NextArrowIcon />
+        </button>
+      ) : null}
     </div>
   );
 }

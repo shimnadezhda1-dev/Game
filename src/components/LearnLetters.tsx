@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { LetterItem } from "../types";
 import { LearnScene } from "./LearnScene";
 import { GoldStar } from "./GoldStar";
+import { NextArrowIcon } from "./ToyIcons";
 import { StageNav } from "./StageNav";
 import { letterVoiceKey } from "../audio/voiceCatalog";
 import { assetUrl, ASSETS } from "../utils/assets";
@@ -15,9 +16,10 @@ interface LearnLettersProps {
   onSpeak: (text: string, options?: { key?: string; onEnd?: () => void }) => void;
   onBack?: () => void;
   onHome: () => void;
+  onStageNext?: () => void;
 }
 
-export function LearnLetters({ letter, stars, onNext, onSpeak, onHome }: LearnLettersProps) {
+export function LearnLetters({ letter, stars, onNext, onSpeak, onHome, onStageNext }: LearnLettersProps) {
   const [pulseNext, setPulseNext] = useState(false);
 
   function speakLetter(withPulse: boolean) {
@@ -72,7 +74,15 @@ export function LearnLetters({ letter, stars, onNext, onSpeak, onHome }: LearnLe
 
       <LearnScene letter={letter} />
 
-      <StageNav onNext={onNext} showPrev={false} nextPulse={pulseNext} />
+      <StageNav onNext={onStageNext} showPrev={false} />
+
+      <button
+        className={`learn-next ${pulseNext ? "learn-next-pulse" : ""}`}
+        onClick={onNext}
+        aria-label="Дальше"
+      >
+        <NextArrowIcon />
+      </button>
     </div>
   );
 }

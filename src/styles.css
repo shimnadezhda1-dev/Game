@@ -3517,23 +3517,23 @@ html:has(.learn-screen) #root {
   bottom: clamp(12px, 2.4vh, 24px);
   width: clamp(72px, 12vh, 104px);
   height: clamp(72px, 12vh, 104px);
-  background: linear-gradient(180deg, #42a5f5 0%, #2196f3 48%, #1976d2 100%);
+  background: linear-gradient(180deg, #8be08a 0%, #66bb6a 48%, #43a047 100%);
   box-shadow:
-    0 9px 0 #1565c0,
+    0 9px 0 #2e7d32,
     0 14px 18px rgb(0 0 0 / 18%),
     inset 0 7px 0 rgb(255 255 255 / 42%);
 }
 
 .learn-next:hover {
-  background: linear-gradient(180deg, #64b5f6 0%, #42a5f5 48%, #2196f3 100%);
+  background: linear-gradient(180deg, #a5e8a4 0%, #81c784 48%, #66bb6a 100%);
 }
 
 .learn-next:active {
-  background: linear-gradient(180deg, #2196f3 0%, #1976d2 48%, #1565c0 100%);
+  background: linear-gradient(180deg, #66bb6a 0%, #43a047 48%, #2e7d32 100%);
 }
 
 .learn-next:disabled {
-  background: #90caf9;
+  background: #a5d6a7;
 }
 
 .learn-next:disabled .toy-icon {

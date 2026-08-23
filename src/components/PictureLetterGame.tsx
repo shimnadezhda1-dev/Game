@@ -5,6 +5,7 @@ import { letterVoiceKey } from "../audio/voiceCatalog";
 import { useRound } from "../utils/useRound";
 import { GoldStar } from "./GoldStar";
 import { StageNav } from "./StageNav";
+import { NextArrowIcon } from "./ToyIcons";
 import { assetUrl, ASSETS } from "../utils/assets";
 
 interface PictureLetterGameProps {
@@ -20,6 +21,7 @@ interface PictureLetterGameProps {
   onSpeak: (text: string, options?: { key?: string; onEnd?: () => void }) => void;
   onBack: () => void;
   onPrev?: () => void;
+  onStageNext?: () => void;
   onFinished?: () => void;
 }
 
@@ -41,6 +43,7 @@ export function PictureLetterGame({
   onSpeak,
   onBack,
   onPrev,
+  onStageNext,
   onFinished
 }: PictureLetterGameProps) {
   const stableOptions = useMemo(() => optionIds, [optionIds?.join(",")]);
@@ -129,11 +132,13 @@ export function PictureLetterGame({
         </div>
       </div>
 
-      <StageNav
-        onPrev={onPrev}
-        onNext={awaitNext ? round.continueRound : undefined}
-        showNext={awaitNext && round.phase === "feedback"}
-      />
+      <StageNav onPrev={onPrev} onNext={onStageNext} />
+
+      {awaitNext && round.phase === "feedback" ? (
+        <button className="learn-next" onClick={round.continueRound} aria-label="Дальше">
+          <NextArrowIcon />
+        </button>
+      ) : null}
     </div>
   );
 }
