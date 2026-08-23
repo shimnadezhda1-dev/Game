@@ -148,7 +148,12 @@ export function ListenAndChooseGame({
                   onClick={(event) => round.choose(id, event)}
                   aria-label={item.upper}
                 >
-                  <span className="listen-letter-glyph">{item.upper}</span>
+                  <span className="listen-letter-3d">
+                    <span className="listen-letter-depth" aria-hidden="true">
+                      {item.upper}
+                    </span>
+                    <span className="listen-letter-face">{item.upper}</span>
+                  </span>
                 </button>
               );
             })}
