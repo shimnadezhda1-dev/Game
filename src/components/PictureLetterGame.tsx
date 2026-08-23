@@ -121,26 +121,6 @@ export function PictureLetterGame({
         </div>
       </div>
 
-      {round.phase === "feedback" ? (
-        <div className="picture-reward" aria-live="polite">
-          <div className="picture-reward-burst" aria-hidden="true">
-            {Array.from({ length: 8 }).map((_, index) => (
-              <span key={index} className={`picture-confetti picture-confetti-${index}`} />
-            ))}
-          </div>
-          <div className="picture-reward-heroes">
-            <img
-              className="picture-reward-fox"
-              src={assetUrl(ASSETS.picture.fox)}
-              alt=""
-              draggable={false}
-            />
-            <GoldStar size="hero" />
-          </div>
-          <p className="picture-reward-plaque">Ура! Ты выучил букву {letterMark}!</p>
-        </div>
-      ) : null}
-
       {awaitNext && round.phase === "feedback" ? (
         <button className="learn-next" onClick={round.continueRound} aria-label="Дальше">
           <NextArrowIcon />
