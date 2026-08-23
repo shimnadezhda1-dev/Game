@@ -3601,3 +3601,206 @@ html:has(.learn-screen) #root {
     max-width: min(200px, 40vw);
   }
 }
+
+/* ===== Find letter screen (stage 3) ===== */
+
+html:has(.find-screen),
+html:has(.find-screen) body,
+html:has(.find-screen) #root {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.screen.find-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 8;
+  display: block;
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+  padding: 0 !important;
+  gap: 0 !important;
+  overflow: hidden !important;
+  background: transparent !important;
+  border-radius: 0;
+}
+
+.find-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.find-meadow {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+}
+
+.find-fox {
+  position: absolute;
+  z-index: 25;
+  left: clamp(12px, 4vw, 64px);
+  bottom: clamp(18%, 22vh, 28%);
+  height: clamp(160px, 32vh, 300px);
+  width: auto;
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 12px 8px rgb(0 0 0 / 18%));
+}
+
+.find-fox.is-celebrate {
+  animation: bounce 0.8s ease-in-out 2;
+}
+
+.find-board {
+  position: absolute;
+  left: 50%;
+  top: 11%;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(10px, 1.8vh, 18px);
+  width: min(720px, 62vw);
+  transform: translateX(-50%);
+}
+
+.find-title {
+  margin: 0;
+  padding: clamp(12px, 1.8vh, 20px) clamp(22px, 3vw, 42px);
+  border-radius: 36px;
+  background: linear-gradient(180deg, #ffffff 0%, #f4f7ff 100%);
+  border: 5px solid #fff;
+  box-shadow:
+    0 8px 0 #c9d4ea,
+    0 14px 20px rgb(0 0 0 / 14%);
+  text-align: center;
+  line-height: 1;
+}
+
+.find-title-text {
+  color: #163a8a;
+  font-size: clamp(28px, 4.6vh, 48px);
+  font-weight: 800;
+}
+
+.find-title-letter {
+  display: inline-block;
+  margin: 0 4px;
+  color: #22c55e;
+  font-size: clamp(48px, 7.2vh, 78px);
+  font-weight: 900;
+  line-height: 0.9;
+  vertical-align: -6px;
+}
+
+.find-hint-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 1.6vw, 22px);
+  width: min(520px, 100%);
+  padding: clamp(10px, 1.6vh, 16px) clamp(18px, 2.4vw, 28px);
+  border-radius: 32px;
+  background: linear-gradient(180deg, #ffffff 0%, #fff7e8 100%);
+  border: 5px solid #fff;
+  box-shadow:
+    0 8px 0 #e0c48a,
+    0 14px 18px rgb(0 0 0 / 12%);
+}
+
+.find-hint-letter {
+  height: clamp(88px, 16vh, 150px);
+  width: auto;
+  object-fit: contain;
+  filter: hue-rotate(215deg) saturate(1.2);
+}
+
+.find-hint-divider {
+  width: 4px;
+  height: clamp(56px, 12vh, 96px);
+  border-radius: 4px;
+  background: #d7deea;
+}
+
+.find-hint-object {
+  height: clamp(88px, 16vh, 150px);
+  width: auto;
+  object-fit: contain;
+}
+
+.find-choices {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 2vw, 28px);
+  margin-top: clamp(4px, 1vh, 10px);
+}
+
+.find-choice {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  width: clamp(92px, 14vh, 150px);
+  height: auto;
+  line-height: 0;
+}
+
+.find-choice img {
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+}
+
+.find-choice.is-wrong {
+  animation: wiggle 0.4s;
+}
+
+.find-choice.is-correct {
+  transform: scale(1.08);
+}
+
+.find-choice.is-hint {
+  animation: pulse-hint 0.7s ease-in-out infinite;
+}
+
+@media (max-height: 768px) {
+  .find-board {
+    top: 9%;
+    gap: 8px;
+  }
+
+  .find-fox {
+    height: clamp(130px, 28vh, 210px);
+    bottom: 20%;
+  }
+
+  .find-title-text {
+    font-size: clamp(24px, 4.2vh, 36px);
+  }
+
+  .find-title-letter {
+    font-size: clamp(40px, 6.4vh, 58px);
+  }
+}
+
+@media (max-width: 900px) {
+  .find-board {
+    width: min(88vw, 640px);
+  }
+
+  .find-fox {
+    left: 4px;
+    height: clamp(120px, 26vh, 190px);
+  }
+}
+

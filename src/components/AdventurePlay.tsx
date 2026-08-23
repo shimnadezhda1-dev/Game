@@ -100,6 +100,7 @@ export function AdventurePlay({
         hint="image"
         prompt={`Найди букву ${letter.upper}!`}
         awaitNext
+        stars={progress.stars}
         onCorrect={onCorrect}
         onMistake={onMistake}
         onSpeak={onSpeak}

@@ -21,6 +21,15 @@ export const ASSETS = {
   learn: {
     meadow: "/assets/letters/meadow-bg.png"
   },
+  find: {
+    meadow: "/assets/find/meadow.png",
+    fox: "/assets/find/fox.png",
+    letterA: "/assets/find/letter-a.png",
+    watermelon: "/assets/find/watermelon.png",
+    choiceA: "/assets/find/choice-a.png",
+    choiceG: "/assets/find/choice-g.png",
+    choiceD: "/assets/find/choice-d.png"
+  },
   fox: {
     idle: "/assets/character/fox-idle.png",
     happy: "/assets/character/fox-happy.png",
