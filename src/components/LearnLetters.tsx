@@ -21,6 +21,7 @@ interface LearnLettersProps {
 
 export function LearnLetters({ letter, stars, onNext, onSpeak, onHome, onStageNext }: LearnLettersProps) {
   const [pulseNext, setPulseNext] = useState(false);
+  const [introDone, setIntroDone] = useState(false);
 
   function speakLetter(withPulse: boolean) {
     onSpeak(letterIntroSpeech(letter), {
@@ -28,6 +29,7 @@ export function LearnLetters({ letter, stars, onNext, onSpeak, onHome, onStageNe
         if (!withPulse) {
           return;
         }
+        setIntroDone(true);
         setPulseNext(true);
         window.setTimeout(() => setPulseNext(false), 2200);
       }
@@ -36,8 +38,13 @@ export function LearnLetters({ letter, stars, onNext, onSpeak, onHome, onStageNe
 
   useEffect(() => {
     setPulseNext(false);
+    setIntroDone(false);
     const timer = window.setTimeout(() => speakLetter(true), 500);
-    return () => window.clearTimeout(timer);
+    const fallback = window.setTimeout(() => setIntroDone(true), 7000);
+    return () => {
+      window.clearTimeout(timer);
+      window.clearTimeout(fallback);
+    };
   }, [letter.id]);
 
   return (
@@ -75,14 +82,16 @@ export function LearnLetters({ letter, stars, onNext, onSpeak, onHome, onStageNe
 
       <StageNav onNext={onStageNext} showPrev={false} showNext={Boolean(onStageNext)} />
 
-      <button
-        type="button"
-        className={`learn-next internal-next ${pulseNext ? "learn-next-pulse" : ""}`}
-        onClick={onNext}
-        aria-label="Дальше"
-      >
-        <NextArrowIcon />
-      </button>
+      {introDone ? (
+        <button
+          type="button"
+          className={`learn-next internal-next ${pulseNext ? "learn-next-pulse" : ""}`}
+          onClick={onNext}
+          aria-label="Дальше"
+        >
+          <NextArrowIcon />
+        </button>
+      ) : null}
     </div>
   );
 }

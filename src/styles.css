@@ -3795,7 +3795,7 @@ html:has(.find-screen) #root {
 .find-title-letter {
   display: inline-block;
   margin: 0 4px;
-  color: #22c55e;
+  color: var(--find-target-color, #22c55e);
   font-size: clamp(48px, 7.2vh, 78px);
   font-weight: 900;
   line-height: 0.9;
@@ -3911,10 +3911,18 @@ html:has(.find-screen) #root {
     inset 0 6px 0 rgb(255 255 255 / 38%);
 }
 
-.find-choice-tile-blue {
-  background: linear-gradient(180deg, #93c5fd 0%, #3b82f6 55%, #1d4ed8 100%);
+.find-choice-tile-pink {
+  background: linear-gradient(180deg, #ff9eb5 0%, #ff5d7a 55%, #e0244e 100%);
   box-shadow:
-    0 8px 0 #1e40af,
+    0 8px 0 #be123c,
+    0 12px 14px rgb(0 0 0 / 16%),
+    inset 0 6px 0 rgb(255 255 255 / 38%);
+}
+
+.find-choice-tile-green {
+  background: linear-gradient(180deg, #86efac 0%, #22c55e 55%, #15803d 100%);
+  box-shadow:
+    0 8px 0 #166534,
     0 12px 14px rgb(0 0 0 / 16%),
     inset 0 6px 0 rgb(255 255 255 / 38%);
 }

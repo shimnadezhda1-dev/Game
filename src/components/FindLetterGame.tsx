@@ -10,6 +10,7 @@ import { NextArrowIcon } from "./ToyIcons";
 import { useRound } from "../utils/useRound";
 import { assetUrl, ASSETS } from "../utils/assets";
 import { findLetterPrompt, letterChoiceSrc, letterGlyphSrc, letterObjectSrc } from "../utils/letterCopy";
+import { planFindColors } from "../utils/findColors";
 import { ToyLetter } from "./ToyLetter";
 import { useMemo } from "react";
 
@@ -31,14 +32,6 @@ interface FindLetterGameProps {
   onStageNext?: () => void;
   onFinished?: () => void;
 }
-
-const CHOICE_TONE: Record<string, string> = {
-  A: "pink",
-  B: "orange",
-  V: "teal",
-  G: "cyan",
-  D: "purple"
-};
 
 export function FindLetterGame({
   letters,
@@ -76,6 +69,10 @@ export function FindLetterGame({
 
   const bubble =
     round.phase === "feedback" ? "Молодец!" : prompt ?? `Найди букву ${round.target.upper}!`;
+  const colorPlan = useMemo(
+    () => planFindColors(round.target.id, round.options),
+    [round.target.id, round.options.join(",")]
+  );
 
   if (hint === "image") {
     const target = round.target;
@@ -85,7 +82,10 @@ export function FindLetterGame({
     const objectSrc = letterObjectSrc(target, "find");
 
     return (
-      <div className="screen find-screen">
+      <div
+        className="screen find-screen"
+        style={{ ["--find-target-color" as string]: colorPlan.targetDisplayCss }}
+      >
         <div className="find-backdrop" aria-hidden="true">
           <img className="find-meadow" src={assetUrl(ASSETS.find.meadow)} alt="" draggable={false} />
         </div>
@@ -130,6 +130,7 @@ export function FindLetterGame({
                 src={assetUrl(glyphSrc)}
                 alt={target.upper}
                 draggable={false}
+                style={{ filter: `hue-rotate(${colorPlan.hueRotate}deg)` }}
               />
             ) : (
               <ToyLetter letterId={target.id} glyph={target.upper} size="hint" />
@@ -150,6 +151,8 @@ export function FindLetterGame({
                 return null;
               }
               const art = letterChoiceSrc(letter);
+              const tone = colorPlan.buttonColors[id] ?? "pink";
+              const hueRotate = colorPlan.buttonHueRotates[id] ?? 0;
               const className = [
                 "find-choice",
                 round.selected === id && id !== round.target.id ? "is-wrong" : "",
@@ -168,11 +171,14 @@ export function FindLetterGame({
                   aria-label={letter.upper}
                 >
                   {art ? (
-                    <img src={assetUrl(art)} alt={letter.upper} draggable={false} />
+                    <img
+                      src={assetUrl(art)}
+                      alt={letter.upper}
+                      draggable={false}
+                      style={{ filter: `hue-rotate(${hueRotate}deg)` }}
+                    />
                   ) : (
-                    <span className={`find-choice-tile find-choice-tile-${CHOICE_TONE[id] ?? "blue"}`}>
-                      {letter.upper}
-                    </span>
+                    <span className={`find-choice-tile find-choice-tile-${tone}`}>{letter.upper}</span>
                   )}
                 </button>
               );
