@@ -169,7 +169,7 @@ export function ListenAndChooseGame({
       <StageNav onPrev={onPrev} onNext={onStageNext} />
 
       {awaitNext && celebrating ? (
-        <button className="learn-next" onClick={round.continueRound} aria-label="Дальше">
+        <button type="button" className="learn-next internal-next" onClick={round.continueRound} aria-label="Дальше">
           <NextArrowIcon />
         </button>
       ) : null}

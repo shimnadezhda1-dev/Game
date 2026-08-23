@@ -13,10 +13,18 @@ export const ASSETS = {
     D: "/assets/letters/d-house.png"
   },
   letterGlyphs: {
-    A: "/assets/letters/A.png"
+    A: "/assets/letters/A.png",
+    B: "/assets/letters/B.png",
+    V: "/assets/letters/V.png",
+    G: "/assets/letters/G.png",
+    D: "/assets/letters/D.png"
   },
   objects: {
-    watermelon: "/assets/objects/watermelon.png"
+    watermelon: "/assets/objects/watermelon.png",
+    drum: "/assets/letters/b-drum.png",
+    wolf: "/assets/letters/v-wolf.png",
+    mushroom: "/assets/letters/g-mushroom.png",
+    house: "/assets/letters/d-house.png"
   },
   learn: {
     meadow: "/assets/letters/meadow-bg.png"
@@ -27,6 +35,8 @@ export const ASSETS = {
     letterA: "/assets/find/letter-a.png",
     watermelon: "/assets/find/watermelon.png",
     choiceA: "/assets/find/choice-a.png",
+    choiceB: "/assets/find/choice-b.png",
+    choiceV: "/assets/find/choice-v.png",
     choiceG: "/assets/find/choice-g.png",
     choiceD: "/assets/find/choice-d.png"
   },

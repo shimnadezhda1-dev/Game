@@ -9,6 +9,8 @@ import { StageNav } from "./StageNav";
 import { NextArrowIcon } from "./ToyIcons";
 import { useRound } from "../utils/useRound";
 import { assetUrl, ASSETS } from "../utils/assets";
+import { findLetterPrompt, letterChoiceSrc, letterGlyphSrc, letterObjectSrc } from "../utils/letterCopy";
+import { ToyLetter } from "./ToyLetter";
 import { useMemo } from "react";
 
 interface FindLetterGameProps {
@@ -30,16 +32,13 @@ interface FindLetterGameProps {
   onFinished?: () => void;
 }
 
-const CHOICE_ART: Record<string, string> = {
-  A: ASSETS.find.choiceA,
-  G: ASSETS.find.choiceG,
-  D: ASSETS.find.choiceD
+const CHOICE_TONE: Record<string, string> = {
+  A: "pink",
+  B: "orange",
+  V: "teal",
+  G: "cyan",
+  D: "purple"
 };
-
-function orderedChoiceIds(ids: string[]): string[] {
-  const rank: Record<string, number> = { A: 0, G: 1, D: 2 };
-  return [...ids].sort((a, b) => (rank[a] ?? 50) - (rank[b] ?? 50));
-}
 
 export function FindLetterGame({
   letters,
@@ -69,9 +68,9 @@ export function FindLetterGame({
     onMistake,
     onSpeak,
     onFinished,
-    speakPrompt: (letter) => prompt ?? `Найди букву ${letter.upper}!`,
-    speakKey: (letter) => letterVoiceKey("find", letter.id),
-    praise: (letter) => `Молодец! Это буква ${letter.upper}!`,
+    speakPrompt: (item) => findLetterPrompt(item),
+    speakKey: (item) => letterVoiceKey("find", item.id),
+    praise: (item) => `Молодец! Это буква ${item.upper}!`,
     praiseKey: (letter) => letterVoiceKey("correct", letter.id)
   });
 
@@ -79,9 +78,11 @@ export function FindLetterGame({
     round.phase === "feedback" ? "Молодец!" : prompt ?? `Найди букву ${round.target.upper}!`;
 
   if (hint === "image") {
-    const choices = orderedChoiceIds(round.options);
-    const titlePrompt = prompt ?? `Найди букву ${round.target.upper}!`;
-    const letterMark = round.target.upper;
+    const target = round.target;
+    const choices = round.options;
+    const letterMark = target.upper;
+    const glyphSrc = letterGlyphSrc(target);
+    const objectSrc = letterObjectSrc(target, "find");
 
     return (
       <div className="screen find-screen">
@@ -117,29 +118,27 @@ export function FindLetterGame({
 
         <div className="find-board">
           <h1 className="find-title">
-            {titlePrompt.endsWith(`${letterMark}!`) ? (
-              <>
-                <span className="find-title-text">Найди букву </span>
-                <span className="find-title-letter">{letterMark}</span>
-                <span className="find-title-text">!</span>
-              </>
-            ) : (
-              <span className="find-title-text">{titlePrompt}</span>
-            )}
+            <span className="find-title-text">Найди букву </span>
+            <span className="find-title-letter">{letterMark}</span>
+            <span className="find-title-text">!</span>
           </h1>
 
           <div className="find-hint-card">
-            <img
-              className="find-hint-letter"
-              src={assetUrl(ASSETS.find.letterA)}
-              alt={round.target.upper}
-              draggable={false}
-            />
+            {glyphSrc ? (
+              <img
+                className="find-hint-letter"
+                src={assetUrl(glyphSrc)}
+                alt={target.upper}
+                draggable={false}
+              />
+            ) : (
+              <ToyLetter letterId={target.id} glyph={target.upper} size="hint" />
+            )}
             <span className="find-hint-divider" aria-hidden="true" />
             <img
               className="find-hint-object"
-              src={assetUrl(ASSETS.find.watermelon)}
-              alt={round.target.word}
+              src={assetUrl(objectSrc)}
+              alt={target.word}
               draggable={false}
             />
           </div>
@@ -150,7 +149,7 @@ export function FindLetterGame({
               if (!letter) {
                 return null;
               }
-              const art = CHOICE_ART[id];
+              const art = letterChoiceSrc(letter);
               const className = [
                 "find-choice",
                 round.selected === id && id !== round.target.id ? "is-wrong" : "",
@@ -171,7 +170,9 @@ export function FindLetterGame({
                   {art ? (
                     <img src={assetUrl(art)} alt={letter.upper} draggable={false} />
                   ) : (
-                    letter.upper
+                    <span className={`find-choice-tile find-choice-tile-${CHOICE_TONE[id] ?? "blue"}`}>
+                      {letter.upper}
+                    </span>
                   )}
                 </button>
               );
@@ -182,7 +183,7 @@ export function FindLetterGame({
         <StageNav onPrev={onPrev} onNext={onStageNext} />
 
         {awaitNext && round.phase === "feedback" ? (
-          <button className="learn-next" onClick={round.continueRound} aria-label="Дальше">
+          <button type="button" className="learn-next internal-next" onClick={round.continueRound} aria-label="Дальше">
             <NextArrowIcon />
           </button>
         ) : null}

@@ -6,7 +6,6 @@ import { STAR_REWARDS } from "../utils/rewards";
 import { isLetterMastered } from "../utils/selectors";
 import { assetUrl, ASSETS } from "../utils/assets";
 import { letterTone } from "../utils/cardTones";
-import { letterVoiceKey } from "../audio/voiceCatalog";
 
 interface StarsScreenProps {
   progress: ProgressState;
@@ -22,9 +21,7 @@ export function StarsScreen({ progress, letters, onSpeak }: StarsScreenProps) {
     if (letter.group > progress.unlockedGroupIndex) {
       return;
     }
-    onSpeak(`${letter.upper} — ${letter.word.toLowerCase()}!`, {
-      key: letterVoiceKey("letter", letter.id)
-    });
+    onSpeak(`${letter.upper} — ${letter.word.toLowerCase()}!`);
   }
 
   return (

@@ -1,36 +1,23 @@
 import { LetterItem } from "../types";
 import { assetUrl, ASSETS } from "../utils/assets";
+import { letterGlyphSrc, letterIntroLines, letterObjectSrc } from "../utils/letterCopy";
 import { ToyLetter } from "./ToyLetter";
 
 interface LearnSceneProps {
   letter: LetterItem;
 }
 
-function bubbleLines(letter: LetterItem): string[] {
-  const lines = letter.voiceText
-    .split(/(?<=[!?])\s+/u)
-    .map((line) => line.trim())
-    .filter(Boolean);
-  if (lines.length >= 3) {
-    return lines.slice(0, 3);
-  }
-  return [
-    `Это буква ${letter.upper}!`,
-    `${letter.upper}-а-а!`,
-    `${letter.upper} — ${letter.word.toLowerCase()}!`
-  ];
-}
-
 export function LearnScene({ letter }: LearnSceneProps) {
-  const letterSrc = letter.letterImage;
-  const objectSrc = letter.objectImage ?? letter.imagePath;
+  const letterSrc = letterGlyphSrc(letter);
+  const objectSrc = letterObjectSrc(letter, "learn");
+  const lines = letterIntroLines(letter);
 
   return (
     <div className="learn-stage">
       <div className="learn-scene-content">
         <div className="learn-fox-area">
           <div className="learn-bubble" aria-live="polite">
-            {bubbleLines(letter).map((line) => (
+            {lines.map((line) => (
               <p key={line}>{line}</p>
             ))}
           </div>

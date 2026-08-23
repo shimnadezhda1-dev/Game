@@ -8,11 +8,13 @@ import { GameStage } from "./GameStage";
 import { GoldStar } from "./GoldStar";
 import { LearnLetters } from "./LearnLetters";
 import { ToyLetter } from "./ToyLetter";
-import { isLetterMastered, shuffle } from "../utils/selectors";
+import { isLetterMastered, randomOptions, shuffle } from "../utils/selectors";
+import { findLetterPrompt } from "../utils/letterCopy";
 import { letterVoiceKey } from "../audio/voiceCatalog";
 
 type Step = "learn" | "findHint" | "findLetter" | "findPicture" | "listenChoose" | "reward";
 
+/** Letter-study stages: 1 learn, 2 find letter, 3 find picture, 4 listen (last). */
 const STAGE_FLOW = ["learn", "findHint", "findPicture", "listenChoose"] as const;
 type FlowStep = (typeof STAGE_FLOW)[number];
 
@@ -52,8 +54,7 @@ function pickNextLetter(
 }
 
 function lessonOptions(targetId: string, allIds: string[]): string[] {
-  const others = allIds.filter((id) => id !== targetId);
-  return shuffle([targetId, ...others.slice(-2)]);
+  return randomOptions(targetId, allIds, 3);
 }
 
 function listenOptions(targetId: string, allIds: string[]): string[] {
@@ -103,12 +104,31 @@ export function AdventurePlay({
     setNextReady(false);
   }
 
+  function goStagePrev() {
+    setStep((current) => {
+      const index = STAGE_FLOW.indexOf(toFlowStep(current));
+      if (index <= 0) {
+        return current;
+      }
+      return STAGE_FLOW[index - 1];
+    });
+  }
+
+  function goStageNext() {
+    setStep((current) => {
+      const index = STAGE_FLOW.indexOf(toFlowStep(current));
+      if (index < 0 || index >= STAGE_FLOW.length - 1) {
+        return current;
+      }
+      return STAGE_FLOW[index + 1];
+    });
+  }
+
   const flowIndex = STAGE_FLOW.indexOf(toFlowStep(step));
-  const prevStage = flowIndex > 0 ? STAGE_FLOW[flowIndex - 1] : undefined;
-  const nextStage =
-    flowIndex >= 0 && flowIndex < STAGE_FLOW.length - 1 ? STAGE_FLOW[flowIndex + 1] : undefined;
-  const onStagePrev = prevStage ? () => setStep(prevStage) : undefined;
-  const onStageNext = nextStage ? () => setStep(nextStage) : undefined;
+  const showStagePrev = flowIndex > 0;
+  const showStageNext = flowIndex >= 0 && flowIndex < STAGE_FLOW.length - 1;
+  const onStagePrev = showStagePrev ? goStagePrev : undefined;
+  const onStageNext = showStageNext ? goStageNext : undefined;
 
   if (step === "findHint") {
     return (
@@ -118,7 +138,7 @@ export function AdventurePlay({
         lockTarget={letter}
         optionIds={optionIds}
         hint="image"
-        prompt={`Найди букву ${letter.upper}!`}
+        prompt={findLetterPrompt(letter)}
         awaitNext
         stars={progress.stars}
         onCorrect={onCorrect}
@@ -140,7 +160,7 @@ export function AdventurePlay({
         lockTarget={letter}
         optionIds={optionIds}
         hint="image"
-        prompt={`Найди букву ${letter.upper}!`}
+        prompt={findLetterPrompt(letter)}
         awaitNext
         stars={progress.stars}
         onCorrect={onCorrect}

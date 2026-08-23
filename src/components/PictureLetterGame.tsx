@@ -7,6 +7,7 @@ import { GoldStar } from "./GoldStar";
 import { StageNav } from "./StageNav";
 import { NextArrowIcon } from "./ToyIcons";
 import { assetUrl, ASSETS } from "../utils/assets";
+import { letterObjectSrc } from "../utils/letterCopy";
 
 interface PictureLetterGameProps {
   letters: LetterItem[];
@@ -24,12 +25,6 @@ interface PictureLetterGameProps {
   onStageNext?: () => void;
   onFinished?: () => void;
 }
-
-const PICTURE_ART: Record<string, string> = {
-  A: ASSETS.picture.watermelon,
-  G: ASSETS.picture.mushroom,
-  D: ASSETS.picture.house
-};
 
 export function PictureLetterGame({
   letters,
@@ -110,7 +105,7 @@ export function PictureLetterGame({
             if (!item) {
               return null;
             }
-            const art = PICTURE_ART[id] ?? item.imagePath;
+            const art = letterObjectSrc(item, "picture");
             const isChosenCorrect = round.phase === "feedback" && id === round.target.id;
             const isWatermelon = id === "A";
             return (
@@ -135,7 +130,7 @@ export function PictureLetterGame({
       <StageNav onPrev={onPrev} onNext={onStageNext} />
 
       {awaitNext && round.phase === "feedback" ? (
-        <button className="learn-next" onClick={round.continueRound} aria-label="Дальше">
+        <button type="button" className="learn-next internal-next" onClick={round.continueRound} aria-label="Дальше">
           <NextArrowIcon />
         </button>
       ) : null}

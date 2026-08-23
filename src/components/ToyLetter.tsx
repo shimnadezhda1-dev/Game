@@ -10,7 +10,7 @@ const PALETTES: Record<string, { light: string; mid: string; dark: string; shade
 
 const PATHS: Record<string, string> = {
   A: "M100 18 L178 188 Q182 198 170 198 L138 198 L126 166 H74 L62 198 H30 Q18 198 22 188 Z M86 132 H114 L100 92 Z",
-  B: "M48 20 H118 Q168 20 168 70 Q168 96 142 108 Q176 118 176 158 Q176 198 118 198 H48 Z M86 52 V86 H112 Q128 86 128 68 Q128 52 112 52 Z M86 128 V166 H116 Q138 166 138 148 Q138 128 116 128 Z",
+  B: "M38 22 H166 Q176 22 176 40 V58 H86 V90 H128 Q174 92 174 148 Q174 200 116 200 H38 Z M86 124 V168 H118 Q146 168 146 146 Q146 124 118 124 Z",
   V: "M48 20 H120 Q172 20 172 78 Q172 112 140 124 Q176 136 176 176 Q176 198 118 198 H48 Z M86 50 V98 H114 Q132 98 132 74 Q132 50 114 50 Z M86 132 V168 H116 Q140 168 140 150 Q140 132 116 132 Z",
   G: "M168 36 H70 Q36 36 36 78 V178 Q36 198 62 198 H92 V154 H70 V78 H168 Z",
   D: "M36 198 L64 28 H136 L164 198 H132 L124 156 H76 L68 198 Z M86 118 H114 L100 52 Z"
@@ -26,7 +26,7 @@ export function ToyLetter({ letterId, glyph, size = "hero" }: ToyLetterProps) {
   const uid = useId().replace(/:/g, "");
   const palette = PALETTES[letterId] ?? PALETTES.A;
   const path = PATHS[letterId] ?? PATHS.A;
-  const fillRule = letterId === "A" || letterId === "D" ? "evenodd" : "nonzero";
+  const fillRule = letterId === "A" || letterId === "B" || letterId === "D" ? "evenodd" : "nonzero";
   const faceId = `toy-face-${uid}`;
   const softId = `toy-soft-${uid}`;
 

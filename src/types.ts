@@ -21,6 +21,9 @@ export interface LetterItem {
   imagePath: string;
   letterImage?: string;
   objectImage?: string;
+  findObjectImage?: string;
+  pictureImage?: string;
+  choiceImage?: string;
   voiceText: string;
   difficulty: number;
   group: number;

@@ -5,36 +5,43 @@ interface StageNavProps {
   onNext?: () => void;
   showPrev?: boolean;
   showNext?: boolean;
-  nextPulse?: boolean;
 }
 
 export function StageNav({
   onPrev,
   onNext,
   showPrev = Boolean(onPrev),
-  showNext = Boolean(onNext),
-  nextPulse = false
+  showNext = Boolean(onNext)
 }: StageNavProps) {
+  const showBack = Boolean(showPrev && onPrev);
+  const showForward = Boolean(showNext && onNext);
+
+  if (!showBack && !showForward) {
+    return null;
+  }
+
   return (
-    <>
-      {showPrev && onPrev ? (
+    <div className="stage-side-nav">
+      {showBack && onPrev ? (
         <button
-          className="stage-nav-btn stage-nav-prev"
+          type="button"
+          className="stage-side-nav__btn stage-side-nav--prev"
           onClick={onPrev}
           aria-label="Предыдущий этап"
         >
           <PrevArrowIcon />
         </button>
       ) : null}
-      {showNext && onNext ? (
+      {showForward && onNext ? (
         <button
-          className={`stage-nav-btn stage-nav-next ${nextPulse ? "is-pulse" : ""}`}
+          type="button"
+          className="stage-side-nav__btn stage-side-nav--next"
           onClick={onNext}
           aria-label="Следующий этап"
         >
           <NextArrowIcon />
         </button>
       ) : null}
-    </>
+    </div>
   );
 }

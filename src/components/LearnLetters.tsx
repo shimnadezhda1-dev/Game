@@ -4,7 +4,7 @@ import { LearnScene } from "./LearnScene";
 import { GoldStar } from "./GoldStar";
 import { NextArrowIcon } from "./ToyIcons";
 import { StageNav } from "./StageNav";
-import { letterVoiceKey } from "../audio/voiceCatalog";
+import { letterIntroSpeech } from "../utils/letterCopy";
 import { assetUrl, ASSETS } from "../utils/assets";
 
 interface LearnLettersProps {
@@ -23,8 +23,7 @@ export function LearnLetters({ letter, stars, onNext, onSpeak, onHome, onStageNe
   const [pulseNext, setPulseNext] = useState(false);
 
   function speakLetter(withPulse: boolean) {
-    onSpeak(letter.voiceText, {
-      key: letterVoiceKey("letter", letter.id),
+    onSpeak(letterIntroSpeech(letter), {
       onEnd: () => {
         if (!withPulse) {
           return;
@@ -74,10 +73,11 @@ export function LearnLetters({ letter, stars, onNext, onSpeak, onHome, onStageNe
 
       <LearnScene letter={letter} />
 
-      <StageNav onNext={onStageNext} showPrev={false} />
+      <StageNav onNext={onStageNext} showPrev={false} showNext={Boolean(onStageNext)} />
 
       <button
-        className={`learn-next ${pulseNext ? "learn-next-pulse" : ""}`}
+        type="button"
+        className={`learn-next internal-next ${pulseNext ? "learn-next-pulse" : ""}`}
         onClick={onNext}
         aria-label="Дальше"
       >
