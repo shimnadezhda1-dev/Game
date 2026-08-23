@@ -4077,48 +4077,87 @@ html:has(.listen-screen) #root {
   color: #fff;
   line-height: 1;
   cursor: pointer;
+  overflow: visible;
 }
 
 .listen-letter-glyph {
+  position: relative;
+  z-index: 1;
   display: block;
   color: #fff;
   font-size: clamp(58px, 10.1vh, 97px);
   font-weight: 900;
   line-height: 1;
-  transform: translateY(-2px);
-  -webkit-text-stroke: 1px rgb(255 255 255 / 55%);
+  -webkit-text-stroke: 1.5px rgb(255 255 255 / 45%);
   text-shadow:
-    0 -1px 0 #ffffff,
-    0 1px 0 #f2f2f2,
-    1px 1px 0 #e6e6e6,
-    1px 2px 0 #d8d8d8,
-    2px 3px 0 #c9c9c9,
-    2px 4px 0 #b8b8b8,
-    3px 6px 0 #a3a3a3,
-    3px 8px 10px rgb(40 16 28 / 32%);
+    -1px -2px 0 rgb(255 255 255 / 95%),
+    0 -1px 0 rgb(255 255 255 / 80%);
+}
+
+.listen-letter-glyph::before {
+  content: attr(data-letter);
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: -1;
+  color: var(--listen-letter-side, #b8b8b8);
+  -webkit-text-stroke: 0;
+  text-shadow:
+    0 1px 0 var(--listen-letter-side, #b8b8b8),
+    1px 2px 0 var(--listen-letter-side, #b8b8b8),
+    1px 3px 0 var(--listen-letter-side-dark, #8a8a8a),
+    2px 4px 0 var(--listen-letter-side-dark, #8a8a8a),
+    2px 5px 0 var(--listen-letter-side-dark, #8a8a8a),
+    2px 6px 0 var(--listen-letter-side-dark, #8a8a8a),
+    3px 8px 0 var(--listen-letter-side-dark, #8a8a8a);
+  transform: translate(2px, 3px);
+  pointer-events: none;
+}
+
+.listen-letter-glyph::after {
+  content: attr(data-letter);
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: -2;
+  color: transparent;
+  -webkit-text-stroke: 0;
+  text-shadow: 4px 10px 12px rgb(40 16 28 / 36%);
+  transform: translate(3px, 5px);
+  pointer-events: none;
 }
 
 .listen-letter-pink {
+  --listen-letter-side: #e11d48;
+  --listen-letter-side-dark: #9f1239;
   background: linear-gradient(180deg, #ff8aa8 0%, #ff4d6d 58%, #e11d48 100%);
   box-shadow: 0 9px 0 #be123c, 0 14px 16px rgb(0 0 0 / 16%);
 }
 
 .listen-letter-orange {
+  --listen-letter-side: #f59e0b;
+  --listen-letter-side-dark: #b45309;
   background: linear-gradient(180deg, #ffd36b 0%, #ffb020 58%, #f59e0b 100%);
   box-shadow: 0 9px 0 #d97706, 0 14px 16px rgb(0 0 0 / 16%);
 }
 
 .listen-letter-teal {
+  --listen-letter-side: #0d9488;
+  --listen-letter-side-dark: #115e59;
   background: linear-gradient(180deg, #5eead4 0%, #2dd4bf 58%, #14b8a6 100%);
   box-shadow: 0 9px 0 #0f766e, 0 14px 16px rgb(0 0 0 / 16%);
 }
 
 .listen-letter-purple {
+  --listen-letter-side: #7c3aed;
+  --listen-letter-side-dark: #5b21b6;
   background: linear-gradient(180deg, #c4b5fd 0%, #8b5cf6 58%, #7c3aed 100%);
   box-shadow: 0 9px 0 #6d28d9, 0 14px 16px rgb(0 0 0 / 16%);
 }
 
 .listen-letter-blue {
+  --listen-letter-side: #0284c7;
+  --listen-letter-side-dark: #075985;
   background: linear-gradient(180deg, #7dd3fc 0%, #38bdf8 58%, #0ea5e9 100%);
   box-shadow: 0 9px 0 #0369a1, 0 14px 16px rgb(0 0 0 / 16%);
 }
