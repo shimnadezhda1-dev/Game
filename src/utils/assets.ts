@@ -37,6 +37,9 @@ export const ASSETS = {
     mushroom: "/assets/picture/mushroom.png",
     house: "/assets/picture/house.png"
   },
+  listen: {
+    meadow: "/assets/listen/meadow.png"
+  },
   fox: {
     idle: "/assets/character/fox-idle.png",
     happy: "/assets/character/fox-happy.png",

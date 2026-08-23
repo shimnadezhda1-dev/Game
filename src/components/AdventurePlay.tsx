@@ -156,11 +156,12 @@ export function AdventurePlay({
         lockTarget={letter}
         optionIds={listenIds}
         awaitNext
+        stars={progress.stars}
         onCorrect={onCorrect}
         onMistake={onMistake}
         onSpeak={onSpeak}
         onBack={onBack}
-        onFinished={() => setStep("reward")}
+        onFinished={finishLetter}
       />
     );
   }

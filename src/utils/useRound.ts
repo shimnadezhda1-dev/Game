@@ -22,6 +22,7 @@ interface UseRoundArgs {
   praiseKey?: (letter: LetterItem) => string;
   tryAgainText?: string;
   playWrongSound?: boolean;
+  autoSpeak?: boolean;
   awaitNext?: boolean;
   onCorrect: (letterId: string, origin?: Point) => void;
   onMistake: (letterId: string) => void;
@@ -44,6 +45,7 @@ export function useRound({
   praiseKey,
   tryAgainText = "Попробуй ещё!",
   playWrongSound = true,
+  autoSpeak = true,
   awaitNext = false,
   onCorrect,
   onMistake,
@@ -69,6 +71,7 @@ export function useRound({
   const praiseKeyRef = useRef(praiseKey);
   const tryAgainTextRef = useRef(tryAgainText);
   const playWrongSoundRef = useRef(playWrongSound);
+  const autoSpeakRef = useRef(autoSpeak);
   const awaitNextRef = useRef(awaitNext);
   const onFinishedRef = useRef(onFinished);
   const phaseRef = useRef(phase);
@@ -83,6 +86,7 @@ export function useRound({
   praiseKeyRef.current = praiseKey;
   tryAgainTextRef.current = tryAgainText;
   playWrongSoundRef.current = playWrongSound;
+  autoSpeakRef.current = autoSpeak;
   awaitNextRef.current = awaitNext;
   onFinishedRef.current = onFinished;
   phaseRef.current = phase;
@@ -137,6 +141,9 @@ export function useRound({
 
   useEffect(() => {
     if (phase !== "question") {
+      return;
+    }
+    if (!autoSpeakRef.current) {
       return;
     }
     speakQuestion(target);
