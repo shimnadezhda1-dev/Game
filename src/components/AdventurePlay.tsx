@@ -105,6 +105,7 @@ export function AdventurePlay({
         onMistake={onMistake}
         onSpeak={onSpeak}
         onBack={onBack}
+        onPrev={() => setStep("learn")}
         onFinished={() => setStep("findPicture")}
       />
     );
@@ -125,6 +126,7 @@ export function AdventurePlay({
         onMistake={onMistake}
         onSpeak={onSpeak}
         onBack={onBack}
+        onPrev={() => setStep("learn")}
         onFinished={() => setStep("findPicture")}
       />
     );
@@ -143,6 +145,7 @@ export function AdventurePlay({
         onMistake={onMistake}
         onSpeak={onSpeak}
         onBack={onBack}
+        onPrev={() => setStep("findHint")}
         onFinished={() => setStep("listenChoose")}
       />
     );
@@ -161,6 +164,7 @@ export function AdventurePlay({
         onMistake={onMistake}
         onSpeak={onSpeak}
         onBack={onBack}
+        onPrev={() => setStep("findPicture")}
         onFinished={finishLetter}
       />
     );

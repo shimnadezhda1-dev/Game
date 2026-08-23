@@ -4,7 +4,7 @@ import type { Point } from "../utils/point";
 import { letterVoiceKey } from "../audio/voiceCatalog";
 import { useRound } from "../utils/useRound";
 import { GoldStar } from "./GoldStar";
-import { NextArrowIcon } from "./ToyIcons";
+import { StageNav } from "./StageNav";
 import { assetUrl, ASSETS } from "../utils/assets";
 
 interface PictureLetterGameProps {
@@ -19,6 +19,7 @@ interface PictureLetterGameProps {
   onMistake: (letterId: string) => void;
   onSpeak: (text: string, options?: { key?: string; onEnd?: () => void }) => void;
   onBack: () => void;
+  onPrev?: () => void;
   onFinished?: () => void;
 }
 
@@ -39,6 +40,7 @@ export function PictureLetterGame({
   onMistake,
   onSpeak,
   onBack,
+  onPrev,
   onFinished
 }: PictureLetterGameProps) {
   const stableOptions = useMemo(() => optionIds, [optionIds?.join(",")]);
@@ -73,7 +75,7 @@ export function PictureLetterGame({
         />
       </div>
 
-      <button className="learn-home" onClick={onBack} aria-label="Домой">
+      <button className="learn-home" onClick={onBack} aria-label="На главную">
         <span aria-hidden="true">🏠</span>
       </button>
 
@@ -86,7 +88,7 @@ export function PictureLetterGame({
           className="learn-sound"
           onClick={round.replay}
           disabled={round.phase === "feedback"}
-          aria-label="Послушать"
+          aria-label="Прослушать"
         >
           <span aria-hidden="true">🔊</span>
         </button>
@@ -127,11 +129,11 @@ export function PictureLetterGame({
         </div>
       </div>
 
-      {awaitNext && round.phase === "feedback" ? (
-        <button className="learn-next" onClick={round.continueRound} aria-label="Дальше">
-          <NextArrowIcon />
-        </button>
-      ) : null}
+      <StageNav
+        onPrev={onPrev}
+        onNext={awaitNext ? round.continueRound : undefined}
+        showNext={awaitNext && round.phase === "feedback"}
+      />
     </div>
   );
 }

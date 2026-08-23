@@ -5,7 +5,7 @@ import { GameStage } from "./GameStage";
 import { LetterHint } from "./LetterHint";
 import { LetterTile } from "./LetterTile";
 import { GoldStar } from "./GoldStar";
-import { NextArrowIcon } from "./ToyIcons";
+import { StageNav } from "./StageNav";
 import { useRound } from "../utils/useRound";
 import { assetUrl, ASSETS } from "../utils/assets";
 import { useMemo } from "react";
@@ -24,6 +24,7 @@ interface FindLetterGameProps {
   onMistake: (letterId: string) => void;
   onSpeak: (text: string, options?: { key?: string; onEnd?: () => void }) => void;
   onBack: () => void;
+  onPrev?: () => void;
   onFinished?: () => void;
 }
 
@@ -51,6 +52,7 @@ export function FindLetterGame({
   onMistake,
   onSpeak,
   onBack,
+  onPrev,
   onFinished
 }: FindLetterGameProps) {
   const stableOptions = useMemo(() => optionIds, [optionIds?.join(",")]);
@@ -84,7 +86,7 @@ export function FindLetterGame({
           <img className="find-meadow" src={assetUrl(ASSETS.find.meadow)} alt="" draggable={false} />
         </div>
 
-        <button className="learn-home" onClick={onBack} aria-label="Домой">
+        <button className="learn-home" onClick={onBack} aria-label="На главную">
           <span aria-hidden="true">🏠</span>
         </button>
 
@@ -97,7 +99,7 @@ export function FindLetterGame({
             className="learn-sound"
             onClick={round.replay}
             disabled={round.phase === "feedback"}
-            aria-label="Послушать"
+            aria-label="Прослушать"
           >
             <span aria-hidden="true">🔊</span>
           </button>
@@ -174,11 +176,11 @@ export function FindLetterGame({
           </div>
         </div>
 
-        {awaitNext && round.phase === "feedback" ? (
-          <button className="learn-next" onClick={round.continueRound} aria-label="Дальше">
-            <NextArrowIcon />
-          </button>
-        ) : null}
+        <StageNav
+          onPrev={onPrev}
+          onNext={awaitNext ? round.continueRound : undefined}
+          showNext={awaitNext && round.phase === "feedback"}
+        />
       </div>
     );
   }

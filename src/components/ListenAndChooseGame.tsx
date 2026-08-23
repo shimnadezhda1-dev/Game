@@ -4,7 +4,7 @@ import type { Point } from "../utils/point";
 import { letterVoiceKey } from "../audio/voiceCatalog";
 import { useRound } from "../utils/useRound";
 import { GoldStar } from "./GoldStar";
-import { NextArrowIcon } from "./ToyIcons";
+import { StageNav } from "./StageNav";
 import { assetUrl, ASSETS } from "../utils/assets";
 
 interface ListenAndChooseGameProps {
@@ -19,6 +19,7 @@ interface ListenAndChooseGameProps {
   onMistake: (letterId: string) => void;
   onSpeak: (text: string, options?: { key?: string; onEnd?: () => void }) => void;
   onBack: () => void;
+  onPrev?: () => void;
   onFinished?: () => void;
 }
 
@@ -41,6 +42,7 @@ export function ListenAndChooseGame({
   onMistake,
   onSpeak,
   onBack,
+  onPrev,
   onFinished
 }: ListenAndChooseGameProps) {
   const stableOptions = useMemo(() => optionIds, [optionIds?.join(",")]);
@@ -85,7 +87,7 @@ export function ListenAndChooseGame({
         />
       </div>
 
-      <button className="learn-home" onClick={onBack} aria-label="Домой">
+      <button className="learn-home" onClick={onBack} aria-label="На главную">
         <span aria-hidden="true">🏠</span>
       </button>
 
@@ -98,7 +100,7 @@ export function ListenAndChooseGame({
           className="learn-sound"
           onClick={round.replay}
           disabled={celebrating}
-          aria-label="Послушать"
+          aria-label="Прослушать"
         >
           <span aria-hidden="true">🔊</span>
         </button>
@@ -130,7 +132,7 @@ export function ListenAndChooseGame({
           <button
             className="listen-play"
             onClick={playTargetLetter}
-            aria-label="Прослушать букву"
+            aria-label="Прослушать"
           >
             <span aria-hidden="true">🔊</span>
           </button>
@@ -161,11 +163,11 @@ export function ListenAndChooseGame({
         </div>
       )}
 
-      {awaitNext && celebrating ? (
-        <button className="learn-next" onClick={round.continueRound} aria-label="Дальше">
-          <NextArrowIcon />
-        </button>
-      ) : null}
+      <StageNav
+        onPrev={onPrev}
+        onNext={awaitNext ? round.continueRound : undefined}
+        showNext={awaitNext && celebrating}
+      />
     </div>
   );
 }

@@ -7,7 +7,7 @@ interface SpeakButtonProps {
   hintKey?: string;
 }
 
-export function SpeakButton({ onClick, label = "Послушать", disabled, hintKey }: SpeakButtonProps) {
+export function SpeakButton({ onClick, label = "Прослушать", disabled, hintKey }: SpeakButtonProps) {
   const [waves, setWaves] = useState(false);
   const [hint, setHint] = useState(false);
 

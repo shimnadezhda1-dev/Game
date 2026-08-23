@@ -55,3 +55,18 @@ export function NextArrowIcon() {
     </svg>
   );
 }
+
+export function PrevArrowIcon() {
+  return (
+    <svg className="toy-icon prev-arrow-icon" viewBox="0 0 64 64" aria-hidden="true">
+      <path
+        d="M46 32H24M36 18L18 32l18 14"
+        fill="none"
+        stroke="#fff"
+        strokeWidth="7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}

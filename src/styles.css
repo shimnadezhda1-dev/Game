@@ -3559,6 +3559,103 @@ html:has(.learn-screen) #root {
   }
 }
 
+/* Unified stage navigation: previous = orange, next = green */
+.stage-nav-btn {
+  position: absolute;
+  top: 50%;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  width: clamp(72px, 8vw, 104px);
+  height: clamp(72px, 8vw, 104px);
+  padding: 0;
+  border: 4px solid #fff8dc;
+  border-radius: 50%;
+  cursor: pointer;
+  line-height: 1;
+  transform: translateY(-50%);
+  transition: transform 0.12s ease, filter 0.12s ease;
+}
+
+.stage-nav-btn .toy-icon {
+  width: clamp(40px, 4.6vw, 54px);
+  height: clamp(40px, 4.6vw, 54px);
+}
+
+.stage-nav-prev {
+  left: clamp(8px, 1.2vw, 16px);
+  background: linear-gradient(180deg, #ffc14d 0%, #ff9f1c 48%, #fb8c00 100%);
+  box-shadow:
+    0 9px 0 #e65100,
+    0 14px 18px rgb(0 0 0 / 18%),
+    inset 0 7px 0 rgb(255 255 255 / 42%);
+}
+
+.stage-nav-next {
+  right: clamp(8px, 1.2vw, 16px);
+  background: linear-gradient(180deg, #8be08a 0%, #66bb6a 48%, #43a047 100%);
+  box-shadow:
+    0 9px 0 #2e7d32,
+    0 14px 18px rgb(0 0 0 / 18%),
+    inset 0 7px 0 rgb(255 255 255 / 42%);
+}
+
+.stage-nav-btn:hover {
+  transform: translateY(-50%) scale(1.05);
+  filter: brightness(1.06);
+}
+
+.stage-nav-btn:active {
+  transform: translateY(-50%) scale(0.96);
+  filter: brightness(0.98);
+}
+
+.stage-nav-btn:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+
+.stage-nav-next.is-pulse {
+  animation: stage-nav-pulse 0.7s ease-in-out 3;
+}
+
+@keyframes stage-nav-pulse {
+  0%,
+  100% {
+    transform: translateY(-50%) scale(1);
+  }
+  50% {
+    transform: translateY(-50%) scale(1.12);
+  }
+}
+
+@media (max-width: 1366px) {
+  .stage-nav-btn {
+    width: clamp(68px, 7.4vw, 90px);
+    height: clamp(68px, 7.4vw, 90px);
+  }
+}
+
+@media (max-width: 1100px) {
+  .stage-nav-btn {
+    width: clamp(60px, 7vw, 76px);
+    height: clamp(60px, 7vw, 76px);
+  }
+
+  .stage-nav-btn .toy-icon {
+    width: clamp(32px, 4vw, 42px);
+    height: clamp(32px, 4vw, 42px);
+  }
+
+  .stage-nav-prev {
+    left: 6px;
+  }
+
+  .stage-nav-next {
+    right: 6px;
+  }
+}
+
 @media (max-height: 768px) {
   .learn-scene-content {
     bottom: 32vh;
