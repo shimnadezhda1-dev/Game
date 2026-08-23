@@ -107,6 +107,7 @@ export function PictureLetterGame({
             }
             const art = PICTURE_ART[id] ?? item.imagePath;
             const isChosenCorrect = round.phase === "feedback" && id === round.target.id;
+            const isWatermelon = id === "A";
             return (
               <button
                 key={id}
@@ -114,7 +115,12 @@ export function PictureLetterGame({
                 onClick={(event) => round.choose(id, event)}
                 aria-label={item.word}
               >
-                <img src={assetUrl(art)} alt={item.word} draggable={false} />
+                <img
+                  className={isWatermelon ? "picture-choice-watermelon" : undefined}
+                  src={assetUrl(art)}
+                  alt={item.word}
+                  draggable={false}
+                />
               </button>
             );
           })}

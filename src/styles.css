@@ -3930,6 +3930,13 @@ html:has(.picture-screen) #root {
   pointer-events: none;
 }
 
+.picture-choice img.picture-choice-watermelon {
+  width: 100%;
+  height: clamp(120px, 24vh, 200px);
+  object-fit: contain;
+  object-position: center;
+}
+
 .picture-choice.is-chosen {
   transform: scale(1.05);
   box-shadow:
