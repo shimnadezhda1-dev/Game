@@ -3646,10 +3646,12 @@ html:has(.find-screen) #root {
 .find-fox {
   position: absolute;
   z-index: 25;
-  left: clamp(12px, 4vw, 64px);
-  bottom: clamp(18%, 22vh, 28%);
+  top: 26%;
+  left: calc(50% - min(390px, 34vw));
+  bottom: auto;
   height: clamp(160px, 32vh, 300px);
   width: auto;
+  transform: translateX(-100%);
   object-fit: contain;
   pointer-events: none;
   filter: drop-shadow(0 12px 8px rgb(0 0 0 / 18%));
@@ -3662,12 +3664,12 @@ html:has(.find-screen) #root {
 .find-board {
   position: absolute;
   left: 50%;
-  top: 11%;
+  top: 10%;
   z-index: 20;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(10px, 1.8vh, 18px);
+  gap: clamp(18px, 3.2vh, 32px);
   width: min(720px, 62vw);
   transform: translateX(-50%);
 }
@@ -3740,8 +3742,8 @@ html:has(.find-screen) #root {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(12px, 2vw, 28px);
-  margin-top: clamp(4px, 1vh, 10px);
+  gap: clamp(16px, 2.4vw, 32px);
+  margin-top: clamp(8px, 1.6vh, 16px);
 }
 
 .find-choice {
@@ -3749,7 +3751,7 @@ html:has(.find-screen) #root {
   border: none;
   background: none;
   cursor: pointer;
-  width: clamp(92px, 14vh, 150px);
+  width: clamp(130px, 20vh, 220px);
   height: auto;
   line-height: 0;
 }
@@ -3775,13 +3777,17 @@ html:has(.find-screen) #root {
 
 @media (max-height: 768px) {
   .find-board {
-    top: 9%;
-    gap: 8px;
+    top: 8%;
+    gap: clamp(14px, 2.6vh, 22px);
   }
 
   .find-fox {
+    top: 24%;
     height: clamp(130px, 28vh, 210px);
-    bottom: 20%;
+  }
+
+  .find-choice {
+    width: clamp(110px, 18vh, 170px);
   }
 
   .find-title-text {
@@ -3796,11 +3802,16 @@ html:has(.find-screen) #root {
 @media (max-width: 900px) {
   .find-board {
     width: min(88vw, 640px);
+    gap: clamp(14px, 2.8vh, 24px);
   }
 
   .find-fox {
-    left: 4px;
+    left: calc(50% - min(340px, 46vw));
     height: clamp(120px, 26vh, 190px);
+  }
+
+  .find-choice {
+    width: clamp(108px, 16vw, 160px);
   }
 }
 
