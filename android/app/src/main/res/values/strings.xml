@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Весёлый алфавит</string>
+    <string name="title_activity_main">Весёлый алфавит</string>
+    <string name="package_name">com.shimnadezhda.game</string>
+    <string name="custom_url_scheme">com.shimnadezhda.game</string>
+</resources>

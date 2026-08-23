@@ -4,3 +4,10 @@ dist-ssr
 *.local
 .DS_Store
 Thumbs.db
+android/.gradle
+android/build
+android/app/build
+android/local.properties
+android/captures
+android/.idea
+*.iml
