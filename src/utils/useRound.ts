@@ -20,6 +20,8 @@ interface UseRoundArgs {
   speakFollowUp?: (letter: LetterItem) => SpeakFollowUp | null;
   praise: (letter: LetterItem) => string;
   praiseKey?: (letter: LetterItem) => string;
+  tryAgainText?: string;
+  playWrongSound?: boolean;
   awaitNext?: boolean;
   onCorrect: (letterId: string, origin?: Point) => void;
   onMistake: (letterId: string) => void;
@@ -40,6 +42,8 @@ export function useRound({
   speakFollowUp,
   praise,
   praiseKey,
+  tryAgainText = "Попробуй ещё!",
+  playWrongSound = true,
   awaitNext = false,
   onCorrect,
   onMistake,
@@ -63,6 +67,8 @@ export function useRound({
   const speakFollowUpRef = useRef(speakFollowUp);
   const praiseRef = useRef(praise);
   const praiseKeyRef = useRef(praiseKey);
+  const tryAgainTextRef = useRef(tryAgainText);
+  const playWrongSoundRef = useRef(playWrongSound);
   const awaitNextRef = useRef(awaitNext);
   const onFinishedRef = useRef(onFinished);
   const phaseRef = useRef(phase);
@@ -75,6 +81,8 @@ export function useRound({
   speakFollowUpRef.current = speakFollowUp;
   praiseRef.current = praise;
   praiseKeyRef.current = praiseKey;
+  tryAgainTextRef.current = tryAgainText;
+  playWrongSoundRef.current = playWrongSound;
   awaitNextRef.current = awaitNext;
   onFinishedRef.current = onFinished;
   phaseRef.current = phase;
@@ -179,9 +187,13 @@ export function useRound({
     setSelected(id);
     setShakeNonce((value) => value + 1);
     setWrongCount((value) => value + 1);
-    audioManager.playTryAgain();
+    if (playWrongSoundRef.current) {
+      audioManager.playTryAgain();
+    }
     onMistake(target.id);
-    onSpeakRef.current("Попробуй ещё!", { key: "try-again" });
+    onSpeakRef.current(tryAgainTextRef.current, {
+      key: playWrongSoundRef.current ? "try-again" : undefined
+    });
   }
 
   return {

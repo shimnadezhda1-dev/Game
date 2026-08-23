@@ -30,6 +30,13 @@ export const ASSETS = {
     choiceG: "/assets/find/choice-g.png",
     choiceD: "/assets/find/choice-d.png"
   },
+  picture: {
+    meadow: "/assets/picture/meadow.png",
+    fox: "/assets/picture/fox.png",
+    watermelon: "/assets/picture/watermelon.png",
+    mushroom: "/assets/picture/mushroom.png",
+    house: "/assets/picture/house.png"
+  },
   fox: {
     idle: "/assets/character/fox-idle.png",
     happy: "/assets/character/fox-happy.png",

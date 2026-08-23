@@ -307,6 +307,7 @@ function App() {
             letters={playLetters}
             stats={progress.letterStats}
             trailStep={progress.stars % 5}
+            stars={progress.stars}
             onCorrect={markCorrect}
             onMistake={markMistake}
             onSpeak={speak}

@@ -137,6 +137,7 @@ export function AdventurePlay({
         lockTarget={letter}
         optionIds={optionIds}
         awaitNext
+        stars={progress.stars}
         onCorrect={onCorrect}
         onMistake={onMistake}
         onSpeak={onSpeak}
