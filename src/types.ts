@@ -25,6 +25,8 @@ export interface LetterItem {
   pictureImage?: string;
   choiceImage?: string;
   voiceText: string;
+  successText?: string;
+  needsContent?: boolean;
   difficulty: number;
   group: number;
 }

@@ -8,6 +8,7 @@ import { StageNav } from "./StageNav";
 import { NextArrowIcon } from "./ToyIcons";
 import { assetUrl, ASSETS } from "../utils/assets";
 import { letterObjectSrc } from "../utils/letterCopy";
+import { LetterPlaceholder } from "./LetterPlaceholder";
 
 interface PictureLetterGameProps {
   letters: LetterItem[];
@@ -54,7 +55,10 @@ export function PictureLetterGame({
     onFinished,
     speakPrompt: (letter) => `Что начинается на букву ${letter.upper}?`,
     speakKey: (letter) => letterVoiceKey("picture", letter.id),
-    praise: (letter) => `Молодец! Это ${letter.word.toLowerCase()}!`,
+    praise: (letter) =>
+      letter.word
+        ? `Молодец! Это ${letter.word.toLowerCase()}!`
+        : `Молодец! Это буква ${letter.upper}!`,
     praiseKey: (letter) => letterVoiceKey("correct", letter.id),
     tryAgainText: "Попробуй ещё раз!",
     playWrongSound: false
@@ -113,14 +117,18 @@ export function PictureLetterGame({
                 key={id}
                 className={`picture-choice ${isChosenCorrect ? "is-chosen" : ""}`}
                 onClick={(event) => round.choose(id, event)}
-                aria-label={item.word}
+                aria-label={item.word || item.upper}
               >
-                <img
-                  className={isWatermelon ? "picture-choice-watermelon" : undefined}
-                  src={assetUrl(art)}
-                  alt={item.word}
-                  draggable={false}
-                />
+                {art ? (
+                  <img
+                    className={isWatermelon ? "picture-choice-watermelon" : undefined}
+                    src={assetUrl(art)}
+                    alt={item.word}
+                    draggable={false}
+                  />
+                ) : (
+                  <LetterPlaceholder letter={item} />
+                )}
               </button>
             );
           })}

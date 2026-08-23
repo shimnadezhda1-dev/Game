@@ -2,6 +2,7 @@ import { LetterItem } from "../types";
 import { assetUrl, ASSETS } from "../utils/assets";
 import { letterGlyphSrc, letterIntroLines, letterObjectSrc } from "../utils/letterCopy";
 import { ToyLetter } from "./ToyLetter";
+import { LetterPlaceholder } from "./LetterPlaceholder";
 
 interface LearnSceneProps {
   letter: LetterItem;
@@ -43,12 +44,16 @@ export function LearnScene({ letter }: LearnSceneProps) {
         </div>
 
         <div className="learn-object-area">
-          <img
-            className="learn-object-art"
-            src={assetUrl(objectSrc)}
-            alt={letter.word}
-            draggable={false}
-          />
+          {objectSrc ? (
+            <img
+              className="learn-object-art"
+              src={assetUrl(objectSrc)}
+              alt={letter.word}
+              draggable={false}
+            />
+          ) : (
+            <LetterPlaceholder letter={letter} className="learn-object-art" />
+          )}
         </div>
       </div>
     </div>

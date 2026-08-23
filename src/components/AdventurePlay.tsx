@@ -11,19 +11,23 @@ import { ToyLetter } from "./ToyLetter";
 import { isLetterMastered, randomOptions, shuffle } from "../utils/selectors";
 import { findLetterPrompt } from "../utils/letterCopy";
 import { letterVoiceKey } from "../audio/voiceCatalog";
+import { nextAlphabetLetter } from "../data/letters";
 
-type Step = "learn" | "findHint" | "findLetter" | "findPicture" | "listenChoose" | "reward";
+type Step = "learn" | "findHint" | "findLetter" | "findPicture" | "listenChoose" | "reward" | "complete";
 
 /** Letter-study stages: 1 learn, 2 find letter, 3 find picture, 4 listen (last). */
 const STAGE_FLOW = ["learn", "findHint", "findPicture", "listenChoose"] as const;
 type FlowStep = (typeof STAGE_FLOW)[number];
 
-function toFlowStep(step: Step): FlowStep {
+function toFlowStep(step: Step): FlowStep | null {
   if (step === "findLetter") {
     return "findHint";
   }
   if (step === "reward") {
     return "listenChoose";
+  }
+  if (step === "complete") {
+    return null;
   }
   return step;
 }
@@ -39,18 +43,8 @@ interface AdventurePlayProps {
   onLetterMastered: (letterId: string) => void;
 }
 
-function pickLetter(letters: LetterItem[], progress: ProgressState): LetterItem {
-  return letters.find((item) => !isLetterMastered(progress, item.id)) ?? letters[0];
-}
-
-function pickNextLetter(
-  letters: LetterItem[],
-  progress: ProgressState,
-  currentId: string
-): LetterItem {
-  const index = letters.findIndex((item) => item.id === currentId);
-  const rotated = [...letters.slice(index + 1), ...letters.slice(0, Math.max(index, 0))];
-  return rotated.find((item) => !isLetterMastered(progress, item.id)) ?? rotated[0] ?? letters[0];
+function pickLetter(letters: LetterItem[], progress: ProgressState): LetterItem | null {
+  return letters.find((item) => !isLetterMastered(progress, item.id)) ?? null;
 }
 
 function lessonOptions(targetId: string, allIds: string[]): string[] {
@@ -75,8 +69,9 @@ export function AdventurePlay({
   onBack,
   onLetterMastered
 }: AdventurePlayProps) {
-  const [letter, setLetter] = useState<LetterItem>(() => pickLetter(letters, progress));
-  const [step, setStep] = useState<Step>("learn");
+  const startLetter = pickLetter(letters, progress);
+  const [letter, setLetter] = useState<LetterItem>(() => startLetter ?? letters[letters.length - 1]);
+  const [step, setStep] = useState<Step>(() => (startLetter ? "learn" : "complete"));
   const [nextReady, setNextReady] = useState(false);
   const allIds = letters.map((item) => item.id);
   const optionIds = useMemo(() => lessonOptions(letter.id, allIds), [letter.id]);
@@ -98,7 +93,12 @@ export function AdventurePlay({
 
   function finishLetter() {
     onLetterMastered(letter.id);
-    const next = pickNextLetter(letters, progress, letter.id);
+    const next = nextAlphabetLetter(letters, letter.id);
+    if (!next) {
+      setStep("complete");
+      setNextReady(false);
+      return;
+    }
     setLetter(next);
     setStep("learn");
     setNextReady(false);
@@ -106,7 +106,11 @@ export function AdventurePlay({
 
   function goStagePrev() {
     setStep((current) => {
-      const index = STAGE_FLOW.indexOf(toFlowStep(current));
+      const flow = toFlowStep(current);
+      if (!flow) {
+        return current;
+      }
+      const index = STAGE_FLOW.indexOf(flow);
       if (index <= 0) {
         return current;
       }
@@ -116,7 +120,11 @@ export function AdventurePlay({
 
   function goStageNext() {
     setStep((current) => {
-      const index = STAGE_FLOW.indexOf(toFlowStep(current));
+      const flow = toFlowStep(current);
+      if (!flow) {
+        return current;
+      }
+      const index = STAGE_FLOW.indexOf(flow);
       if (index < 0 || index >= STAGE_FLOW.length - 1) {
         return current;
       }
@@ -124,11 +132,22 @@ export function AdventurePlay({
     });
   }
 
-  const flowIndex = STAGE_FLOW.indexOf(toFlowStep(step));
+  const flowStep = toFlowStep(step);
+  const flowIndex = flowStep ? STAGE_FLOW.indexOf(flowStep) : -1;
   const showStagePrev = flowIndex > 0;
   const showStageNext = flowIndex >= 0 && flowIndex < STAGE_FLOW.length - 1;
   const onStagePrev = showStagePrev ? goStagePrev : undefined;
   const onStageNext = showStageNext ? goStageNext : undefined;
+
+  if (step === "complete") {
+    return (
+      <GameStage foxMood="celebrate" bubble="Ура! Ты выучил все буквы!">
+        <div className="reward-scene">
+          <GoldStar size="hero" />
+        </div>
+      </GameStage>
+    );
+  }
 
   if (step === "findHint") {
     return (

@@ -16,6 +16,23 @@ const PATHS: Record<string, string> = {
   D: "M36 198 L64 28 H136 L164 198 H132 L124 156 H76 L68 198 Z M86 118 H114 L100 52 Z"
 };
 
+const FALLBACK_PALETTES = [
+  { light: "#ffb3c2", mid: "#ff5d7a", dark: "#e0244e", shade: "#9a1233" },
+  { light: "#ffd18a", mid: "#ff9f1c", dark: "#e07a00", shade: "#a35400" },
+  { light: "#9af0e4", mid: "#2ec4b6", dark: "#1a9e92", shade: "#0e6e66" },
+  { light: "#b6ecff", mid: "#4fc3ff", dark: "#1d9ee0", shade: "#0d6fa6" },
+  { light: "#d2c4ff", mid: "#7c4dff", dark: "#5a2fd6", shade: "#3b1a96" },
+  { light: "#86efac", mid: "#22c55e", dark: "#15803d", shade: "#166534" }
+];
+
+function paletteFor(letterId: string) {
+  if (PALETTES[letterId]) {
+    return PALETTES[letterId];
+  }
+  const index = [...letterId].reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  return FALLBACK_PALETTES[index % FALLBACK_PALETTES.length];
+}
+
 interface ToyLetterProps {
   letterId: string;
   glyph: string;
@@ -24,8 +41,8 @@ interface ToyLetterProps {
 
 export function ToyLetter({ letterId, glyph, size = "hero" }: ToyLetterProps) {
   const uid = useId().replace(/:/g, "");
-  const palette = PALETTES[letterId] ?? PALETTES.A;
-  const path = PATHS[letterId] ?? PATHS.A;
+  const palette = paletteFor(letterId);
+  const path = PATHS[letterId];
   const fillRule = letterId === "A" || letterId === "B" || letterId === "D" ? "evenodd" : "nonzero";
   const faceId = `toy-face-${uid}`;
   const softId = `toy-soft-${uid}`;
@@ -48,18 +65,48 @@ export function ToyLetter({ letterId, glyph, size = "hero" }: ToyLetterProps) {
         </filter>
       </defs>
       <g filter={`url(#${softId})`}>
-        <path d={path} fill={palette.shade} transform="translate(8 12)" fillRule={fillRule} />
-        <path d={path} fill={`url(#${faceId})`} fillRule={fillRule} />
-        <path
-          d={path}
-          fill="none"
-          stroke="#fff"
-          strokeOpacity="0.38"
-          strokeWidth="7"
-          strokeLinejoin="round"
-          fillRule={fillRule}
-        />
-        <ellipse cx="78" cy="48" rx="22" ry="10" fill="#fff" opacity="0.35" />
+        {path ? (
+          <>
+            <path d={path} fill={palette.shade} transform="translate(8 12)" fillRule={fillRule} />
+            <path d={path} fill={`url(#${faceId})`} fillRule={fillRule} />
+            <path
+              d={path}
+              fill="none"
+              stroke="#fff"
+              strokeOpacity="0.38"
+              strokeWidth="7"
+              strokeLinejoin="round"
+              fillRule={fillRule}
+            />
+            <ellipse cx="78" cy="48" rx="22" ry="10" fill="#fff" opacity="0.35" />
+          </>
+        ) : (
+          <>
+            <text
+              x="108"
+              y="158"
+              textAnchor="middle"
+              fontSize="132"
+              fontWeight="900"
+              fill={palette.shade}
+            >
+              {glyph}
+            </text>
+            <text
+              x="100"
+              y="148"
+              textAnchor="middle"
+              fontSize="132"
+              fontWeight="900"
+              fill={`url(#${faceId})`}
+              stroke="#fff"
+              strokeOpacity="0.38"
+              strokeWidth="6"
+            >
+              {glyph}
+            </text>
+          </>
+        )}
       </g>
     </svg>
   );

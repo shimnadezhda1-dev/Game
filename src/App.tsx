@@ -66,7 +66,7 @@ function App() {
   useEffect(() => {
     audioManager.setEnabled(progress.soundEnabled);
     preloadImages([
-      ...LETTERS.map((letter) => assetUrl(letter.imagePath)),
+      ...LETTERS.filter((letter) => letter.imagePath).map((letter) => assetUrl(letter.imagePath)),
       assetUrl(ASSETS.fox.idle),
       assetUrl(ASSETS.fox.happy),
       assetUrl(ASSETS.fox.tip),

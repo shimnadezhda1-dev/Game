@@ -4486,4 +4486,50 @@ html:has(.listen-screen) #root {
   }
 }
 
+.letter-asset-placeholder {
+  display: grid;
+  place-items: center;
+  gap: 6px;
+  box-sizing: border-box;
+  min-width: 120px;
+  padding: 12px 14px;
+  border-radius: 28px;
+  border: 4px solid #fff8dc;
+  background: linear-gradient(180deg, #fffdf2 0%, #ffe9a8 100%);
+  box-shadow:
+    0 8px 0 #e0b24a,
+    0 12px 14px rgb(0 0 0 / 14%);
+  color: #5a2e00;
+  text-align: center;
+}
+
+.letter-asset-placeholder__glyph {
+  font-size: clamp(42px, 8vh, 72px);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.letter-asset-placeholder__word,
+.letter-asset-placeholder__status {
+  font-size: clamp(13px, 2vh, 18px);
+  font-weight: 800;
+}
+
+.letter-asset-placeholder.find-hint-object {
+  width: clamp(88px, 16vh, 150px);
+  height: clamp(88px, 16vh, 150px);
+}
+
+.letter-asset-placeholder.learn-object-art {
+  width: clamp(180px, 22vh, 260px);
+  height: clamp(220px, 30vh, 340px);
+}
+
+.picture-choice .letter-asset-placeholder {
+  width: 100%;
+  aspect-ratio: 1;
+  height: auto;
+  min-height: 0;
+}
+
 

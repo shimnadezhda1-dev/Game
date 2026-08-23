@@ -33,6 +33,16 @@ const LETTER_TONE: Record<string, string> = {
   D: "blue"
 };
 
+const LISTEN_FALLBACK_TONES = ["pink", "orange", "teal", "purple", "blue"];
+
+function listenTone(id: string): string {
+  if (LETTER_TONE[id]) {
+    return LETTER_TONE[id];
+  }
+  const index = [...id].reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  return LISTEN_FALLBACK_TONES[index % LISTEN_FALLBACK_TONES.length];
+}
+
 export function ListenAndChooseGame({
   letters,
   stats,
@@ -145,7 +155,7 @@ export function ListenAndChooseGame({
               if (!item) {
                 return null;
               }
-              const tone = LETTER_TONE[id] ?? "blue";
+              const tone = listenTone(id);
               return (
                 <button
                   key={id}

@@ -21,7 +21,7 @@ export function StarsScreen({ progress, letters, onSpeak }: StarsScreenProps) {
     if (letter.group > progress.unlockedGroupIndex) {
       return;
     }
-    onSpeak(`${letter.upper} — ${letter.word.toLowerCase()}!`);
+    onSpeak(letter.word ? `${letter.upper} — ${letter.word.toLowerCase()}!` : `Это буква ${letter.upper}!`);
   }
 
   return (
