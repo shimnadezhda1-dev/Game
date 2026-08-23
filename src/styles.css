@@ -4087,13 +4087,13 @@ html:has(.listen-screen) #root {
   line-height: 1;
   -webkit-text-stroke: 1px rgb(40 16 28 / 8%);
   text-shadow:
-    -1px -1px 0 rgb(255 255 255 / 92%),
+    -1px -1px 0 rgb(255 255 255 / 95%),
     0 1px 0 var(--listen-letter-side, #e8e8e8),
-    1px 2px 0 var(--listen-letter-side, #e8e8e8),
-    1px 3px 0 var(--listen-letter-side-dark, #d4d4d4),
-    1px 4px 0 var(--listen-letter-side-dark, #d4d4d4),
-    1px 5px 0 var(--listen-letter-side-dark, #d4d4d4),
-    2px 7px 8px rgb(40 16 28 / 20%);
+    0 2px 0 var(--listen-letter-side, #e8e8e8),
+    0 3px 0 var(--listen-letter-side-dark, #d4d4d4),
+    0 4px 0 var(--listen-letter-side-dark, #d4d4d4),
+    0 5px 0 var(--listen-letter-side-dark, #d4d4d4),
+    1px 7px 8px rgb(40 16 28 / 22%);
 }
 
 .listen-letter-pink {
