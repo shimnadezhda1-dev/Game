@@ -3400,15 +3400,18 @@ html:has(.learn-screen) #root {
 
 .learn-scene-content {
   position: absolute;
-  left: 50%;
+  left: 0;
+  right: 0;
   bottom: 38vh;
   z-index: 20;
   display: flex;
   align-items: flex-end;
   justify-content: center;
   gap: clamp(10px, 1.8vw, 26px);
-  width: min(900px, 84vw);
-  transform: translateX(-50%);
+  width: 100%;
+  max-width: none;
+  transform: none;
+  overflow: visible;
   pointer-events: none;
 }
 
@@ -3420,7 +3423,7 @@ html:has(.learn-screen) #root {
   align-items: flex-end;
   justify-content: center;
   flex: 0 0 auto;
-  min-width: 0;
+  flex-shrink: 0;
 }
 
 .learn-letter-area {
@@ -3430,6 +3433,7 @@ html:has(.learn-screen) #root {
   align-items: flex-end;
   justify-content: center;
   flex: 0 0 auto;
+  flex-shrink: 0;
 }
 
 .learn-object-area {
@@ -3439,6 +3443,7 @@ html:has(.learn-screen) #root {
   align-items: flex-end;
   justify-content: center;
   flex: 0 0 auto;
+  flex-shrink: 0;
 }
 
 .learn-bubble {
@@ -3661,7 +3666,7 @@ html:has(.learn-screen) #root {
 @media (max-height: 768px) {
   .learn-scene-content {
     bottom: 32vh;
-    width: min(820px, 88vw);
+    width: 100%;
     gap: 8px;
   }
 
@@ -3691,7 +3696,7 @@ html:has(.learn-screen) #root {
 
 @media (max-width: 900px) {
   .learn-scene-content {
-    width: min(94vw, 720px);
+    width: 100%;
     bottom: 36vh;
     gap: 6px;
   }

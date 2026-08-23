@@ -47,7 +47,7 @@ export function LearnScene({ letter }: LearnSceneProps) {
             <img
               className="learn-object-art"
               src={assetUrl(objectSrc)}
-              alt={letter.word}
+              alt={letter.word || letter.upper}
               draggable={false}
             />
           ) : null}

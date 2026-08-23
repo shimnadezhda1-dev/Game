@@ -109,9 +109,6 @@ export function PictureLetterGame({
               return null;
             }
             const art = letterObjectSrc(item, "picture");
-            if (!art) {
-              return null;
-            }
             const isChosenCorrect = round.phase === "feedback" && id === round.target.id;
             const isWatermelon = id === "A";
             return (
@@ -121,12 +118,14 @@ export function PictureLetterGame({
                 onClick={(event) => round.choose(id, event)}
                 aria-label={item.word || item.upper}
               >
-                <img
-                  className={isWatermelon ? "picture-choice-watermelon" : undefined}
-                  src={assetUrl(art)}
-                  alt={item.word}
-                  draggable={false}
-                />
+                {art ? (
+                  <img
+                    className={isWatermelon ? "picture-choice-watermelon" : undefined}
+                    src={assetUrl(art)}
+                    alt={item.word || item.upper}
+                    draggable={false}
+                  />
+                ) : null}
               </button>
             );
           })}

@@ -23,8 +23,8 @@ export const ASSETS = {
     watermelon: "/assets/objects/watermelon.png",
     drum: "/assets/letters/b-drum.png",
     wolf: "/assets/letters/v-wolf.png",
-    mushroom: "/assets/letters/g-mushroom.png",
-    house: "/assets/letters/d-house.png"
+    mushroom: "/assets/picture/mushroom.png",
+    house: "/assets/picture/house.png"
   },
   learn: {
     meadow: "/assets/letters/meadow-bg.png"

@@ -34,11 +34,22 @@ export function letterObjectSrc(
   letter: LetterItem,
   kind: "learn" | "find" | "picture" = "learn"
 ): string | undefined {
-  if (kind === "find" && letter.findObjectImage) {
-    return letter.findObjectImage;
+  if (kind === "find") {
+    return (
+      letter.findObjectImage ||
+      letter.objectImage ||
+      letter.pictureImage ||
+      letter.imagePath ||
+      undefined
+    );
   }
-  if (kind === "picture" && letter.pictureImage) {
-    return letter.pictureImage;
+  if (kind === "picture") {
+    return (
+      letter.pictureImage ||
+      letter.objectImage ||
+      letter.imagePath ||
+      undefined
+    );
   }
   return letter.objectImage || letter.imagePath || undefined;
 }

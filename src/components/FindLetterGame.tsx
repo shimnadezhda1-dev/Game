@@ -140,7 +140,7 @@ export function FindLetterGame({
               <img
                 className="find-hint-object"
                 src={assetUrl(objectSrc)}
-                alt={target.word}
+                alt={target.word || target.upper}
                 draggable={false}
               />
             ) : null}
