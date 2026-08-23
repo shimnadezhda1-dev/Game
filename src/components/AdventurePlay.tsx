@@ -105,7 +105,7 @@ export function AdventurePlay({
         onMistake={onMistake}
         onSpeak={onSpeak}
         onBack={onBack}
-        onFinished={() => setStep("findLetter")}
+        onFinished={() => setStep("findPicture")}
       />
     );
   }
@@ -117,9 +117,10 @@ export function AdventurePlay({
         stats={stats}
         lockTarget={letter}
         optionIds={optionIds}
-        hint="letter"
+        hint="image"
         prompt={`Найди букву ${letter.upper}!`}
         awaitNext
+        stars={progress.stars}
         onCorrect={onCorrect}
         onMistake={onMistake}
         onSpeak={onSpeak}
