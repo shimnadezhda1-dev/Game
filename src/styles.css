@@ -4075,10 +4075,27 @@ html:has(.listen-screen) #root {
   border: 6px solid #fff;
   border-radius: 32px;
   color: #fff;
-  font-size: clamp(52px, 9vh, 86px);
-  font-weight: 900;
   line-height: 1;
   cursor: pointer;
+}
+
+.listen-letter-glyph {
+  display: block;
+  color: #fff;
+  font-size: clamp(58px, 10.1vh, 97px);
+  font-weight: 900;
+  line-height: 1;
+  transform: translateY(-2px);
+  -webkit-text-stroke: 1px rgb(255 255 255 / 55%);
+  text-shadow:
+    0 -1px 0 #ffffff,
+    0 1px 0 #f2f2f2,
+    1px 1px 0 #e6e6e6,
+    1px 2px 0 #d8d8d8,
+    2px 3px 0 #c9c9c9,
+    2px 4px 0 #b8b8b8,
+    3px 6px 0 #a3a3a3,
+    3px 8px 10px rgb(40 16 28 / 32%);
 }
 
 .listen-letter-pink {
@@ -4231,7 +4248,10 @@ html:has(.listen-screen) #root {
   .listen-letter {
     width: clamp(88px, 15vh, 130px);
     height: clamp(88px, 15vh, 130px);
-    font-size: clamp(40px, 7.2vh, 64px);
+  }
+
+  .listen-letter-glyph {
+    font-size: clamp(45px, 8.1vh, 72px);
   }
 
   .listen-reward {
