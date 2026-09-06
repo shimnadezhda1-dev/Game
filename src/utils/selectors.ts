@@ -1,4 +1,10 @@
-import { LetterItem, LetterStats, ProgressState } from "../types";
+import {
+  LetterItem,
+  LetterStats,
+  OptionCount,
+  PictureExampleEntry,
+  ProgressState
+} from "../types";
 import { LETTER_GROUPS, LETTERS } from "../data/letters";
 
 export function shuffle<T>(items: T[]): T[] {
@@ -84,7 +90,166 @@ export function weightedLetterPick(
 }
 
 export function randomOptions(targetId: string, ids: string[], count: number): string[] {
-  const pool = ids.filter((id) => id !== targetId);
-  const picked = shuffle(pool).slice(0, Math.max(0, count - 1));
-  return shuffle([targetId, ...picked]);
+  const result = buildRoundOptions(targetId, ids, count);
+  if (!result.ok) {
+    throw new Error(
+      `Not enough unique options: requested ${result.requested}, available ${result.available}`
+    );
+  }
+  return result.options;
+}
+
+export type RoundOptionsResult =
+  | { ok: true; options: string[] }
+  | { ok: false; requested: number; available: number };
+
+export function buildRoundOptions(
+  targetId: string,
+  candidateIds: readonly string[],
+  count: number
+): RoundOptionsResult {
+  const uniqueIds = Array.from(new Set(candidateIds));
+  const distractors = uniqueIds.filter((id) => id !== targetId);
+  const available = distractors.length + 1;
+
+  if (available < count) {
+    return { ok: false, requested: count, available };
+  }
+
+  const picked = shuffle(distractors).slice(0, Math.max(0, count - 1));
+  return { ok: true, options: shuffle([targetId, ...picked]) };
+}
+
+export function glyphOptionPool(
+  letters: readonly LetterItem[],
+  optionCount: OptionCount
+): LetterItem[] {
+  return optionCount === 7
+    ? [...letters]
+    : letters.filter((letter) => letter.contentReady);
+}
+
+export function pictureContentBank(letters: readonly LetterItem[]): PictureExampleEntry[] {
+  return letters.flatMap((letter) =>
+    (letter.pictureExamples ?? [])
+      .filter(
+        (example) =>
+          example.pictureEligible &&
+          Boolean(example.word.trim()) &&
+          Boolean(example.image.trim()) &&
+          (example.allowedAsTarget || example.allowedAsDistractor)
+      )
+      .map((example) => ({
+        ...example,
+        letterId: letter.id,
+        letterUpper: letter.upper,
+        letterContentReady: letter.contentReady
+      }))
+  );
+}
+
+function normalizedInitial(word: string): string {
+  return [...word.trim().toLocaleUpperCase("ru-RU")][0] ?? "";
+}
+
+function uniquePictureExamples(
+  examples: readonly PictureExampleEntry[]
+): PictureExampleEntry[] {
+  const ids = new Set<string>();
+  const images = new Set<string>();
+  return examples.filter((example) => {
+    if (ids.has(example.id) || images.has(example.image)) {
+      return false;
+    }
+    ids.add(example.id);
+    images.add(example.image);
+    return true;
+  });
+}
+
+export type PictureRoundOptionsResult =
+  | {
+      ok: true;
+      options: string[];
+      correctOptionId: string;
+      targetExample: PictureExampleEntry;
+    }
+  | { ok: false; requested: number; available: number };
+
+export function buildPictureRoundOptions(
+  targetLetterId: string,
+  targetUpper: string,
+  examples: readonly PictureExampleEntry[],
+  count: OptionCount,
+  previousTargetExampleId?: string
+): PictureRoundOptionsResult {
+  const validExamples = uniquePictureExamples(examples);
+  const targetExamples = validExamples.filter(
+    (example) =>
+      example.letterId === targetLetterId &&
+      example.pictureEligible &&
+      example.allowedAsTarget &&
+      normalizedInitial(example.word) === targetUpper
+  );
+  const preferredTargets =
+    targetExamples.length > 1 && previousTargetExampleId
+      ? targetExamples.filter((example) => example.id !== previousTargetExampleId)
+      : targetExamples;
+  const targetExample = shuffle(preferredTargets)[0];
+
+  if (!targetExample) {
+    return { ok: false, requested: count, available: 0 };
+  }
+
+  const distractors = validExamples.filter(
+    (example) =>
+      example.id !== targetExample.id &&
+      example.image !== targetExample.image &&
+      example.pictureEligible &&
+      example.allowedAsDistractor &&
+      normalizedInitial(example.word) !== targetUpper
+  );
+  const available = distractors.length + 1;
+  if (available < count) {
+    return { ok: false, requested: count, available };
+  }
+
+  const picked = shuffle(distractors).slice(0, count - 1);
+  return {
+    ok: true,
+    options: shuffle([targetExample.id, ...picked.map((example) => example.id)]),
+    correctOptionId: targetExample.id,
+    targetExample
+  };
+}
+
+export function pictureOptionCountAvailable(
+  letters: readonly LetterItem[],
+  count: OptionCount
+): boolean {
+  const bank = pictureContentBank(letters);
+  const targetLetters = letters.filter(
+    (letter) =>
+      letter.contentReady &&
+      letter.eligibleActivities?.includes("picture") &&
+      bank.some(
+        (example) =>
+          example.letterId === letter.id &&
+          example.allowedAsTarget &&
+          normalizedInitial(example.word) === letter.upper
+      )
+  );
+  return (
+    targetLetters.length > 0 &&
+    targetLetters.every(
+      (letter) =>
+        buildPictureRoundOptions(letter.id, letter.upper, bank, count).ok
+    )
+  );
+}
+
+export function availableOptionCounts(letters: readonly LetterItem[]): OptionCount[] {
+  return ([3, 5, 7] as const).filter((count) =>
+    pictureOptionCountAvailable(letters, count)
+  );
 }

@@ -1,37 +1,5 @@
 import { useId } from "react";
-
-const PALETTES: Record<string, { light: string; mid: string; dark: string; shade: string }> = {
-  A: { light: "#ffb3c2", mid: "#ff5d7a", dark: "#e0244e", shade: "#9a1233" },
-  B: { light: "#ffd18a", mid: "#ff9f1c", dark: "#e07a00", shade: "#a35400" },
-  V: { light: "#9af0e4", mid: "#2ec4b6", dark: "#1a9e92", shade: "#0e6e66" },
-  G: { light: "#b6ecff", mid: "#4fc3ff", dark: "#1d9ee0", shade: "#0d6fa6" },
-  D: { light: "#d2c4ff", mid: "#7c4dff", dark: "#5a2fd6", shade: "#3b1a96" }
-};
-
-const PATHS: Record<string, string> = {
-  A: "M100 18 L178 188 Q182 198 170 198 L138 198 L126 166 H74 L62 198 H30 Q18 198 22 188 Z M86 132 H114 L100 92 Z",
-  B: "M38 22 H166 Q176 22 176 40 V58 H86 V90 H128 Q174 92 174 148 Q174 200 116 200 H38 Z M86 124 V168 H118 Q146 168 146 146 Q146 124 118 124 Z",
-  V: "M48 20 H120 Q172 20 172 78 Q172 112 140 124 Q176 136 176 176 Q176 198 118 198 H48 Z M86 50 V98 H114 Q132 98 132 74 Q132 50 114 50 Z M86 132 V168 H116 Q140 168 140 150 Q140 132 116 132 Z",
-  G: "M168 36 H70 Q36 36 36 78 V178 Q36 198 62 198 H92 V154 H70 V78 H168 Z",
-  D: "M36 198 L64 28 H136 L164 198 H132 L124 156 H76 L68 198 Z M86 118 H114 L100 52 Z"
-};
-
-const FALLBACK_PALETTES = [
-  { light: "#ffb3c2", mid: "#ff5d7a", dark: "#e0244e", shade: "#9a1233" },
-  { light: "#ffd18a", mid: "#ff9f1c", dark: "#e07a00", shade: "#a35400" },
-  { light: "#9af0e4", mid: "#2ec4b6", dark: "#1a9e92", shade: "#0e6e66" },
-  { light: "#b6ecff", mid: "#4fc3ff", dark: "#1d9ee0", shade: "#0d6fa6" },
-  { light: "#d2c4ff", mid: "#7c4dff", dark: "#5a2fd6", shade: "#3b1a96" },
-  { light: "#86efac", mid: "#22c55e", dark: "#15803d", shade: "#166534" }
-];
-
-function paletteFor(letterId: string) {
-  if (PALETTES[letterId]) {
-    return PALETTES[letterId];
-  }
-  const index = [...letterId].reduce((sum, char) => sum + char.charCodeAt(0), 0);
-  return FALLBACK_PALETTES[index % FALLBACK_PALETTES.length];
-}
+import { getToyLetterTheme } from "../data/letterRegistry";
 
 interface ToyLetterProps {
   letterId: string;
@@ -41,9 +9,7 @@ interface ToyLetterProps {
 
 export function ToyLetter({ letterId, glyph, size = "hero" }: ToyLetterProps) {
   const uid = useId().replace(/:/g, "");
-  const palette = paletteFor(letterId);
-  const path = PATHS[letterId];
-  const fillRule = letterId === "A" || letterId === "B" || letterId === "D" ? "evenodd" : "nonzero";
+  const { palette, path, fillRule = "nonzero" } = getToyLetterTheme(letterId);
   const faceId = `toy-face-${uid}`;
   const softId = `toy-soft-${uid}`;
 

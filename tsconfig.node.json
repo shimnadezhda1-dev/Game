@@ -1,10 +1,18 @@
 {
   "compilerOptions": {
     "composite": true,
+    "target": "ES2020",
     "skipLibCheck": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "allowSyntheticDefaultImports": true
   },
-  "include": ["vite.config.ts"]
+  "include": [
+    "vite.config.ts",
+    "build/**/*.ts",
+    "src/data/letters.ts",
+    "src/data/validateLetterContent.ts",
+    "src/types.ts",
+    "src/utils/letterCopy.ts"
+  ]
 }

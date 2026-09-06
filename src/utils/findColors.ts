@@ -1,3 +1,4 @@
+import { getFindNativeHue } from "../data/letterRegistry";
 import { shuffle } from "./selectors";
 
 export const FIND_COLOR_IDS = ["pink", "orange", "teal", "cyan", "purple", "green"] as const;
@@ -12,16 +13,8 @@ export const FIND_COLORS: Record<FindColorId, { hue: number; css: string }> = {
   green: { hue: 142, css: "#22c55e" }
 };
 
-const GLYPH_NATIVE_HUE: Record<string, number> = {
-  A: 352,
-  B: 32,
-  V: 172,
-  G: 198,
-  D: 263
-};
-
 export function hueRotateFor(letterId: string, color: FindColorId): number {
-  return FIND_COLORS[color].hue - (GLYPH_NATIVE_HUE[letterId] ?? FIND_COLORS[color].hue);
+  return FIND_COLORS[color].hue - (getFindNativeHue(letterId) ?? FIND_COLORS[color].hue);
 }
 
 export interface FindColorPlan {

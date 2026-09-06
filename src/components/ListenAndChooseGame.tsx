@@ -1,7 +1,7 @@
-import { useMemo } from "react";
-import { LetterItem, LetterStats } from "../types";
+import { LetterItem, LetterStats, OptionCount } from "../types";
 import type { Point } from "../utils/point";
 import { letterVoiceKey } from "../audio/voiceCatalog";
+import { getListenTone } from "../data/letterRegistry";
 import { useRound } from "../utils/useRound";
 import { GoldStar } from "./GoldStar";
 import { StageNav } from "./StageNav";
@@ -13,7 +13,9 @@ interface ListenAndChooseGameProps {
   stats: Record<string, LetterStats>;
   trailStep?: number;
   lockTarget?: LetterItem;
-  optionIds?: string[];
+  optionCount?: OptionCount;
+  optionPool?: LetterItem[];
+  optionCatalog?: LetterItem[];
   awaitNext?: boolean;
   stars?: number;
   onCorrect: (letterId: string, origin?: Point) => void;
@@ -26,29 +28,13 @@ interface ListenAndChooseGameProps {
   showInternalNext?: boolean;
 }
 
-const LETTER_TONE: Record<string, string> = {
-  A: "pink",
-  B: "orange",
-  V: "teal",
-  G: "purple",
-  D: "blue"
-};
-
-const LISTEN_FALLBACK_TONES = ["pink", "orange", "teal", "purple", "blue"];
-
-function listenTone(id: string): string {
-  if (LETTER_TONE[id]) {
-    return LETTER_TONE[id];
-  }
-  const index = [...id].reduce((sum, char) => sum + char.charCodeAt(0), 0);
-  return LISTEN_FALLBACK_TONES[index % LISTEN_FALLBACK_TONES.length];
-}
-
 export function ListenAndChooseGame({
   letters,
   stats,
   lockTarget,
-  optionIds,
+  optionCount = 3,
+  optionPool,
+  optionCatalog,
   awaitNext = false,
   stars = 0,
   onCorrect,
@@ -60,12 +46,13 @@ export function ListenAndChooseGame({
   onFinished,
   showInternalNext = true
 }: ListenAndChooseGameProps) {
-  const stableOptions = useMemo(() => optionIds, [optionIds?.join(",")]);
+  const optionLetters = optionPool ?? letters;
+  const lookupLetters = optionCatalog ?? optionLetters;
   const round = useRound({
     letters,
     stats,
-    optionCount: 3,
-    optionIds: stableOptions,
+    optionCount,
+    optionPool: optionLetters,
     lockTarget,
     awaitNext,
     onCorrect,
@@ -153,13 +140,16 @@ export function ListenAndChooseGame({
           >
             <span aria-hidden="true">🔊</span>
           </button>
-          <div className="listen-choices">
+          <div className="listen-choices" data-option-count={round.options.length}>
+            {round.optionError ? (
+              <p className="option-unavailable">Этот уровень пока недоступен</p>
+            ) : null}
             {round.options.map((id) => {
-              const item = letters.find((letter) => letter.id === id);
+              const item = lookupLetters.find((letter) => letter.id === id);
               if (!item) {
                 return null;
               }
-              const tone = listenTone(id);
+              const tone = getListenTone(id);
               return (
                 <button
                   key={id}

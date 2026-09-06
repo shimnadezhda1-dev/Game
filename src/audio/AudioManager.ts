@@ -1,14 +1,7 @@
 import { assetUrl } from "../utils/assets";
+import { getLetterPronunciation } from "../data/letterRegistry";
 import { backgroundMusic } from "./BackgroundMusicManager";
 import { VOICE_FILES, type VoiceKey } from "./voiceCatalog";
-
-const LETTER_SOUNDS: Record<string, string> = {
-  А: "а",
-  Б: "бэ",
-  В: "вэ",
-  Г: "гэ",
-  Д: "дэ"
-};
 
 export interface SpeakOptions {
   key?: VoiceKey | string;
@@ -16,7 +9,7 @@ export interface SpeakOptions {
 }
 
 function softenText(text: string): string {
-  return text.replace(/[АБВГД]/g, (letter) => LETTER_SOUNDS[letter] ?? letter);
+  return text.replace(/[А-ЯЁ]/g, (letter) => getLetterPronunciation(letter) ?? letter);
 }
 
 function splitChunks(text: string): string[] {

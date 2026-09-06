@@ -19,7 +19,7 @@ interface LearnLettersProps {
   onStageNext?: () => void;
 }
 
-export function LearnLetters({ letter, stars, onNext, onSpeak, onHome, onStageNext }: LearnLettersProps) {
+export function LearnLetters({ letter, stars, onNext, onSpeak, onBack, onHome, onStageNext }: LearnLettersProps) {
   const [pulseNext, setPulseNext] = useState(false);
   const [introDone, setIntroDone] = useState(false);
 
@@ -48,7 +48,7 @@ export function LearnLetters({ letter, stars, onNext, onSpeak, onHome, onStageNe
   }, [letter.id]);
 
   return (
-    <div className="screen learn-screen">
+    <div className={`screen learn-screen learn-screen--${letter.id.toLowerCase()}`}>
       <div className="learn-backdrop" aria-hidden="true">
         <img className="learn-meadow" src={assetUrl(ASSETS.learn.meadow)} alt="" draggable={false} fetchPriority="high" decoding="async" />
       </div>
@@ -81,9 +81,14 @@ export function LearnLetters({ letter, stars, onNext, onSpeak, onHome, onStageNe
 
       <LearnScene letter={letter} />
 
-      <StageNav onNext={onStageNext} showPrev={false} showNext={Boolean(onStageNext)} />
+      <StageNav
+        onPrev={onBack}
+        onNext={onStageNext}
+        showPrev={Boolean(onBack)}
+        showNext={Boolean(onStageNext)}
+      />
 
-      {introDone ? (
+      {introDone && !onStageNext ? (
         <button
           type="button"
           className={`learn-next internal-next ${pulseNext ? "learn-next-pulse" : ""}`}

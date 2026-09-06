@@ -9,20 +9,24 @@ import { RewardScreen } from "./components/RewardScreen";
 import { FlyingStar } from "./components/FlyingStar";
 import { StarsScreen } from "./components/StarsScreen";
 import { AdventurePlay } from "./components/AdventurePlay";
+import { QuickSettings } from "./components/QuickSettings";
 import { LETTERS, contentReadyLetters } from "./data/letters";
 import { audioManager } from "./audio/AudioManager";
 import { backgroundMusic } from "./audio/BackgroundMusicManager";
-import { ProgressState, Screen } from "./types";
+import { OptionCount, ProgressState, Screen } from "./types";
 import { loadProgress, saveProgress } from "./utils/storage";
 import { preloadImages } from "./utils/preload";
 import { assetUrl } from "./utils/assets";
 import type { Point } from "./utils/point";
 import {
+  availableOptionCounts,
   getLetterStats,
+  glyphOptionPool,
   maybeUnlockNextGroup,
+  pictureContentBank,
   unlockedLetters
 } from "./utils/selectors";
-import { rewardJustUnlocked, StarReward } from "./utils/rewards";
+import { rewardJustUnlocked, STAR_REWARDS, StarReward } from "./utils/rewards";
 
 interface Flight {
   fromX: number;
@@ -33,14 +37,13 @@ interface Flight {
 
 function App() {
   const [screen, setScreen] = useState<Screen>("home"); // never restored from localStorage
-  const [returnScreen, setReturnScreen] = useState<Screen>("home");
   const [progress, setProgress] = useState<ProgressState>(() => loadProgress());
+  const [activeReward, setActiveReward] = useState<StarReward | null>(null);
   const [musicOn, setMusicOn] = useState(() => backgroundMusic.isEnabled());
   const [flight, setFlight] = useState<Flight | null>(null);
   const [bankPulse, setBankPulse] = useState(false);
-  const [rewardCopy, setRewardCopy] = useState({ title: "УРА!", text: "Ты заработал звёздочку!" });
   const [playEpoch, setPlayEpoch] = useState(0);
-  const pendingRewardRef = useRef<StarReward | null>(null);
+  const previousUnlockedRewardsRef = useRef(progress.unlockedRewards);
   const starTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -61,6 +64,13 @@ function App() {
     () => unlockedLetters(progress, LETTERS),
     [progress]
   );
+  const adventureLetters = useMemo(() => contentReadyLetters(LETTERS), []);
+  const supportedOptionCounts = useMemo(() => availableOptionCounts(LETTERS), []);
+  const glyphOptions = useMemo(
+    () => glyphOptionPool(LETTERS, progress.optionCount),
+    [progress.optionCount]
+  );
+  const pictureExamples = useMemo(() => pictureContentBank(LETTERS), []);
   const learnLetter =
     playLetters[progress.currentLearnIndex % playLetters.length] ?? playLetters[0] ?? LETTERS[0];
 
@@ -88,7 +98,26 @@ function App() {
     audioManager.speak(text, options);
   }, []);
 
+  useEffect(() => {
+    const previous = previousUnlockedRewardsRef.current;
+    previousUnlockedRewardsRef.current = progress.unlockedRewards;
+    const newlyUnlocked = STAR_REWARDS.find(
+      (reward) =>
+        progress.unlockedRewards.includes(reward.id) &&
+        !previous.includes(reward.id)
+    );
+    if (!newlyUnlocked) {
+      return;
+    }
+
+    setActiveReward(newlyUnlocked);
+    speak("Ура! Новая наклейка!");
+  }, [progress.unlockedRewards, speak]);
+
   function startAdventure() {
+    if (!supportedOptionCounts.includes(progress.optionCount)) {
+      return;
+    }
     backgroundMusic.startFromGesture();
     setPlayEpoch((epoch) => epoch + 1);
     go("adventure");
@@ -115,10 +144,11 @@ function App() {
         prevStats.correctCount + 1 >= 3
           ? Array.from(new Set([...prev.learnedLetterIds, letterId]))
           : prev.learnedLetterIds;
-      const unlocked = rewardJustUnlocked(prev.stars, nextStars);
-      if (unlocked) {
-        pendingRewardRef.current = unlocked;
-      }
+      const thresholdReward = rewardJustUnlocked(prev.stars, nextStars);
+      const unlocked =
+        thresholdReward && !prev.unlockedRewards.includes(thresholdReward.id)
+          ? thresholdReward
+          : null;
       const next: ProgressState = {
         ...prev,
         correctAnswers: prev.correctAnswers + 1,
@@ -151,10 +181,6 @@ function App() {
     starTimerRef.current = window.setTimeout(() => {
       addStar(letterId);
       setFlight(null);
-      const pending = pendingRewardRef.current;
-      if (pending) {
-        speak(`Ура! Ты открыл ${pending.title}!`);
-      }
     }, 850);
   }
 
@@ -211,6 +237,13 @@ function App() {
     backgroundMusic.setEnabled(false);
   }
 
+  function setOptionCount(optionCount: OptionCount) {
+    if (!supportedOptionCounts.includes(optionCount)) {
+      return;
+    }
+    setProgress((prev) => ({ ...prev, optionCount }));
+  }
+
   function onLetterMastered(letterId: string) {
     setProgress((prev) => {
       const next: ProgressState = {
@@ -222,24 +255,8 @@ function App() {
     });
   }
 
-  function celebrateIfNeeded(fallback: Screen) {
-    const pending = pendingRewardRef.current;
-    if (pending) {
-      pendingRewardRef.current = null;
-      setRewardCopy({
-        title: pending.title,
-        text: `Новая награда: ${pending.hint}!`
-      });
-      setReturnScreen(fallback);
-      go("reward");
-      speak(`Ура! Ты открыл ${pending.title}!`);
-      return;
-    }
-    go(fallback);
-  }
-
-  const backToHub = () => celebrateIfNeeded("modeSelect");
-  const backHome = () => celebrateIfNeeded("home");
+  const backToHub = () => go("modeSelect");
+  const backHome = () => go("home");
 
   function renderScreen() {
     switch (screen) {
@@ -252,6 +269,9 @@ function App() {
             onSpeak={speak}
             onToggleMusic={toggleMusic}
             musicOn={musicOn}
+            optionCount={progress.optionCount}
+            availableOptionCounts={supportedOptionCounts}
+            onOptionCountChange={setOptionCount}
             foxCelebrate={progress.stars >= 20}
           />
         );
@@ -260,7 +280,9 @@ function App() {
         return (
           <AdventurePlay
             key={playEpoch}
-            letters={LETTERS}
+            letters={adventureLetters}
+            optionCatalog={LETTERS}
+            optionCount={progress.optionCount}
             stats={progress.letterStats}
             progress={progress}
             onCorrect={markCorrect}
@@ -287,6 +309,9 @@ function App() {
         return (
           <FindLetterGame
             letters={playLetters}
+            optionCount={progress.optionCount}
+            optionPool={glyphOptions}
+            optionCatalog={LETTERS}
             stats={progress.letterStats}
             onCorrect={markCorrect}
             onMistake={markMistake}
@@ -298,6 +323,8 @@ function App() {
         return (
           <PictureLetterGame
             letters={playLetters}
+            optionCount={progress.optionCount}
+            pictureBank={pictureExamples}
             stats={progress.letterStats}
             trailStep={progress.stars % 5}
             stars={progress.stars}
@@ -311,6 +338,9 @@ function App() {
         return (
           <ListenAndChooseGame
             letters={playLetters}
+            optionCount={progress.optionCount}
+            optionPool={glyphOptions}
+            optionCatalog={LETTERS}
             stats={progress.letterStats}
             trailStep={progress.stars % 5}
             stars={progress.stars}
@@ -324,15 +354,6 @@ function App() {
         return (
           <StarsScreen progress={progress} letters={contentReadyLetters(LETTERS)} onBack={backHome} onSpeak={speak} />
         );
-      case "reward":
-        return (
-          <RewardScreen
-            stars={progress.stars}
-            title={rewardCopy.title}
-            text={rewardCopy.text}
-            onClose={() => go(returnScreen === "reward" ? "home" : returnScreen)}
-          />
-        );
       default:
         return (
           <HomeScreen
@@ -342,6 +363,9 @@ function App() {
             onSpeak={speak}
             onToggleMusic={toggleMusic}
             musicOn={musicOn}
+            optionCount={progress.optionCount}
+            availableOptionCounts={supportedOptionCounts}
+            onOptionCountChange={setOptionCount}
           />
         );
     }
@@ -365,6 +389,22 @@ function App() {
       />
       {flight ? <FlyingStar {...flight} /> : null}
       {renderScreen()}
+      {!activeReward && ["modeSelect", "adventure", "learn", "find", "picture", "listen"].includes(screen) ? (
+        <QuickSettings
+          optionCount={progress.optionCount}
+          availableCounts={supportedOptionCounts}
+          onOptionCountChange={setOptionCount}
+        />
+      ) : null}
+      {activeReward ? (
+        <RewardScreen
+          stars={progress.stars}
+          title="Ура! Новая наклейка!"
+          rewardName={activeReward.title}
+          rewardId={activeReward.id}
+          onClose={() => setActiveReward(null)}
+        />
+      ) : null}
     </div>
   );
 }

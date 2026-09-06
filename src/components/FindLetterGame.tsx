@@ -1,4 +1,4 @@
-import { LetterItem, LetterStats } from "../types";
+import { LetterItem, LetterStats, OptionCount } from "../types";
 import type { Point } from "../utils/point";
 import { letterVoiceKey } from "../audio/voiceCatalog";
 import { GameStage } from "./GameStage";
@@ -19,7 +19,9 @@ interface FindLetterGameProps {
   stats: Record<string, LetterStats>;
   trailStep?: number;
   lockTarget?: LetterItem;
-  optionIds?: string[];
+  optionCount?: OptionCount;
+  optionPool?: LetterItem[];
+  optionCatalog?: LetterItem[];
   hint?: "image" | "letter" | "none";
   prompt?: string;
   awaitNext?: boolean;
@@ -37,7 +39,9 @@ export function FindLetterGame({
   letters,
   stats,
   lockTarget,
-  optionIds,
+  optionCount = 3,
+  optionPool,
+  optionCatalog,
   hint = "letter",
   prompt,
   awaitNext = false,
@@ -50,12 +54,14 @@ export function FindLetterGame({
   onStageNext,
   onFinished
 }: FindLetterGameProps) {
-  const stableOptions = useMemo(() => optionIds, [optionIds?.join(",")]);
+  const optionLetters = optionPool ?? letters;
+  const lookupLetters = optionCatalog ?? optionLetters;
   const round = useRound({
     letters,
     stats,
     lockTarget,
-    optionIds: stableOptions,
+    optionCount,
+    optionPool: optionLetters,
     awaitNext,
     onCorrect,
     onMistake,
@@ -147,9 +153,12 @@ export function FindLetterGame({
             ) : null}
           </div>
 
-          <div className="find-choices">
+          <div className="find-choices" data-option-count={choices.length}>
+            {round.optionError ? (
+              <p className="option-unavailable">Этот уровень пока недоступен</p>
+            ) : null}
             {choices.map((id) => {
-              const letter = letters.find((item) => item.id === id);
+              const letter = lookupLetters.find((item) => item.id === id);
               if (!letter) {
                 return null;
               }
@@ -211,10 +220,13 @@ export function FindLetterGame({
       onNext={awaitNext ? round.continueRound : undefined}
       showNext={awaitNext && round.phase === "feedback"}
     >
-      {hint !== "none" ? <LetterHint letter={round.target} showImage={hint === "image"} /> : null}
-      <div className="tiles-row">
+      {hint !== "none" ? <LetterHint letter={round.target} showImage={false} /> : null}
+      <div className="tiles-row" data-option-count={round.options.length}>
+        {round.optionError ? (
+          <p className="option-unavailable">Этот уровень пока недоступен</p>
+        ) : null}
         {round.options.map((id) => {
-          const letter = letters.find((item) => item.id === id);
+          const letter = lookupLetters.find((item) => item.id === id);
           if (!letter) {
             return null;
           }

@@ -1,24 +1,44 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { LetterItem, LetterStats, RoundPhase } from "../types";
+import { LetterItem, LetterStats, OptionCount, RoundPhase } from "../types";
 import { audioManager } from "../audio/AudioManager";
 import { pointFromEvent, type Point } from "./point";
-import { randomOptions, weightedLetterPick } from "./selectors";
+import { buildRoundOptions, weightedLetterPick } from "./selectors";
 
 interface SpeakFollowUp {
   text: string;
   key?: string;
 }
 
+interface CustomRoundOptionsSuccess {
+  ok: true;
+  options: string[];
+  correctOptionId: string;
+}
+
+interface CustomRoundOptionsFailure {
+  ok: false;
+  requested: number;
+  available: number;
+}
+
+type CustomRoundOptionsResult =
+  | CustomRoundOptionsSuccess
+  | CustomRoundOptionsFailure;
+
 interface UseRoundArgs {
   letters: LetterItem[];
   stats: Record<string, LetterStats>;
-  optionCount?: number;
-  optionIds?: string[];
+  optionCount?: OptionCount;
+  optionPool?: LetterItem[];
+  optionBuilder?: (
+    target: LetterItem,
+    optionCount: OptionCount
+  ) => CustomRoundOptionsResult;
   lockTarget?: LetterItem;
   speakPrompt: (letter: LetterItem) => string;
   speakKey?: (letter: LetterItem) => string;
   speakFollowUp?: (letter: LetterItem) => SpeakFollowUp | null;
-  praise: (letter: LetterItem) => string;
+  praise: (letter: LetterItem, correctOptionId: string) => string;
   praiseKey?: (letter: LetterItem) => string;
   tryAgainText?: string;
   playWrongSound?: boolean;
@@ -36,7 +56,8 @@ export function useRound({
   letters,
   stats,
   optionCount = 3,
-  optionIds,
+  optionPool,
+  optionBuilder,
   lockTarget,
   speakPrompt,
   speakKey,
@@ -59,10 +80,14 @@ export function useRound({
   const [selected, setSelected] = useState<string | null>(null);
   const [wrongCount, setWrongCount] = useState(0);
   const [shakeNonce, setShakeNonce] = useState(0);
+  const [activeOptionCount, setActiveOptionCount] = useState<OptionCount>(optionCount);
   const lockedRef = useRef(false);
   const timerRef = useRef<number | null>(null);
   const statsRef = useRef(stats);
   const lettersRef = useRef(letters);
+  const optionPoolRef = useRef(optionPool ?? letters);
+  const optionBuilderRef = useRef(optionBuilder);
+  const requestedOptionCountRef = useRef(optionCount);
   const onSpeakRef = useRef(onSpeak);
   const speakPromptRef = useRef(speakPrompt);
   const speakKeyRef = useRef(speakKey);
@@ -78,6 +103,9 @@ export function useRound({
 
   statsRef.current = stats;
   lettersRef.current = letters;
+  optionPoolRef.current = optionPool ?? letters;
+  optionBuilderRef.current = optionBuilder;
+  requestedOptionCountRef.current = optionCount;
   onSpeakRef.current = onSpeak;
   speakPromptRef.current = speakPrompt;
   speakKeyRef.current = speakKey;
@@ -106,20 +134,28 @@ export function useRound({
       setPhase("question");
       setSelected(null);
       setWrongCount(0);
+      setActiveOptionCount(requestedOptionCountRef.current);
     }
   }, [lockTarget, target.id, clearTimer]);
 
-  const options = useMemo(
-    () =>
-      optionIds?.length
-        ? optionIds
-        : randomOptions(
-            target.id,
-            lettersRef.current.map((letter) => letter.id),
-            optionCount
-          ),
-    [target.id, optionCount, optionIds]
-  );
+  const optionResult = useMemo((): CustomRoundOptionsResult => {
+    const customResult = optionBuilderRef.current?.(target, activeOptionCount);
+    if (customResult) {
+      return customResult;
+    }
+    const defaultResult = buildRoundOptions(
+        target.id,
+        optionPoolRef.current.map((letter) => letter.id),
+        activeOptionCount
+      );
+    return defaultResult.ok
+      ? { ...defaultResult, correctOptionId: target.id }
+      : defaultResult;
+  }, [target.id, activeOptionCount]);
+  const options = optionResult.ok ? optionResult.options : [];
+  const correctOptionId = optionResult.ok
+    ? optionResult.correctOptionId
+    : target.id;
 
   const speakQuestion = useCallback(
     (letter: LetterItem) => {
@@ -162,6 +198,7 @@ export function useRound({
     lockedRef.current = false;
     setSelected(null);
     setWrongCount(0);
+    setActiveOptionCount(requestedOptionCountRef.current);
     if (onFinishedRef.current) {
       setPhase("question");
       onFinishedRef.current();
@@ -177,11 +214,11 @@ export function useRound({
     if (lockedRef.current || phase === "feedback") {
       return;
     }
-    if (id === target.id) {
+    if (id === correctOptionId) {
       lockedRef.current = true;
       setSelected(id);
       setPhase("feedback");
-      onSpeakRef.current(praiseRef.current(target), {
+      onSpeakRef.current(praiseRef.current(target, correctOptionId), {
         key: praiseKeyRef.current?.(target)
       });
       onCorrect(target.id, pointFromEvent(event));
@@ -206,6 +243,8 @@ export function useRound({
   return {
     target,
     options,
+    correctOptionId,
+    optionError: optionResult.ok ? null : optionResult,
     phase,
     selected,
     wrongCount,

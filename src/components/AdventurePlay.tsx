@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { LetterItem, LetterStats, ProgressState } from "../types";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { LetterItem, LetterStats, OptionCount, ProgressState } from "../types";
 import type { Point } from "../utils/point";
 import { FindLetterGame } from "./FindLetterGame";
 import { ListenAndChooseGame } from "./ListenAndChooseGame";
@@ -8,16 +8,14 @@ import { GameStage } from "./GameStage";
 import { GoldStar } from "./GoldStar";
 import { LearnLetters } from "./LearnLetters";
 import { ToyLetter } from "./ToyLetter";
-import { randomOptions, shuffle } from "../utils/selectors";
+import { glyphOptionPool, pictureContentBank } from "../utils/selectors";
 import { findLetterPrompt } from "../utils/letterCopy";
 import { letterVoiceKey } from "../audio/voiceCatalog";
-import { contentReadyLetters } from "../data/letters";
 import { assetUrl, ASSETS } from "../utils/assets";
 import { preloadImages } from "../utils/preload";
 import {
   letterByIndex,
   nextLetterIndex,
-  optionPoolIds,
   startPlayLetterIndex
 } from "../utils/letterProgress";
 
@@ -42,6 +40,8 @@ function toFlowStep(step: Step): FlowStep | null {
 
 interface AdventurePlayProps {
   letters: LetterItem[];
+  optionCatalog: LetterItem[];
+  optionCount: OptionCount;
   stats: Record<string, LetterStats>;
   progress: ProgressState;
   onCorrect: (letterId: string, origin?: Point) => void;
@@ -51,20 +51,10 @@ interface AdventurePlayProps {
   onLetterMastered: (letterId: string) => void;
 }
 
-function lessonOptions(targetId: string, allIds: string[]): string[] {
-  return randomOptions(targetId, allIds, 3);
-}
-
-function listenOptions(targetId: string, allIds: string[]): string[] {
-  const first = allIds.slice(0, 3);
-  if (first.includes(targetId) && first.length === 3) {
-    return shuffle(first);
-  }
-  return lessonOptions(targetId, allIds);
-}
-
 export function AdventurePlay({
   letters,
+  optionCatalog,
+  optionCount,
   stats,
   progress,
   onCorrect,
@@ -73,21 +63,17 @@ export function AdventurePlay({
   onBack,
   onLetterMastered
 }: AdventurePlayProps) {
-  const assetReadyIds = contentReadyLetters(letters).map((item) => item.id);
   const [currentLetterIndex, setCurrentLetterIndex] = useState(() => startPlayLetterIndex(progress));
   const [step, setStep] = useState<Step>("learn");
   const [nextReady, setNextReady] = useState(false);
+  const pictureExampleHistoryRef = useRef(new Map<string, string>());
   const letter = letterByIndex(letters, currentLetterIndex);
   const currentStageIndex = STAGE_FLOW.indexOf(toFlowStep(step) ?? "learn");
-  const optionPool = optionPoolIds(letter.id, assetReadyIds);
-  const optionIds = useMemo(
-    () => lessonOptions(letter.id, optionPool),
-    [letter.id, optionPool.join(",")]
+  const glyphPool = useMemo(
+    () => glyphOptionPool(optionCatalog, optionCount),
+    [optionCatalog, optionCount]
   );
-  const listenIds = useMemo(
-    () => listenOptions(letter.id, optionPool),
-    [letter.id, optionPool.join(",")]
-  );
+  const pictureBank = useMemo(() => pictureContentBank(optionCatalog), [optionCatalog]);
   const hasNextLesson = nextLetterIndex(currentLetterIndex, letters.length) !== null;
 
   useEffect(() => {
@@ -183,7 +169,9 @@ export function AdventurePlay({
         letters={letters}
         stats={stats}
         lockTarget={letter}
-        optionIds={optionIds}
+        optionCount={optionCount}
+        optionPool={glyphPool}
+        optionCatalog={optionCatalog}
         hint="image"
         prompt={findLetterPrompt(letter)}
         awaitNext
@@ -205,7 +193,9 @@ export function AdventurePlay({
         letters={letters}
         stats={stats}
         lockTarget={letter}
-        optionIds={optionIds}
+        optionCount={optionCount}
+        optionPool={glyphPool}
+        optionCatalog={optionCatalog}
         hint="image"
         prompt={findLetterPrompt(letter)}
         awaitNext
@@ -227,7 +217,9 @@ export function AdventurePlay({
         letters={letters}
         stats={stats}
         lockTarget={letter}
-        optionIds={optionIds}
+        optionCount={optionCount}
+        pictureBank={pictureBank}
+        pictureExampleHistory={pictureExampleHistoryRef.current}
         awaitNext
         stars={progress.stars}
         onCorrect={onCorrect}
@@ -247,7 +239,9 @@ export function AdventurePlay({
         letters={letters}
         stats={stats}
         lockTarget={letter}
-        optionIds={listenIds}
+        optionCount={optionCount}
+        optionPool={glyphPool}
+        optionCatalog={optionCatalog}
         awaitNext
         stars={progress.stars}
         onCorrect={(id, origin) => {

@@ -6,13 +6,14 @@ import { GoldStar } from "./GoldStar";
 interface RewardScreenProps {
   stars: number;
   title?: string;
-  text?: string;
+  rewardName?: string;
+  rewardId?: string;
   onClose: () => void;
 }
 
-export function RewardScreen({ stars, onClose }: RewardScreenProps) {
+export function RewardScreen({ stars, title, rewardName, rewardId, onClose }: RewardScreenProps) {
   return (
-    <div className="screen reward-screen">
+    <div className="screen reward-screen reward-overlay" role="dialog" aria-modal="true">
       <WorldBackground variant="play" />
       <div className="confetti-layer reward-confetti" aria-hidden>
         {Array.from({ length: 8 }).map((_, index) => (
@@ -20,8 +21,17 @@ export function RewardScreen({ stars, onClose }: RewardScreenProps) {
         ))}
       </div>
       <Character mood="celebrate" size="hero" />
-      <GoldStar size="hero" />
-      <div className="stars-big">{stars}</div>
+      <section className="reward-card">
+        <h1 className="reward-title">{title}</h1>
+        <div className={`reward-showcase ${rewardId ? `reward-${rewardId}` : ""}`} aria-hidden="true">
+          <span className="reward-showcase-star">★</span>
+        </div>
+        {rewardName ? <p className="reward-name">{rewardName}</p> : null}
+        <div className="reward-achievement" aria-label={`Звёзды: ${stars}`}>
+          <GoldStar size="tiny" />
+          <span>{stars}</span>
+        </div>
+      </section>
       <button className="nav-arrow nav-next adventure-go" onClick={onClose} aria-label="Дальше">
         <NextArrowIcon />
       </button>

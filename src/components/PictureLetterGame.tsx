@@ -1,5 +1,10 @@
-import { useMemo } from "react";
-import { LetterItem, LetterStats } from "../types";
+import { useEffect, useMemo, useRef } from "react";
+import {
+  LetterItem,
+  LetterStats,
+  OptionCount,
+  PictureExampleEntry
+} from "../types";
 import type { Point } from "../utils/point";
 import { letterVoiceKey } from "../audio/voiceCatalog";
 import { useRound } from "../utils/useRound";
@@ -7,14 +12,16 @@ import { GoldStar } from "./GoldStar";
 import { StageNav } from "./StageNav";
 import { NextArrowIcon } from "./ToyIcons";
 import { assetUrl, ASSETS } from "../utils/assets";
-import { letterObjectSrc } from "../utils/letterCopy";
+import { buildPictureRoundOptions } from "../utils/selectors";
 
 interface PictureLetterGameProps {
   letters: LetterItem[];
   stats: Record<string, LetterStats>;
   trailStep?: number;
   lockTarget?: LetterItem;
-  optionIds?: string[];
+  optionCount?: OptionCount;
+  pictureBank: readonly PictureExampleEntry[];
+  pictureExampleHistory?: Map<string, string>;
   awaitNext?: boolean;
   stars?: number;
   onCorrect: (letterId: string, origin?: Point) => void;
@@ -30,7 +37,9 @@ export function PictureLetterGame({
   letters,
   stats,
   lockTarget,
-  optionIds,
+  optionCount = 3,
+  pictureBank,
+  pictureExampleHistory,
   awaitNext = false,
   stars = 0,
   onCorrect,
@@ -41,12 +50,25 @@ export function PictureLetterGame({
   onStageNext,
   onFinished
 }: PictureLetterGameProps) {
-  const stableOptions = useMemo(() => optionIds, [optionIds?.join(",")]);
+  const localExampleHistoryRef = useRef(new Map<string, string>());
+  const exampleHistory = pictureExampleHistory ?? localExampleHistoryRef.current;
+  const examplesById = useMemo(
+    () => new Map(pictureBank.map((example) => [example.id, example])),
+    [pictureBank]
+  );
   const round = useRound({
     letters,
     stats,
     lockTarget,
-    optionIds: stableOptions,
+    optionCount,
+    optionBuilder: (target, count) =>
+      buildPictureRoundOptions(
+        target.id,
+        target.upper,
+        pictureBank,
+        count,
+        exampleHistory.get(target.id)
+      ),
     awaitNext,
     onCorrect,
     onMistake,
@@ -54,14 +76,29 @@ export function PictureLetterGame({
     onFinished,
     speakPrompt: (letter) => `Что начинается на букву ${letter.upper}?`,
     speakKey: (letter) => letterVoiceKey("picture", letter.id),
-    praise: (letter) =>
-      letter.word
-        ? `Молодец! Это ${letter.word.toLowerCase()}!`
-        : `Молодец! Это буква ${letter.upper}!`,
+    praise: (letter, correctOptionId) => {
+      const example = examplesById.get(correctOptionId);
+      return example?.word
+        ? `Молодец! Это ${example.word.toLowerCase()}!`
+        : letter.word
+          ? `Молодец! Это ${letter.word.toLowerCase()}!`
+          : `Молодец! Это буква ${letter.upper}!`;
+    },
     praiseKey: (letter) => letterVoiceKey("correct", letter.id),
     tryAgainText: "Попробуй ещё раз!",
     playWrongSound: false
   });
+
+  useEffect(() => {
+    if (!round.optionError) {
+      exampleHistory.set(round.target.id, round.correctOptionId);
+    }
+  }, [
+    exampleHistory,
+    round.correctOptionId,
+    round.optionError,
+    round.target.id
+  ]);
 
   const letterMark = round.target.upper;
 
@@ -104,30 +141,29 @@ export function PictureLetterGame({
           <span className="picture-title-text">?</span>
         </h1>
 
-        <div className="picture-choices">
+        <div className="picture-choices" data-option-count={round.options.length}>
+          {round.optionError ? (
+            <p className="option-unavailable">Этот уровень пока недоступен</p>
+          ) : null}
           {round.options.map((id) => {
-            const item = letters.find((letter) => letter.id === id);
-            if (!item) {
+            const example = examplesById.get(id);
+            if (!example) {
               return null;
             }
-            const art = letterObjectSrc(item, "picture");
-            const isChosenCorrect = round.phase === "feedback" && id === round.target.id;
-            const isWatermelon = id === "A";
+            const isChosenCorrect =
+              round.phase === "feedback" && id === round.correctOptionId;
             return (
               <button
                 key={id}
                 className={`picture-choice ${isChosenCorrect ? "is-chosen" : ""}`}
                 onClick={(event) => round.choose(id, event)}
-                aria-label={item.word || item.upper}
+                aria-label={example.word}
               >
-                {art ? (
-                  <img
-                    className={isWatermelon ? "picture-choice-watermelon" : undefined}
-                    src={assetUrl(art)}
-                    alt={item.word || item.upper}
-                    draggable={false}
-                  />
-                ) : null}
+                <img
+                  src={assetUrl(example.image)}
+                  alt={example.word}
+                  draggable={false}
+                />
               </button>
             );
           })}

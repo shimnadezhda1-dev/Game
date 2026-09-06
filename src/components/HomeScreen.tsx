@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import { OptionCount } from "../types";
 import { assetUrl } from "../utils/assets";
 import { SpeakerMuteIcon } from "./ToyIcons";
+import { DifficultySelector } from "./DifficultySelector";
 
 interface HomeScreenProps {
   onGoLearn: () => void;
@@ -9,6 +11,9 @@ interface HomeScreenProps {
   onSpeak: (text: string, options?: { key?: string; onEnd?: () => void }) => void;
   onToggleMusic: () => void;
   musicOn: boolean;
+  optionCount: OptionCount;
+  availableOptionCounts: readonly OptionCount[];
+  onOptionCountChange: (value: OptionCount) => void;
   foxCelebrate?: boolean;
 }
 
@@ -31,7 +36,10 @@ export function HomeScreen({
   onPlayGames,
   onSpeak,
   onToggleMusic,
-  musicOn
+  musicOn,
+  optionCount,
+  availableOptionCounts,
+  onOptionCountChange
 }: HomeScreenProps) {
   const [pulsePlay, setPulsePlay] = useState(false);
 
@@ -84,6 +92,7 @@ export function HomeScreen({
           <button
             className={`play-btn home-play-btn ${pulsePlay ? "home-play-hint" : ""}`}
             onClick={onPlayGames}
+            disabled={!availableOptionCounts.includes(optionCount)}
             aria-label="Играть"
           >
             <span className="home-play-glyph" aria-hidden="true">
@@ -91,6 +100,11 @@ export function HomeScreen({
             </span>
             <span className="home-play-label">ИГРАТЬ</span>
           </button>
+          <DifficultySelector
+            value={optionCount}
+            availableCounts={availableOptionCounts}
+            onChange={onOptionCountChange}
+          />
           <button className="home-abc" onClick={onGoLearn} aria-label="Буквы А Б В">
             <img
               src={assetUrl("/assets/home/letters-abv.webp")}

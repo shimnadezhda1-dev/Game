@@ -1,4 +1,4 @@
-import { GameId, LetterStats, ProgressState } from "../types";
+import { GameId, LetterStats, OptionCount, ProgressState } from "../types";
 import { LETTER_GROUPS } from "../data/letters";
 import { rewardsUnlockedByStars } from "./rewards";
 
@@ -16,8 +16,13 @@ export const defaultProgress: ProgressState = {
   letterStats: {},
   unlockedGroupIndex: 0,
   unlockedRewards: [],
-  soundEnabled: true
+  soundEnabled: true,
+  optionCount: 3
 };
+
+function validOptionCount(value: unknown): value is OptionCount {
+  return value === 3 || value === 5 || value === 7;
+}
 
 function migrateStats(parsed: Partial<ProgressState>): Record<string, LetterStats> {
   if (parsed.letterStats && Object.keys(parsed.letterStats).length) {
@@ -77,7 +82,8 @@ export function loadProgress(): ProgressState {
       unlockedRewards: parsed.unlockedRewards?.length
         ? parsed.unlockedRewards
         : rewardsUnlockedByStars(stars),
-      soundEnabled: parsed.soundEnabled !== false
+      soundEnabled: parsed.soundEnabled !== false,
+      optionCount: validOptionCount(parsed.optionCount) ? parsed.optionCount : 3
     };
   } catch {
     return defaultProgress;

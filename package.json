@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.node.json",
+    "validate:content": "node build/validateContent.mjs",
     "build": "vite build",
     "build:android": "vite build --base=/",
     "cap:sync": "npm run build:android && npx cap sync android",

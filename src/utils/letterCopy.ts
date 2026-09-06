@@ -44,8 +44,12 @@ export function letterObjectSrc(
     );
   }
   if (kind === "picture") {
+    const targetExample = letter.pictureExamples?.find(
+      (example) => example.pictureEligible && example.allowedAsTarget
+    );
     return (
       letter.pictureImage ||
+      targetExample?.image ||
       letter.objectImage ||
       letter.imagePath ||
       undefined

@@ -1,30 +1,36 @@
+import { getLetterContent } from "../data/letterRegistry";
+
 export function assetUrl(path: string): string {
   const base = import.meta.env.BASE_URL || "/";
   const clean = path.replace(/^\//, "");
   return `${base}${clean}`;
 }
 
+function letterImages(id: string) {
+  return getLetterContent(id)?.images;
+}
+
 export const ASSETS = {
   letters: {
-    A: "/assets/letters/a-watermelon.webp",
-    B: "/assets/letters/b-drum.webp",
-    V: "/assets/letters/v-wolf.webp",
-    G: "/assets/letters/g-mushroom.webp",
-    D: "/assets/letters/d-house.webp"
+    A: letterImages("A")?.card ?? "",
+    B: letterImages("B")?.card ?? "",
+    V: letterImages("V")?.card ?? "",
+    G: letterImages("G")?.card ?? "",
+    D: letterImages("D")?.card ?? ""
   },
   letterGlyphs: {
-    A: "/assets/letters/A.webp",
-    B: "/assets/letters/B.webp",
-    V: "/assets/letters/V.webp",
-    G: "/assets/letters/G.webp",
-    D: "/assets/letters/D.webp"
+    A: letterImages("A")?.glyph ?? "",
+    B: letterImages("B")?.glyph ?? "",
+    V: letterImages("V")?.glyph ?? "",
+    G: letterImages("G")?.glyph ?? "",
+    D: letterImages("D")?.glyph ?? ""
   },
   objects: {
-    watermelon: "/assets/objects/watermelon.webp",
-    drum: "/assets/letters/b-drum.webp",
-    wolf: "/assets/letters/v-wolf.webp",
-    mushroom: "/assets/picture/mushroom.webp",
-    house: "/assets/picture/house.webp"
+    watermelon: letterImages("A")?.object ?? "",
+    drum: letterImages("B")?.object ?? "",
+    wolf: letterImages("V")?.object ?? "",
+    mushroom: letterImages("G")?.object ?? "",
+    house: letterImages("D")?.object ?? ""
   },
   learn: {
     meadow: "/assets/letters/meadow-bg.webp"
@@ -33,19 +39,19 @@ export const ASSETS = {
     meadow: "/assets/find/meadow.webp",
     fox: "/assets/find/fox.webp",
     letterA: "/assets/find/letter-a.webp",
-    watermelon: "/assets/find/watermelon.webp",
-    choiceA: "/assets/find/choice-a.webp",
-    choiceB: "/assets/find/choice-b.webp",
-    choiceV: "/assets/find/choice-v.webp",
-    choiceG: "/assets/find/choice-g.webp",
-    choiceD: "/assets/find/choice-d.webp"
+    watermelon: letterImages("A")?.findObject ?? "",
+    choiceA: letterImages("A")?.choice ?? "",
+    choiceB: letterImages("B")?.choice ?? "",
+    choiceV: letterImages("V")?.choice ?? "",
+    choiceG: letterImages("G")?.choice ?? "",
+    choiceD: letterImages("D")?.choice ?? ""
   },
   picture: {
     meadow: "/assets/picture/meadow.webp",
     fox: "/assets/picture/fox.webp",
-    watermelon: "/assets/picture/watermelon.webp",
-    mushroom: "/assets/picture/mushroom.webp",
-    house: "/assets/picture/house.webp"
+    watermelon: letterImages("A")?.picture ?? "",
+    mushroom: letterImages("G")?.picture ?? "",
+    house: letterImages("D")?.picture ?? ""
   },
   listen: {
     meadow: "/assets/listen/meadow.webp"
