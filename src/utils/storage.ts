@@ -1,6 +1,11 @@
-import { GameId, LetterStats, OptionCount, ProgressState } from "../types";
+import { GameId, LetterStats, OptionCount, PlayerPreference, ProgressState } from "../types";
 import { LETTER_GROUPS } from "../data/letters";
 import { rewardsUnlockedByStars } from "./rewards";
+import {
+  validLetterCategory,
+  validPlayActivity,
+  validStudyOrder
+} from "./playSettings";
 
 const STORAGE_KEY = "happy-alphabet-progress-v1";
 
@@ -17,11 +22,32 @@ export const defaultProgress: ProgressState = {
   unlockedGroupIndex: 0,
   unlockedRewards: [],
   soundEnabled: true,
-  optionCount: 3
+  optionCount: 3,
+  playActivity: "learn",
+  studyOrder: "alpha",
+  letterCategory: "all",
+  selectedLetterId: "A",
+  playerPreference: null
 };
+
+function validPlayerPreference(value: unknown): value is PlayerPreference {
+  return value === "boy" || value === "girl";
+}
+
+/** Legacy `surprise` is read but not kept: user must pick boy or girl again. */
+function readPlayerPreference(value: unknown): PlayerPreference | null {
+  if (validPlayerPreference(value)) {
+    return value;
+  }
+  return null;
+}
 
 function validOptionCount(value: unknown): value is OptionCount {
   return value === 3 || value === 5 || value === 7;
+}
+
+function validSelectedLetterId(value: unknown): value is string {
+  return typeof value === "string" && value.length > 0;
 }
 
 function migrateStats(parsed: Partial<ProgressState>): Record<string, LetterStats> {
@@ -83,7 +109,14 @@ export function loadProgress(): ProgressState {
         ? parsed.unlockedRewards
         : rewardsUnlockedByStars(stars),
       soundEnabled: parsed.soundEnabled !== false,
-      optionCount: validOptionCount(parsed.optionCount) ? parsed.optionCount : 3
+      optionCount: validOptionCount(parsed.optionCount) ? parsed.optionCount : 3,
+      playActivity: validPlayActivity(parsed.playActivity) ? parsed.playActivity : "learn",
+      studyOrder: validStudyOrder(parsed.studyOrder) ? parsed.studyOrder : "alpha",
+      letterCategory: validLetterCategory(parsed.letterCategory) ? parsed.letterCategory : "all",
+      selectedLetterId: validSelectedLetterId(parsed.selectedLetterId)
+        ? parsed.selectedLetterId
+        : "A",
+      playerPreference: readPlayerPreference(parsed.playerPreference)
     };
   } catch {
     return defaultProgress;

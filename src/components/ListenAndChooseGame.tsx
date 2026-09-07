@@ -2,11 +2,12 @@ import { LetterItem, LetterStats, OptionCount } from "../types";
 import type { Point } from "../utils/point";
 import { letterVoiceKey } from "../audio/voiceCatalog";
 import { getListenTone } from "../data/letterRegistry";
-import { useRound } from "../utils/useRound";
+import { showCorrectHint, useRound } from "../utils/useRound";
 import { GoldStar } from "./GoldStar";
 import { StageNav } from "./StageNav";
 import { NextArrowIcon } from "./ToyIcons";
 import { assetUrl, ASSETS } from "../utils/assets";
+import { HomeButton } from "./HomeButton";
 
 interface ListenAndChooseGameProps {
   letters: LetterItem[];
@@ -91,9 +92,7 @@ export function ListenAndChooseGame({
         />
       </div>
 
-      <button className="learn-home" onClick={onBack} aria-label="На главную">
-        <span aria-hidden="true">🏠</span>
-      </button>
+      <HomeButton onClick={onBack} />
 
       <div className="learn-hud-right">
         <div className="learn-stars" aria-label={`Звёзды: ${stars}`}>
@@ -150,10 +149,15 @@ export function ListenAndChooseGame({
                 return null;
               }
               const tone = getListenTone(id);
+              const isCorrectHinted =
+                showCorrectHint(round.wrongCount, round.phase) &&
+                id === round.correctOptionId;
               return (
                 <button
                   key={id}
-                  className={`listen-letter listen-letter-${tone}`}
+                  className={`listen-letter listen-letter-${tone}${
+                    isCorrectHinted ? " is-hint" : ""
+                  }`}
                   onClick={(event) => round.choose(id, event)}
                   aria-label={item.upper}
                 >

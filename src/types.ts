@@ -2,6 +2,12 @@ export type GameId = "find" | "picture" | "listen";
 
 export type OptionCount = 3 | 5 | 7;
 
+export type StudyOrder = "alpha" | "random" | "pick";
+
+export type LetterCategory = "all" | "vowels" | "consonants";
+
+export type PlayerPreference = "boy" | "girl";
+
 export type Screen =
   | "home"
   | "modeSelect"
@@ -16,6 +22,8 @@ export type Screen =
 export type RoundPhase = "question" | "feedback";
 
 export type EligibleActivity = "learn" | "find" | "picture" | "listen";
+
+export type PlayActivity = EligibleActivity;
 
 export type LetterVoiceKind =
   | "letter"
@@ -122,4 +130,9 @@ export interface ProgressState {
   unlockedRewards: string[];
   soundEnabled: boolean;
   optionCount: OptionCount;
+  playActivity: PlayActivity;
+  studyOrder: StudyOrder;
+  letterCategory: LetterCategory;
+  selectedLetterId: string;
+  playerPreference: PlayerPreference | null;
 }

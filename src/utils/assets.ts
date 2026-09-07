@@ -68,6 +68,13 @@ export const ASSETS = {
     play: "/assets/ui/play-letters.webp",
     stars: "/assets/ui/stars.webp",
     rewards: "/assets/ui/rewards-chest.webp",
-    home: "/assets/ui/home-house.webp"
+    /** Future sticker files: `/assets/rewards/{id}.webp` */
+    home: "/assets/ui/home-house.webp",
+    difficultyMenu: "/assets/ui/menu/difficulty-menu.png",
+    activityMenu: "/assets/ui/menu/activity-menu.png",
+    orderMenu: "/assets/ui/menu/order-menu.png",
+    categoryMenu: "/assets/ui/menu/category-menu.png",
+    learnButton: "/assets/ui/activity/learn-button.png",
+    selectLetterButton: "/assets/ui/order/select-letter-button.png"
   }
 } as const;

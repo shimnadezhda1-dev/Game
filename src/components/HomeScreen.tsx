@@ -1,8 +1,23 @@
 import { useEffect, useState } from "react";
-import { OptionCount } from "../types";
+import {
+  LetterCategory,
+  LetterItem,
+  OptionCount,
+  PlayActivity,
+  PlayerPreference,
+  StudyOrder
+} from "../types";
 import { assetUrl } from "../utils/assets";
 import { SpeakerMuteIcon } from "./ToyIcons";
 import { DifficultySelector } from "./DifficultySelector";
+import {
+  HomeChoiceList,
+  HomePanel
+} from "./HomePanel";
+import { ACTIVITY_OPTIONS, CATEGORY_OPTIONS, ORDER_OPTIONS, studyOrderVisuals } from "./playMenuOptions";
+import { LetterPickGrid } from "./LetterPickGrid";
+import { playerPreferenceAriaLabel, playerPreferenceIcon } from "./PlayerChooser";
+import { HomeButton } from "./HomeButton";
 
 interface HomeScreenProps {
   onGoLearn: () => void;
@@ -14,22 +29,21 @@ interface HomeScreenProps {
   optionCount: OptionCount;
   availableOptionCounts: readonly OptionCount[];
   onOptionCountChange: (value: OptionCount) => void;
+  playActivity: PlayActivity;
+  onPlayActivityChange: (value: PlayActivity) => void;
+  studyOrder: StudyOrder;
+  onStudyOrderChange: (value: StudyOrder) => void;
+  letterCategory: LetterCategory;
+  onLetterCategoryChange: (value: LetterCategory) => void;
+  selectedLetterId: string;
+  pickableLetters: readonly LetterItem[];
+  onSelectedLetterChange: (id: string) => void;
   foxCelebrate?: boolean;
+  playerPreference: PlayerPreference | null;
+  onOpenPlayerChooser: () => void;
 }
 
 const FIRST_VISIT_KEY = "happy-alphabet-first-visit-v1";
-
-function HomeHouseIcon() {
-  return (
-    <svg className="home-ui-icon" viewBox="0 0 64 64" aria-hidden="true">
-      <path
-        d="M8 30 L32 10 L56 30 V54 A6 6 0 0 1 50 60 H14 A6 6 0 0 1 8 54 Z"
-        fill="#fff"
-      />
-      <rect x="26" y="38" width="12" height="18" rx="3" fill="#0b6f9a" />
-    </svg>
-  );
-}
 
 export function HomeScreen({
   onGoLearn,
@@ -39,9 +53,33 @@ export function HomeScreen({
   musicOn,
   optionCount,
   availableOptionCounts,
-  onOptionCountChange
+  onOptionCountChange,
+  playActivity,
+  onPlayActivityChange,
+  studyOrder,
+  onStudyOrderChange,
+  letterCategory,
+  onLetterCategoryChange,
+  selectedLetterId,
+  pickableLetters,
+  onSelectedLetterChange,
+  playerPreference,
+  onOpenPlayerChooser
 }: HomeScreenProps) {
   const [pulsePlay, setPulsePlay] = useState(false);
+  const [letterPickerOpen, setLetterPickerOpen] = useState(false);
+
+  useEffect(() => {
+    if (studyOrder !== "pick") {
+      setLetterPickerOpen(false);
+    }
+  }, [studyOrder]);
+
+  useEffect(() => {
+    const closeTransientUi = () => setLetterPickerOpen(false);
+    window.addEventListener("popstate", closeTransientUi);
+    return () => window.removeEventListener("popstate", closeTransientUi);
+  }, []);
 
   useEffect(() => {
     const first = !localStorage.getItem(FIRST_VISIT_KEY);
@@ -100,11 +138,6 @@ export function HomeScreen({
             </span>
             <span className="home-play-label">ИГРАТЬ</span>
           </button>
-          <DifficultySelector
-            value={optionCount}
-            availableCounts={availableOptionCounts}
-            onChange={onOptionCountChange}
-          />
           <button className="home-abc" onClick={onGoLearn} aria-label="Буквы А Б В">
             <img
               src={assetUrl("/assets/home/letters-abv.webp")}
@@ -116,9 +149,64 @@ export function HomeScreen({
         </div>
       </div>
 
-      <button className="home-ui home-ui-home" aria-label="Домой">
-        <HomeHouseIcon />
-      </button>
+      <aside className="home-panels" aria-label="Настройки игры">
+        <HomePanel kind="difficulty">
+          <DifficultySelector
+            value={optionCount}
+            availableCounts={availableOptionCounts}
+            onChange={onOptionCountChange}
+            layout="vertical"
+          />
+        </HomePanel>
+        <HomePanel kind="activity">
+          <HomeChoiceList
+            name="Выбери занятие"
+            value={playActivity}
+            options={ACTIVITY_OPTIONS}
+            onChange={onPlayActivityChange}
+          />
+        </HomePanel>
+        <HomePanel kind="order">
+          <HomeChoiceList
+            name="Порядок изучения"
+            value={studyOrder}
+            options={ORDER_OPTIONS}
+            onChange={(value) => {
+              onStudyOrderChange(value);
+              setLetterPickerOpen(value === "pick");
+            }}
+          />
+        </HomePanel>
+        <HomePanel kind="category">
+          <HomeChoiceList
+            name="Категория букв"
+            value={letterCategory}
+            options={CATEGORY_OPTIONS}
+            onChange={onLetterCategoryChange}
+          />
+        </HomePanel>
+      </aside>
+
+      {letterPickerOpen && studyOrder === "pick" ? (
+        <div className="home-letter-overlay" role="dialog" aria-label="Выбери букву">
+          <img
+            className="letter-selector-title"
+            src={assetUrl(studyOrderVisuals.manual)}
+            alt="Выбери букву"
+            draggable={false}
+          />
+          <LetterPickGrid
+            letters={pickableLetters}
+            selectedLetterId={selectedLetterId}
+            onSelect={(id) => {
+              onSelectedLetterChange(id);
+              setLetterPickerOpen(false);
+            }}
+          />
+        </div>
+      ) : null}
+
+      <HomeButton ariaLabel="Домой" />
 
       <button
         className="home-ui home-ui-sound"
@@ -126,6 +214,22 @@ export function HomeScreen({
         aria-label={musicOn ? "Музыка включена" : "Музыка выключена"}
       >
         <SpeakerMuteIcon muted={!musicOn} />
+      </button>
+
+      <button
+        type="button"
+        className={`home-ui home-ui-profile ${
+          playerPreference === "boy"
+            ? "home-ui-profile--boy"
+            : playerPreference === "girl"
+              ? "home-ui-profile--girl"
+              : "home-ui-profile--neutral"
+        }`}
+        title="Кто играет?"
+        aria-label={playerPreferenceAriaLabel(playerPreference)}
+        onClick={onOpenPlayerChooser}
+      >
+        <span aria-hidden="true">{playerPreferenceIcon(playerPreference)}</span>
       </button>
     </div>
   );

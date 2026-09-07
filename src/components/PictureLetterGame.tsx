@@ -7,11 +7,12 @@ import {
 } from "../types";
 import type { Point } from "../utils/point";
 import { letterVoiceKey } from "../audio/voiceCatalog";
-import { useRound } from "../utils/useRound";
+import { showCorrectHint, useRound } from "../utils/useRound";
 import { GoldStar } from "./GoldStar";
 import { StageNav } from "./StageNav";
 import { NextArrowIcon } from "./ToyIcons";
 import { assetUrl, ASSETS } from "../utils/assets";
+import { HomeButton } from "./HomeButton";
 import { buildPictureRoundOptions } from "../utils/selectors";
 
 interface PictureLetterGameProps {
@@ -115,9 +116,7 @@ export function PictureLetterGame({
         />
       </div>
 
-      <button className="learn-home" onClick={onBack} aria-label="На главную">
-        <span aria-hidden="true">🏠</span>
-      </button>
+      <HomeButton onClick={onBack} />
 
       <div className="learn-hud-right">
         <div className="learn-stars" aria-label={`Звёзды: ${stars}`}>
@@ -152,10 +151,15 @@ export function PictureLetterGame({
             }
             const isChosenCorrect =
               round.phase === "feedback" && id === round.correctOptionId;
+            const isCorrectHinted =
+              showCorrectHint(round.wrongCount, round.phase) &&
+              id === round.correctOptionId;
             return (
               <button
                 key={id}
-                className={`picture-choice ${isChosenCorrect ? "is-chosen" : ""}`}
+                className={`picture-choice ${isChosenCorrect ? "is-chosen" : ""} ${
+                  isCorrectHinted ? "is-hint" : ""
+                }`}
                 onClick={(event) => round.choose(id, event)}
                 aria-label={example.word}
               >

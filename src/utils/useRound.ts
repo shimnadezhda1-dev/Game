@@ -52,6 +52,12 @@ interface UseRoundArgs {
 
 const FEEDBACK_MS = 900;
 
+export const CORRECT_HINT_AFTER_MISTAKES = 2;
+
+export function showCorrectHint(wrongCount: number, phase: RoundPhase): boolean {
+  return phase === "question" && wrongCount >= CORRECT_HINT_AFTER_MISTAKES;
+}
+
 export function useRound({
   letters,
   stats,

@@ -1,17 +1,23 @@
+import { GoldStar } from "./GoldStar";
 import { Character } from "./Character";
 import { WorldBackground } from "./WorldBackground";
 import { NextArrowIcon } from "./ToyIcons";
-import { GoldStar } from "./GoldStar";
+import { RewardItem } from "../data/rewardCatalog";
+import { assetUrl } from "../utils/assets";
 
 interface RewardScreenProps {
-  stars: number;
+  threshold: number;
   title?: string;
-  rewardName?: string;
-  rewardId?: string;
+  reward: RewardItem;
   onClose: () => void;
 }
 
-export function RewardScreen({ stars, title, rewardName, rewardId, onClose }: RewardScreenProps) {
+export function RewardScreen({
+  threshold,
+  title = "Ура! Новая наклейка!",
+  reward,
+  onClose
+}: RewardScreenProps) {
   return (
     <div className="screen reward-screen reward-overlay" role="dialog" aria-modal="true">
       <WorldBackground variant="play" />
@@ -23,13 +29,28 @@ export function RewardScreen({ stars, title, rewardName, rewardId, onClose }: Re
       <Character mood="celebrate" size="hero" />
       <section className="reward-card">
         <h1 className="reward-title">{title}</h1>
-        <div className={`reward-showcase ${rewardId ? `reward-${rewardId}` : ""}`} aria-hidden="true">
-          <span className="reward-showcase-star">★</span>
+        <div
+          className={`reward-showcase reward-${reward.fallbackVisual}`}
+          aria-hidden="true"
+        >
+          {reward.asset ? (
+            <img
+              className="reward-showcase-art"
+              src={assetUrl(reward.asset)}
+              alt=""
+              draggable={false}
+            />
+          ) : (
+            <span className="reward-showcase-star">★</span>
+          )}
         </div>
-        {rewardName ? <p className="reward-name">{rewardName}</p> : null}
-        <div className="reward-achievement" aria-label={`Звёзды: ${stars}`}>
+        <p className="reward-name">{reward.title}</p>
+        {reward.collectionTitle ? (
+          <p className="reward-collection">{reward.collectionTitle}</p>
+        ) : null}
+        <div className="reward-achievement" aria-label={`${threshold} звёзд`}>
           <GoldStar size="tiny" />
-          <span>{stars}</span>
+          <span>{threshold}</span>
         </div>
       </section>
       <button className="nav-arrow nav-next adventure-go" onClick={onClose} aria-label="Дальше">

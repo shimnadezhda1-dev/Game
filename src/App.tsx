@@ -9,11 +9,19 @@ import { RewardScreen } from "./components/RewardScreen";
 import { FlyingStar } from "./components/FlyingStar";
 import { StarsScreen } from "./components/StarsScreen";
 import { AdventurePlay } from "./components/AdventurePlay";
-import { QuickSettings } from "./components/QuickSettings";
+import { GameControls } from "./components/GameControls";
 import { LETTERS, contentReadyLetters } from "./data/letters";
 import { audioManager } from "./audio/AudioManager";
 import { backgroundMusic } from "./audio/BackgroundMusicManager";
-import { OptionCount, ProgressState, Screen } from "./types";
+import {
+  LetterCategory,
+  OptionCount,
+  PlayActivity,
+  PlayerPreference,
+  ProgressState,
+  Screen,
+  StudyOrder
+} from "./types";
 import { loadProgress, saveProgress } from "./utils/storage";
 import { preloadImages } from "./utils/preload";
 import { assetUrl } from "./utils/assets";
@@ -26,7 +34,10 @@ import {
   pictureContentBank,
   unlockedLetters
 } from "./utils/selectors";
-import { rewardJustUnlocked, STAR_REWARDS, StarReward } from "./utils/rewards";
+import { unlockRewardAtThreshold } from "./utils/rewards";
+import { getRewardById, REWARD_THRESHOLDS, RewardItem } from "./data/rewardCatalog";
+import { playLetterPool, letterAllowsActivity, filterLettersByCategory } from "./utils/playSettings";
+import { PlayerChooser } from "./components/PlayerChooser";
 
 interface Flight {
   fromX: number;
@@ -38,11 +49,15 @@ interface Flight {
 function App() {
   const [screen, setScreen] = useState<Screen>("home"); // never restored from localStorage
   const [progress, setProgress] = useState<ProgressState>(() => loadProgress());
-  const [activeReward, setActiveReward] = useState<StarReward | null>(null);
+  const [activeReward, setActiveReward] = useState<{
+    item: RewardItem;
+    threshold: number;
+  } | null>(null);
   const [musicOn, setMusicOn] = useState(() => backgroundMusic.isEnabled());
   const [flight, setFlight] = useState<Flight | null>(null);
   const [bankPulse, setBankPulse] = useState(false);
   const [playEpoch, setPlayEpoch] = useState(0);
+  const [playerChooserOpen, setPlayerChooserOpen] = useState(true);
   const previousUnlockedRewardsRef = useRef(progress.unlockedRewards);
   const starTimerRef = useRef<number | null>(null);
 
@@ -64,8 +79,21 @@ function App() {
     () => unlockedLetters(progress, LETTERS),
     [progress]
   );
-  const adventureLetters = useMemo(() => contentReadyLetters(LETTERS), []);
+  const adventureLetters = useMemo(
+    () => playLetterPool(contentReadyLetters(LETTERS), progress.letterCategory),
+    [progress.letterCategory]
+  );
   const supportedOptionCounts = useMemo(() => availableOptionCounts(LETTERS), []);
+  const pickableLetters = useMemo(
+    () =>
+      filterLettersByCategory(contentReadyLetters(LETTERS), progress.letterCategory).filter(
+        (letter) => letterAllowsActivity(letter, progress.playActivity)
+      ),
+    [progress.letterCategory, progress.playActivity]
+  );
+  const currentPlayLetter =
+    adventureLetters.find((letter) => letter.id === progress.selectedLetterId) ??
+    adventureLetters[0];
   const glyphOptions = useMemo(
     () => glyphOptionPool(LETTERS, progress.optionCount),
     [progress.optionCount]
@@ -101,20 +129,25 @@ function App() {
   useEffect(() => {
     const previous = previousUnlockedRewardsRef.current;
     previousUnlockedRewardsRef.current = progress.unlockedRewards;
-    const newlyUnlocked = STAR_REWARDS.find(
-      (reward) =>
-        progress.unlockedRewards.includes(reward.id) &&
-        !previous.includes(reward.id)
-    );
-    if (!newlyUnlocked) {
+    const newlyId = progress.unlockedRewards.find((id) => !previous.includes(id));
+    if (!newlyId) {
       return;
     }
-
-    setActiveReward(newlyUnlocked);
+    const item = getRewardById(newlyId);
+    if (!item) {
+      return;
+    }
+    const threshold =
+      REWARD_THRESHOLDS[Math.max(0, progress.unlockedRewards.length - 1)] ??
+      REWARD_THRESHOLDS[0];
+    setActiveReward({ item, threshold });
     speak("Ура! Новая наклейка!");
   }, [progress.unlockedRewards, speak]);
 
   function startAdventure() {
+    if (progress.playerPreference === null) {
+      return;
+    }
     if (!supportedOptionCounts.includes(progress.optionCount)) {
       return;
     }
@@ -125,6 +158,7 @@ function App() {
 
   function go(next: Screen) {
     audioManager.stopSpeaking();
+    setPlayerChooserOpen(false);
     setScreen(next);
   }
 
@@ -144,11 +178,12 @@ function App() {
         prevStats.correctCount + 1 >= 3
           ? Array.from(new Set([...prev.learnedLetterIds, letterId]))
           : prev.learnedLetterIds;
-      const thresholdReward = rewardJustUnlocked(prev.stars, nextStars);
-      const unlocked =
-        thresholdReward && !prev.unlockedRewards.includes(thresholdReward.id)
-          ? thresholdReward
-          : null;
+      const unlocked = unlockRewardAtThreshold(
+        prev.playerPreference,
+        prev.unlockedRewards,
+        prev.stars,
+        nextStars
+      );
       const next: ProgressState = {
         ...prev,
         correctAnswers: prev.correctAnswers + 1,
@@ -157,7 +192,7 @@ function App() {
         mistakeCounts: prev.mistakeCounts,
         learnedLetterIds,
         unlockedRewards: unlocked
-          ? Array.from(new Set([...prev.unlockedRewards, unlocked.id]))
+          ? Array.from(new Set([...prev.unlockedRewards, unlocked.item.id]))
           : prev.unlockedRewards
       };
       next.unlockedGroupIndex = maybeUnlockNextGroup(next);
@@ -237,11 +272,50 @@ function App() {
     backgroundMusic.setEnabled(false);
   }
 
+  function setPlayerPreference(playerPreference: PlayerPreference) {
+    setProgress((prev) => ({ ...prev, playerPreference }));
+  }
+
   function setOptionCount(optionCount: OptionCount) {
     if (!supportedOptionCounts.includes(optionCount)) {
       return;
     }
     setProgress((prev) => ({ ...prev, optionCount }));
+  }
+
+  function setPlayActivity(playActivity: PlayActivity) {
+    if (!letterAllowsActivity(currentPlayLetter, playActivity)) {
+      return;
+    }
+    setProgress((prev) => ({ ...prev, playActivity }));
+    if (screen === "learn" || screen === "find" || screen === "picture" || screen === "listen") {
+      setPlayEpoch((epoch) => epoch + 1);
+      go("adventure");
+    }
+  }
+
+  function setStudyOrder(studyOrder: StudyOrder) {
+    setProgress((prev) => ({ ...prev, studyOrder }));
+  }
+
+  function setLetterCategory(letterCategory: LetterCategory) {
+    setProgress((prev) => {
+      const pool = playLetterPool(contentReadyLetters(LETTERS), letterCategory);
+      const selectedLetterId = pool.some((letter) => letter.id === prev.selectedLetterId)
+        ? prev.selectedLetterId
+        : pool[0]?.id ?? prev.selectedLetterId;
+      return { ...prev, letterCategory, selectedLetterId };
+    });
+  }
+
+  const setCurrentLetterId = useCallback((selectedLetterId: string) => {
+    setProgress((prev) =>
+      prev.selectedLetterId === selectedLetterId ? prev : { ...prev, selectedLetterId }
+    );
+  }, []);
+
+  function setSelectedLetter(selectedLetterId: string) {
+    setProgress((prev) => ({ ...prev, selectedLetterId, studyOrder: "pick" }));
   }
 
   function onLetterMastered(letterId: string) {
@@ -272,7 +346,18 @@ function App() {
             optionCount={progress.optionCount}
             availableOptionCounts={supportedOptionCounts}
             onOptionCountChange={setOptionCount}
+            playActivity={progress.playActivity}
+            onPlayActivityChange={setPlayActivity}
+            studyOrder={progress.studyOrder}
+            onStudyOrderChange={setStudyOrder}
+            letterCategory={progress.letterCategory}
+            onLetterCategoryChange={setLetterCategory}
+            selectedLetterId={progress.selectedLetterId}
+            pickableLetters={pickableLetters}
+            onSelectedLetterChange={setSelectedLetter}
             foxCelebrate={progress.stars >= 20}
+            playerPreference={progress.playerPreference}
+            onOpenPlayerChooser={() => setPlayerChooserOpen(true)}
           />
         );
       case "modeSelect":
@@ -285,11 +370,16 @@ function App() {
             optionCount={progress.optionCount}
             stats={progress.letterStats}
             progress={progress}
+            startActivity={progress.playActivity}
+            studyOrder={progress.studyOrder}
+            selectedLetterId={progress.selectedLetterId}
             onCorrect={markCorrect}
             onMistake={markMistake}
             onSpeak={speak}
             onBack={backHome}
             onLetterMastered={onLetterMastered}
+            onPlayActivityChange={setPlayActivity}
+            onCurrentLetterChange={setCurrentLetterId}
           />
         );
       case "learn":
@@ -366,6 +456,17 @@ function App() {
             optionCount={progress.optionCount}
             availableOptionCounts={supportedOptionCounts}
             onOptionCountChange={setOptionCount}
+            playActivity={progress.playActivity}
+            onPlayActivityChange={setPlayActivity}
+            studyOrder={progress.studyOrder}
+            onStudyOrderChange={setStudyOrder}
+            letterCategory={progress.letterCategory}
+            onLetterCategoryChange={setLetterCategory}
+            selectedLetterId={progress.selectedLetterId}
+            pickableLetters={pickableLetters}
+            onSelectedLetterChange={setSelectedLetter}
+            playerPreference={progress.playerPreference}
+            onOpenPlayerChooser={() => setPlayerChooserOpen(true)}
           />
         );
     }
@@ -389,19 +490,38 @@ function App() {
       />
       {flight ? <FlyingStar {...flight} /> : null}
       {renderScreen()}
+      {playerChooserOpen ? (
+        <PlayerChooser
+          value={progress.playerPreference}
+          onChoose={(playerPreference) => {
+            setPlayerPreference(playerPreference);
+            setPlayerChooserOpen(false);
+          }}
+        />
+      ) : null}
       {!activeReward && ["modeSelect", "adventure", "learn", "find", "picture", "listen"].includes(screen) ? (
-        <QuickSettings
+        <GameControls
+          key={screen}
           optionCount={progress.optionCount}
           availableCounts={supportedOptionCounts}
           onOptionCountChange={setOptionCount}
+          playActivity={progress.playActivity}
+          onPlayActivityChange={setPlayActivity}
+          studyOrder={progress.studyOrder}
+          onStudyOrderChange={setStudyOrder}
+          letterCategory={progress.letterCategory}
+          onLetterCategoryChange={setLetterCategory}
+          selectedLetterId={progress.selectedLetterId}
+          pickableLetters={pickableLetters}
+          onSelectedLetterChange={setSelectedLetter}
+          currentLetter={currentPlayLetter}
         />
       ) : null}
       {activeReward ? (
         <RewardScreen
-          stars={progress.stars}
+          threshold={activeReward.threshold}
           title="Ура! Новая наклейка!"
-          rewardName={activeReward.title}
-          rewardId={activeReward.id}
+          reward={activeReward.item}
           onClose={() => setActiveReward(null)}
         />
       ) : null}

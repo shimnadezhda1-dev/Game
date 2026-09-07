@@ -1,3 +1,6 @@
+import { PlayerPreference } from "../types";
+import { pickNextReward, REWARD_THRESHOLDS, RewardItem, RewardThreshold } from "../data/rewardCatalog";
+
 export interface StarReward {
   at: number;
   id: string;
@@ -5,6 +8,7 @@ export interface StarReward {
   hint: string;
 }
 
+/** Threshold slots 5 / 10 / 15 / 20. Catalog items are chosen separately. */
 export const STAR_REWARDS: StarReward[] = [
   { at: 5, id: "gift", title: "Подарок", hint: "Маленький сюрприз" },
   { at: 10, id: "sticker", title: "Наклейка", hint: "Яркий стикер" },
@@ -16,6 +20,41 @@ export function rewardsUnlockedByStars(stars: number): string[] {
   return STAR_REWARDS.filter((reward) => stars >= reward.at).map((reward) => reward.id);
 }
 
+export function crossedRewardThreshold(
+  prevStars: number,
+  nextStars: number
+): RewardThreshold | null {
+  return REWARD_THRESHOLDS.find((at) => prevStars < at && nextStars >= at) ?? null;
+}
+
+/** @deprecated Use crossedRewardThreshold + pickNextReward. Kept for existing call sites. */
 export function rewardJustUnlocked(prevStars: number, nextStars: number): StarReward | null {
   return STAR_REWARDS.find((reward) => prevStars < reward.at && nextStars >= reward.at) ?? null;
 }
+
+export function unlockRewardAtThreshold(
+  preference: PlayerPreference | null,
+  unlockedIds: readonly string[],
+  prevStars: number,
+  nextStars: number
+): { item: RewardItem; threshold: RewardThreshold } | null {
+  const threshold = crossedRewardThreshold(prevStars, nextStars);
+  if (!threshold) {
+    return null;
+  }
+  const item = pickNextReward(preference, unlockedIds);
+  if (!item) {
+    return { item: STAR_FALLBACK, threshold };
+  }
+  return { item, threshold };
+}
+
+const STAR_FALLBACK: RewardItem = {
+  id: "sticker",
+  title: "Яркий стикер",
+  collectionId: "achievements",
+  collectionTitle: "Достижения",
+  preferredAudience: "universal",
+  asset: null,
+  fallbackVisual: "sticker"
+};

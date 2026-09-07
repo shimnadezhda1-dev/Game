@@ -3,6 +3,7 @@ import { WorldBackground } from "./WorldBackground";
 import { LetterItem, ProgressState } from "../types";
 import { LetterVisual } from "./LetterVisual";
 import { STAR_REWARDS } from "../utils/rewards";
+import { getRewardById } from "../data/rewardCatalog";
 import { isLetterMastered } from "../utils/selectors";
 import { assetUrl, ASSETS } from "../utils/assets";
 import { letterTone } from "../utils/cardTones";
@@ -36,12 +37,15 @@ export function StarsScreen({ progress, letters, onSpeak }: StarsScreenProps) {
         </div>
       </div>
       <div className="reward-row">
-        {STAR_REWARDS.map((reward) => {
-          const open = progress.unlockedRewards.includes(reward.id) || progress.stars >= reward.at;
+        {STAR_REWARDS.map((slot, index) => {
+          const earnedId = progress.unlockedRewards[index];
+          const earned = earnedId ? getRewardById(earnedId) : undefined;
+          const open = Boolean(earned) || progress.stars >= slot.at;
+          const visual = earned?.fallbackVisual ?? slot.id;
           return (
-            <div key={reward.id} className={`mini-reward ${open ? "open" : "locked"}`}>
-              <span className={`reward-gem reward-${reward.id}`} />
-              <small>{reward.at}</small>
+            <div key={`${slot.at}-${earnedId ?? "locked"}`} className={`mini-reward ${open ? "open" : "locked"}`}>
+              <span className={`reward-gem reward-${visual}`} />
+              <small>{slot.at}</small>
             </div>
           );
         })}

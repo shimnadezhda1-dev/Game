@@ -6,6 +6,7 @@ import { NextArrowIcon } from "./ToyIcons";
 import { StageNav } from "./StageNav";
 import { letterIntroSpeech } from "../utils/letterCopy";
 import { assetUrl, ASSETS } from "../utils/assets";
+import { HomeButton } from "./HomeButton";
 
 interface LearnLettersProps {
   letter: LetterItem;
@@ -61,9 +62,7 @@ export function LearnLetters({ letter, stars, onNext, onSpeak, onBack, onHome, o
         draggable={false}
       />
 
-      <button className="learn-home" onClick={onHome} aria-label="На главную">
-        <span aria-hidden="true">🏠</span>
-      </button>
+      <HomeButton onClick={onHome} />
 
       <div className="learn-hud-right">
         <div className="learn-stars" aria-label={`Звёзды: ${stars}`}>

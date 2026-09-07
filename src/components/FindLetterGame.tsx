@@ -12,6 +12,7 @@ import { assetUrl, ASSETS } from "../utils/assets";
 import { findLetterPrompt, letterChoiceSrc, letterGlyphSrc, letterObjectSrc } from "../utils/letterCopy";
 import { planFindColors } from "../utils/findColors";
 import { ToyLetter } from "./ToyLetter";
+import { HomeButton } from "./HomeButton";
 import { useMemo } from "react";
 
 interface FindLetterGameProps {
@@ -96,9 +97,7 @@ export function FindLetterGame({
           <img className="find-meadow" src={assetUrl(ASSETS.find.meadow)} alt="" draggable={false} fetchPriority="high" decoding="async" />
         </div>
 
-        <button className="learn-home" onClick={onBack} aria-label="На главную">
-          <span aria-hidden="true">🏠</span>
-        </button>
+        <HomeButton onClick={onBack} />
 
         <div className="learn-hud-right">
           <div className="learn-stars" aria-label={`Звёзды: ${stars}`}>
