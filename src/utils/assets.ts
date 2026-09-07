@@ -75,6 +75,7 @@ export const ASSETS = {
     orderMenu: "/assets/ui/menu/order-menu.png",
     categoryMenu: "/assets/ui/menu/category-menu.png",
     learnButton: "/assets/ui/activity/learn-button.png",
-    selectLetterButton: "/assets/ui/order/select-letter-button.png"
+    selectLetterButton: "/assets/ui/order/select-letter-button.png",
+    musicButton: "/assets/ui/music-button.png"
   }
 } as const;

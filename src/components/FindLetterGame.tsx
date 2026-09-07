@@ -4,7 +4,6 @@ import { letterVoiceKey } from "../audio/voiceCatalog";
 import { GameStage } from "./GameStage";
 import { LetterHint } from "./LetterHint";
 import { LetterTile } from "./LetterTile";
-import { GoldStar } from "./GoldStar";
 import { StageNav } from "./StageNav";
 import { NextArrowIcon } from "./ToyIcons";
 import { useRound } from "../utils/useRound";
@@ -13,6 +12,7 @@ import { findLetterPrompt, letterChoiceSrc, letterGlyphSrc, letterObjectSrc } fr
 import { planFindColors } from "../utils/findColors";
 import { ToyLetter } from "./ToyLetter";
 import { HomeButton } from "./HomeButton";
+import { GameHudRight } from "./GameHudRight";
 import { useMemo } from "react";
 
 interface FindLetterGameProps {
@@ -99,11 +99,7 @@ export function FindLetterGame({
 
         <HomeButton onClick={onBack} />
 
-        <div className="learn-hud-right">
-          <div className="learn-stars" aria-label={`Звёзды: ${stars}`}>
-            <GoldStar size="tiny" />
-            <span>{stars}</span>
-          </div>
+        <GameHudRight stars={stars}>
           <button
             className="learn-sound"
             onClick={round.replay}
@@ -112,7 +108,7 @@ export function FindLetterGame({
           >
             <span aria-hidden="true">🔊</span>
           </button>
-        </div>
+        </GameHudRight>
 
         <img
           className={`find-fox ${round.phase === "feedback" ? "is-celebrate" : ""}`}

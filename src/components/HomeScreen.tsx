@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   LetterCategory,
   LetterItem,
@@ -8,7 +8,6 @@ import {
   StudyOrder
 } from "../types";
 import { assetUrl } from "../utils/assets";
-import { SpeakerMuteIcon } from "./ToyIcons";
 import { DifficultySelector } from "./DifficultySelector";
 import {
   HomeChoiceList,
@@ -18,6 +17,7 @@ import { ACTIVITY_OPTIONS, CATEGORY_OPTIONS, ORDER_OPTIONS, studyOrderVisuals } 
 import { LetterPickGrid } from "./LetterPickGrid";
 import { playerPreferenceAriaLabel, playerPreferenceIcon } from "./PlayerChooser";
 import { HomeButton } from "./HomeButton";
+import { MusicToggleButton } from "./MusicToggleButton";
 
 interface HomeScreenProps {
   onGoLearn: () => void;
@@ -68,6 +68,7 @@ export function HomeScreen({
 }: HomeScreenProps) {
   const [pulsePlay, setPulsePlay] = useState(false);
   const [letterPickerOpen, setLetterPickerOpen] = useState(false);
+  const settingsGridRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     if (studyOrder !== "pick") {
@@ -92,6 +93,58 @@ export function HomeScreen({
     const timer = window.setTimeout(() => setPulsePlay(false), 2200);
     return () => window.clearTimeout(timer);
   }, [onSpeak]);
+
+  useLayoutEffect(() => {
+    const grid = settingsGridRef.current;
+    if (!grid) {
+      return;
+    }
+
+    let frame = 0;
+
+    const equalize = () => {
+      const cards = Array.from(grid.querySelectorAll<HTMLElement>(".home-settings-card"));
+      if (cards.length === 0) {
+        return;
+      }
+      grid.style.removeProperty("--home-settings-card-min-height");
+      cards.forEach((card) => {
+        card.style.minHeight = "max-content";
+      });
+      void grid.offsetHeight;
+      const maxHeight = Math.ceil(
+        Math.max(...cards.map((card) => card.getBoundingClientRect().height))
+      );
+      if (maxHeight > 0) {
+        const value = `${maxHeight}px`;
+        grid.style.setProperty("--home-settings-card-min-height", value);
+        cards.forEach((card) => {
+          card.style.minHeight = value;
+        });
+      }
+    };
+
+    const schedule = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(equalize);
+    };
+
+    schedule();
+    window.addEventListener("resize", schedule);
+    const images = Array.from(grid.querySelectorAll("img"));
+    const onImage = () => schedule();
+    images.forEach((image) => {
+      image.addEventListener("load", onImage);
+      if (image.complete) {
+        schedule();
+      }
+    });
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("resize", schedule);
+      images.forEach((image) => image.removeEventListener("load", onImage));
+    };
+  }, []);
 
   return (
     <div className="screen home-screen">
@@ -149,7 +202,7 @@ export function HomeScreen({
         </div>
       </div>
 
-      <aside className="home-panels" aria-label="Настройки игры">
+      <aside ref={settingsGridRef} className="home-panels home-settings-grid" aria-label="Настройки игры">
         <HomePanel kind="difficulty">
           <DifficultySelector
             value={optionCount}
@@ -208,13 +261,11 @@ export function HomeScreen({
 
       <HomeButton ariaLabel="Домой" />
 
-      <button
+      <MusicToggleButton
+        musicOn={musicOn}
+        onToggle={onToggleMusic}
         className="home-ui home-ui-sound"
-        onClick={onToggleMusic}
-        aria-label={musicOn ? "Музыка включена" : "Музыка выключена"}
-      >
-        <SpeakerMuteIcon muted={!musicOn} />
-      </button>
+      />
 
       <button
         type="button"

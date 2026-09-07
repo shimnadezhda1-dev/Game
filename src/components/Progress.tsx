@@ -1,7 +1,8 @@
 import { ProgressState } from "../types";
 import { assetUrl, ASSETS } from "../utils/assets";
 import { GoldStar } from "./GoldStar";
-import { MusicNoteIcon, SpeakerMuteIcon } from "./ToyIcons";
+import { SpeakerMuteIcon } from "./ToyIcons";
+import { MusicToggleButton } from "./MusicToggleButton";
 
 interface ProgressProps {
   progress: ProgressState;
@@ -34,6 +35,11 @@ export function Progress({
         <span />
       )}
       <div className="top-bar-right">
+        <MusicToggleButton
+          musicOn={musicOn}
+          onToggle={onToggleMusic}
+          className="icon-round"
+        />
         {homeMode ? null : (
           <button
             id="star-bank"
@@ -45,14 +51,6 @@ export function Progress({
             <span className="star-count">{progress.stars}</span>
           </button>
         )}
-        <button
-          className={`icon-round music-btn ${musicOn ? "" : "is-off"}`}
-          onClick={onToggleMusic}
-          aria-label={musicOn ? "Музыка включена" : "Музыка выключена"}
-          title="Музыка"
-        >
-          <MusicNoteIcon />
-        </button>
         {homeMode ? null : (
           <button
             className={`icon-round sound-btn ${progress.soundEnabled ? "" : "is-off"}`}

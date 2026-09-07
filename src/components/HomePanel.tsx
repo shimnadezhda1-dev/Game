@@ -76,7 +76,7 @@ interface HomePanelProps {
 
 export function HomePanel({ kind, children }: HomePanelProps) {
   return (
-    <section className="home-panel">
+    <section className="home-panel home-settings-card">
       <h2 className="home-panel__title">
         <MenuImageButton kind={kind} />
       </h2>

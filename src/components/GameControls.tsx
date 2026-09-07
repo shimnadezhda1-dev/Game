@@ -45,7 +45,7 @@ export function GameControls({
   selectedLetterId,
   pickableLetters,
   onSelectedLetterChange,
-  currentLetter
+  currentLetter,
 }: GameControlsProps) {
   const [open, setOpen] = useState<PlayMenuKind | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);

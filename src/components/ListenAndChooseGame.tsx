@@ -8,6 +8,7 @@ import { StageNav } from "./StageNav";
 import { NextArrowIcon } from "./ToyIcons";
 import { assetUrl, ASSETS } from "../utils/assets";
 import { HomeButton } from "./HomeButton";
+import { GameHudRight } from "./GameHudRight";
 
 interface ListenAndChooseGameProps {
   letters: LetterItem[];
@@ -94,11 +95,7 @@ export function ListenAndChooseGame({
 
       <HomeButton onClick={onBack} />
 
-      <div className="learn-hud-right">
-        <div className="learn-stars" aria-label={`Звёзды: ${stars}`}>
-          <GoldStar size="tiny" />
-          <span>{stars}</span>
-        </div>
+      <GameHudRight stars={stars}>
         <button
           className="learn-sound"
           onClick={round.replay}
@@ -107,7 +104,7 @@ export function ListenAndChooseGame({
         >
           <span aria-hidden="true">🔊</span>
         </button>
-      </div>
+      </GameHudRight>
 
       {celebrating ? (
         <div className="listen-reward" aria-live="polite">

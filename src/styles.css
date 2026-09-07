@@ -334,6 +334,8 @@ body {
 
 .top-bar-right {
   display: flex;
+  align-items: center;
+  justify-content: flex-end;
   gap: 10px;
 }
 
@@ -359,6 +361,11 @@ body {
   height: 78%;
   object-fit: contain;
   pointer-events: none;
+}
+
+.icon-round.music-toggle img {
+  width: 100%;
+  height: 100%;
 }
 
 .home-btn {
@@ -1910,13 +1917,31 @@ body {
   }
 }
 
-.music-btn {
-  font-size: 26px;
-  color: #5b3d14;
+.music-toggle {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: clamp(64px, 10vh, 88px);
+  height: clamp(64px, 10vh, 88px);
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  background: transparent;
+  box-shadow: none;
 }
 
-.music-btn.is-off {
-  opacity: 0.4;
+.music-toggle img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.music-toggle.is-off {
+  opacity: 0.62;
+  filter: saturate(0.72);
 }
 
 .butterfly {
@@ -2553,12 +2578,21 @@ body {
   min-height: 56px;
 }
 
-.music-btn {
-  background: linear-gradient(180deg, #9adbff, #3aa0ff);
-  box-shadow: 0 6px 0 #1d7bd6, inset 0 5px 0 rgb(255 255 255 / 32%);
+.icon-round.music-toggle {
+  width: clamp(56px, 9vh, 68px);
+  height: clamp(56px, 9vh, 68px);
+  min-width: 56px;
+  min-height: 56px;
+  padding: 0;
+  overflow: visible;
+  background: transparent;
+  box-shadow: none;
 }
 
-.music-btn.is-off,
+.icon-round.music-toggle.is-off {
+  opacity: 0.62;
+}
+
 .sound-btn.is-off {
   opacity: 0.42;
 }
@@ -3320,7 +3354,8 @@ html:has(.home-immersive) #root {
   background: #7ad7ff;
 }
 
-.app-shell.home-immersive .top-bar {
+.app-shell.home-immersive .top-bar,
+.app-shell.play-hud .top-bar {
   display: none;
 }
 
@@ -3463,6 +3498,17 @@ html:has(.home-immersive) #root {
   right: max(2.4%, env(safe-area-inset-right, 0px));
 }
 
+.home-ui.music-toggle {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.home-ui.music-toggle.is-off {
+  opacity: 0.62;
+  filter: saturate(0.72);
+}
+
 .home-ui-profile {
   left: auto;
   right: calc(max(2.4%, env(safe-area-inset-right, 0px)) + clamp(70px, 5vw, 92px) + 12px);
@@ -3492,25 +3538,29 @@ html:has(.home-immersive) #root {
   font-size: clamp(18px, 1.6vw, 22px);
 }
 
-.home-panels {
+.home-panels,
+.home-settings-grid {
   position: absolute;
   z-index: 45;
   top: 50%;
   right: max(14px, env(safe-area-inset-right, 0px));
   width: min(430px, 42vw);
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-auto-rows: min-content;
-  align-content: center;
-  align-items: start;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  align-items: stretch;
   gap: 10px;
   transform: translateY(-42%);
 }
 
-.home-panel {
-  height: auto;
+.home-panel,
+.home-settings-card {
+  min-height: var(--home-settings-card-min-height, max-content);
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
   gap: 7px;
   padding: 10px 10px 11px;
   overflow: visible;
@@ -3521,9 +3571,55 @@ html:has(.home-immersive) #root {
 }
 
 .home-panel__title {
-  display: block;
+  display: flex;
+  flex: 0 0 40px;
+  align-items: center;
+  justify-content: center;
   margin: 0;
+  height: 40px;
   line-height: 0;
+}
+
+.home-panel .menu-image-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  line-height: 0;
+  border-radius: 999px;
+}
+
+.home-panel .menu-image-btn img {
+  display: block;
+  width: 100%;
+  height: 40px;
+  max-height: 40px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.home-panel .home-choice-list,
+.home-panel .difficulty-selector {
+  flex: 1 1 auto;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.home-panel .difficulty-selector--vertical {
+  justify-content: space-between;
+}
+
+.home-panel .difficulty-selector--vertical .difficulty-option {
+  flex: 0 0 auto;
+}
+
+.home-panel .home-choice {
+  flex: 0 0 auto;
 }
 
 .menu-image-btn {
@@ -3798,6 +3894,52 @@ html:has(.home-immersive) #root {
   }
 }
 
+.learn-advance {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 8px 10px;
+  border: 3px solid #fff8dc;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #fffef8, #f4ead6);
+  box-shadow: 0 3px 0 #c4b89a;
+}
+
+.learn-advance--dock {
+  position: absolute;
+  z-index: 90;
+  left: 50%;
+  bottom: calc(
+    max(14px, env(safe-area-inset-bottom, 0px) + 14px) + clamp(58px, 9vh, 78px) + 10px
+  );
+  width: min(420px, calc(100vw - 240px));
+  margin-top: 0;
+  padding: 6px 12px;
+  transform: translateX(-50%);
+}
+
+.learn-advance__clock {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.learn-advance__slider {
+  flex: 1 1 auto;
+  min-width: 0;
+  accent-color: #e09b2d;
+  cursor: pointer;
+}
+
+.learn-advance__value {
+  flex: 0 0 auto;
+  min-width: 4.2em;
+  color: #5a3600;
+  font-size: 16px;
+  font-weight: 800;
+  text-align: right;
+}
+
 .home-panel .difficulty-selector {
   width: 100%;
 }
@@ -3990,6 +4132,18 @@ html:has(.learn-screen) #root {
   flex-direction: column;
   align-items: flex-end;
   gap: clamp(10px, 1.6vh, 16px);
+}
+
+.learn-hud-pair {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: clamp(8px, 1.2vw, 16px);
+}
+
+.learn-hud-right .music-toggle {
+  flex: 0 0 auto;
 }
 
 .learn-stars {
@@ -5231,6 +5385,11 @@ html:has(.listen-screen) #root {
     font-size: clamp(24px, 4.4vh, 32px);
   }
 
+  .learn-hud-right .music-toggle {
+    width: clamp(56px, 9vh, 68px);
+    height: clamp(56px, 9vh, 68px);
+  }
+
   .learn-stars {
     min-height: 44px;
     padding: 4px 12px 4px 6px;
@@ -5448,9 +5607,20 @@ html:has(.listen-screen) #root {
   .learn-screen .learn-hud-right {
     top: max(8px, env(safe-area-inset-top, 0px));
     right: max(8px, env(safe-area-inset-right, 0px));
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+  }
+
+  .learn-screen .learn-hud-pair {
     flex-direction: row;
     align-items: center;
     gap: 8px;
+  }
+
+  .learn-screen .learn-hud-right .music-toggle {
+    width: 52px;
+    height: 52px;
   }
 
   .learn-screen .learn-stars {
@@ -5818,6 +5988,13 @@ html:has(.listen-screen) #root {
   .game-controls {
     width: min(420px, calc(100vw - 20px));
     bottom: max(10px, calc(env(safe-area-inset-bottom, 0px) + 10px));
+  }
+
+  .learn-advance--dock {
+    width: min(360px, calc(100vw - 24px));
+    bottom: calc(
+      max(10px, env(safe-area-inset-bottom, 0px) + 10px) + 118px + 8px
+    );
   }
 
   .game-controls__buttons {

@@ -8,11 +8,11 @@ import {
 import type { Point } from "../utils/point";
 import { letterVoiceKey } from "../audio/voiceCatalog";
 import { showCorrectHint, useRound } from "../utils/useRound";
-import { GoldStar } from "./GoldStar";
 import { StageNav } from "./StageNav";
 import { NextArrowIcon } from "./ToyIcons";
 import { assetUrl, ASSETS } from "../utils/assets";
 import { HomeButton } from "./HomeButton";
+import { GameHudRight } from "./GameHudRight";
 import { buildPictureRoundOptions } from "../utils/selectors";
 
 interface PictureLetterGameProps {
@@ -118,11 +118,7 @@ export function PictureLetterGame({
 
       <HomeButton onClick={onBack} />
 
-      <div className="learn-hud-right">
-        <div className="learn-stars" aria-label={`Звёзды: ${stars}`}>
-          <GoldStar size="tiny" />
-          <span>{stars}</span>
-        </div>
+      <GameHudRight stars={stars}>
         <button
           className="learn-sound"
           onClick={round.replay}
@@ -131,7 +127,7 @@ export function PictureLetterGame({
         >
           <span aria-hidden="true">🔊</span>
         </button>
-      </div>
+      </GameHudRight>
 
       <div className="picture-board">
         <h1 className="picture-title">

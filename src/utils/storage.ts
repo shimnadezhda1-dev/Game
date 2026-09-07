@@ -6,6 +6,7 @@ import {
   validPlayActivity,
   validStudyOrder
 } from "./playSettings";
+import { clampLearnAdvanceSeconds, LEARN_ADVANCE_DEFAULT } from "./learnAdvance";
 
 const STORAGE_KEY = "happy-alphabet-progress-v1";
 
@@ -27,7 +28,8 @@ export const defaultProgress: ProgressState = {
   studyOrder: "alpha",
   letterCategory: "all",
   selectedLetterId: "A",
-  playerPreference: null
+  playerPreference: null,
+  learnAdvanceSeconds: LEARN_ADVANCE_DEFAULT
 };
 
 function validPlayerPreference(value: unknown): value is PlayerPreference {
@@ -116,7 +118,8 @@ export function loadProgress(): ProgressState {
       selectedLetterId: validSelectedLetterId(parsed.selectedLetterId)
         ? parsed.selectedLetterId
         : "A",
-      playerPreference: readPlayerPreference(parsed.playerPreference)
+      playerPreference: readPlayerPreference(parsed.playerPreference),
+      learnAdvanceSeconds: clampLearnAdvanceSeconds(parsed.learnAdvanceSeconds)
     };
   } catch {
     return defaultProgress;

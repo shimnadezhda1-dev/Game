@@ -55,6 +55,8 @@ interface AdventurePlayProps {
   onLetterMastered: (letterId: string) => void;
   onPlayActivityChange?: (value: PlayActivity) => void;
   onCurrentLetterChange?: (id: string) => void;
+  learnAdvanceSeconds?: number;
+  onLearnAdvanceSecondsChange?: (value: number) => void;
 }
 
 function activityToStep(activity: PlayActivity): Step {
@@ -123,7 +125,9 @@ export function AdventurePlay({
   onBack,
   onLetterMastered,
   onPlayActivityChange,
-  onCurrentLetterChange
+  onCurrentLetterChange,
+  learnAdvanceSeconds = 5,
+  onLearnAdvanceSecondsChange
 }: AdventurePlayProps) {
   const [playLetters, setPlayLetters] = useState(() =>
     buildPlayLetters(letters, studyOrder)
@@ -275,8 +279,29 @@ export function AdventurePlay({
 
   const showStagePrev = currentStageIndex > 0 && step !== "complete";
   const showStageNext = currentStageIndex >= 0 && currentStageIndex < STAGE_FLOW.length - 1;
+  const standaloneLearn = startActivity === "learn";
+  const autoAdvanceLearn =
+    standaloneLearn && studyOrder !== "pick" && step === "learn";
   const onStagePrev = showStagePrev ? goStagePrev : undefined;
-  const onStageNext = showStageNext ? goStageNext : undefined;
+  const onStageNext =
+    standaloneLearn && step === "learn" ? undefined : showStageNext ? goStageNext : undefined;
+
+  function goStandaloneNextLetter() {
+    if (studyOrder === "pick") {
+      return;
+    }
+    if (studyOrder === "random") {
+      const advanced = advanceLetterDeck(playLetters, currentLetterIndex, letters);
+      if (!advanced) {
+        return;
+      }
+      setPlayLetters(advanced.deck);
+      setCurrentLetterIndex(advanced.index);
+      return;
+    }
+    const next = nextLetterIndex(currentLetterIndex, playLetters.length);
+    setCurrentLetterIndex(next ?? 0);
+  }
 
   if (step === "complete") {
     return (
@@ -419,8 +444,14 @@ export function AdventurePlay({
       stars={progress.stars}
       onSpeak={onSpeak}
       onHome={onBack}
-      onNext={() => setStep("findHint")}
+      onNext={standaloneLearn ? goStandaloneNextLetter : () => setStep("findHint")}
       onStageNext={onStageNext}
+      autoAdvance={autoAdvanceLearn}
+      advanceDelaySec={learnAdvanceSeconds}
+      onAdvanceSecondsChange={
+        autoAdvanceLearn ? onLearnAdvanceSecondsChange : undefined
+      }
+      allowLetterSkip={standaloneLearn && studyOrder !== "pick"}
     />
   );
 }

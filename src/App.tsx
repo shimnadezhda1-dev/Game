@@ -37,7 +37,9 @@ import {
 import { unlockRewardAtThreshold } from "./utils/rewards";
 import { getRewardById, REWARD_THRESHOLDS, RewardItem } from "./data/rewardCatalog";
 import { playLetterPool, letterAllowsActivity, filterLettersByCategory } from "./utils/playSettings";
+import { clampLearnAdvanceSeconds } from "./utils/learnAdvance";
 import { PlayerChooser } from "./components/PlayerChooser";
+import { MusicControlProvider } from "./components/MusicControlContext";
 
 interface Flight {
   fromX: number;
@@ -308,6 +310,13 @@ function App() {
     });
   }
 
+  function setLearnAdvanceSeconds(learnAdvanceSeconds: number) {
+    setProgress((prev) => ({
+      ...prev,
+      learnAdvanceSeconds: clampLearnAdvanceSeconds(learnAdvanceSeconds)
+    }));
+  }
+
   const setCurrentLetterId = useCallback((selectedLetterId: string) => {
     setProgress((prev) =>
       prev.selectedLetterId === selectedLetterId ? prev : { ...prev, selectedLetterId }
@@ -380,6 +389,8 @@ function App() {
             onLetterMastered={onLetterMastered}
             onPlayActivityChange={setPlayActivity}
             onCurrentLetterChange={setCurrentLetterId}
+            learnAdvanceSeconds={progress.learnAdvanceSeconds}
+            onLearnAdvanceSecondsChange={setLearnAdvanceSeconds}
           />
         );
       case "learn":
@@ -393,6 +404,12 @@ function App() {
             onBack={backHome}
             onHome={backHome}
             onSpeak={speak}
+            autoAdvance={progress.studyOrder !== "pick"}
+            advanceDelaySec={progress.learnAdvanceSeconds}
+            onAdvanceSecondsChange={
+              progress.studyOrder !== "pick" ? setLearnAdvanceSeconds : undefined
+            }
+            allowLetterSkip={progress.studyOrder !== "pick"}
           />
         );
       case "find":
@@ -473,10 +490,15 @@ function App() {
   }
 
   return (
+    <MusicControlProvider value={{ musicOn, onToggleMusic: toggleMusic }}>
     <div
       className={`app-shell ${
         screen === "stars" ? "" : "home-fit"
-      } ${screen === "home" ? "home-immersive" : ""}`}
+      } ${screen === "home" ? "home-immersive" : ""} ${
+        ["modeSelect", "adventure", "learn", "find", "picture", "listen"].includes(screen)
+          ? "play-hud"
+          : ""
+      }`}
     >
       <Progress
         progress={progress}
@@ -526,6 +548,7 @@ function App() {
         />
       ) : null}
     </div>
+    </MusicControlProvider>
   );
 }
 

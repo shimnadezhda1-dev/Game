@@ -1,16 +1,3 @@
-export function MusicNoteIcon() {
-  return (
-    <svg className="toy-icon" viewBox="0 0 64 64" aria-hidden="true">
-      <path
-        d="M44 8v28.4a12 12 0 1 1-8-11.3V18l16-6V8z"
-        fill="#fff"
-      />
-      <circle cx="24" cy="46" r="10" fill="#fff" />
-      <circle cx="44" cy="40" r="10" fill="#fff" />
-    </svg>
-  );
-}
-
 export function SpeakerMuteIcon({ muted }: { muted?: boolean }) {
   return (
     <svg className="toy-icon" viewBox="0 0 64 64" aria-hidden="true">

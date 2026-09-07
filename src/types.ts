@@ -135,4 +135,5 @@ export interface ProgressState {
   letterCategory: LetterCategory;
   selectedLetterId: string;
   playerPreference: PlayerPreference | null;
+  learnAdvanceSeconds: number;
 }
