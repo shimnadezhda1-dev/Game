@@ -23,6 +23,7 @@ interface LearnLettersProps {
   advanceDelaySec?: number;
   allowLetterSkip?: boolean;
   onAdvanceSecondsChange?: (value: number) => void;
+  onGoNextActivity?: () => void;
 }
 
 export function LearnLetters({
@@ -30,13 +31,13 @@ export function LearnLetters({
   stars,
   onNext,
   onSpeak,
-  onBack,
   onHome,
   onStageNext,
   autoAdvance = false,
   advanceDelaySec = 5,
   allowLetterSkip = true,
-  onAdvanceSecondsChange
+  onAdvanceSecondsChange,
+  onGoNextActivity
 }: LearnLettersProps) {
   const [pulseNext, setPulseNext] = useState(false);
   const [introDone, setIntroDone] = useState(false);
@@ -118,7 +119,15 @@ export function LearnLetters({
     clearWaitTimer();
   }, [autoAdvance]);
 
-  const showLetterSkip = introDone && !onStageNext && allowLetterSkip;
+  function goNextActivity() {
+    speakGenRef.current += 1;
+    clearWaitTimer();
+    (onGoNextActivity ?? onStageNext)?.();
+  }
+
+  const showNextActivity = Boolean(onGoNextActivity || onStageNext);
+  const showLetterSkip = introDone && !onStageNext && allowLetterSkip && !onGoNextActivity;
+  const showTimer = Boolean(autoAdvance && onAdvanceSecondsChange);
 
   return (
     <div className={`screen learn-screen learn-screen--${letter.id.toLowerCase()}`}>
@@ -153,10 +162,9 @@ export function LearnLetters({
       <LearnScene letter={letter} />
 
       <StageNav
-        onPrev={onBack}
-        onNext={onStageNext}
-        showPrev={Boolean(onBack)}
-        showNext={Boolean(onStageNext)}
+        showPrev={false}
+        onNext={showNextActivity ? goNextActivity : undefined}
+        nextDest="find"
       />
 
       {showLetterSkip ? (
@@ -170,11 +178,11 @@ export function LearnLetters({
         </button>
       ) : null}
 
-      {autoAdvance && onAdvanceSecondsChange ? (
+      {showTimer ? (
         <LearnAdvanceSlider
           className="learn-advance--dock"
           value={advanceDelaySec}
-          onChange={onAdvanceSecondsChange}
+          onChange={(value) => onAdvanceSecondsChange?.(value)}
         />
       ) : null}
     </div>

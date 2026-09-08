@@ -3415,6 +3415,47 @@ html:has(.home-immersive) #root {
   transform: translate(-50%, -12%);
 }
 
+.home-game-title {
+  position: absolute;
+  top: max(1.6%, calc(env(safe-area-inset-top, 0px) + 6px));
+  left: calc(max(2.4%, env(safe-area-inset-left, 0px)) + clamp(78px, 8.8vw, 108px));
+  z-index: 28;
+  margin: 0;
+  padding: 0;
+  width: max-content;
+  max-width: calc(44% - 96px);
+  transform: none;
+  pointer-events: none;
+  text-align: left;
+  font-family: Nunito, "Arial Rounded MT Bold", "Segoe UI", sans-serif;
+  font-weight: 900;
+  font-size: clamp(48px, 5.2vw, 68px);
+  line-height: 1;
+  letter-spacing: 0;
+  white-space: nowrap;
+  background: none;
+  border: none;
+  box-shadow: none;
+}
+
+.home-game-title__line {
+  display: inline;
+}
+
+.home-game-title__letter {
+  font-weight: 900;
+  -webkit-text-stroke: 0.45px rgb(255 255 255 / 58%);
+  paint-order: stroke fill;
+  text-shadow:
+    0 1px 0 rgb(255 255 255 / 72%),
+    0 3px 0 rgb(255 248 220 / 50%),
+    0 5px 10px rgb(255 255 255 / 32%);
+}
+
+.home-game-title__space {
+  white-space: pre;
+}
+
 .home-fox-art {
   position: relative;
   z-index: 30;
@@ -3568,6 +3609,18 @@ html:has(.home-immersive) #root {
   border-radius: 20px;
   background: #fffdf8;
   box-shadow: 0 8px 0 rgb(47 90 130 / 14%), 0 12px 18px rgb(0 0 0 / 12%);
+}
+
+.home-settings-grid .home-settings-card--compact {
+  height: auto;
+  min-height: 0;
+  align-self: start;
+}
+
+.home-settings-grid .home-settings-card--compact .home-choice-list,
+.home-settings-grid .home-settings-card--compact .difficulty-selector {
+  flex: 0 0 auto;
+  justify-content: flex-start;
 }
 
 .home-panel__title {
@@ -3910,10 +3963,9 @@ html:has(.home-immersive) #root {
   position: absolute;
   z-index: 90;
   left: 50%;
-  bottom: calc(
-    max(14px, env(safe-area-inset-bottom, 0px) + 14px) + clamp(58px, 9vh, 78px) + 10px
-  );
-  width: min(420px, calc(100vw - 240px));
+  top: calc(4.5vh + clamp(88px, 7.5vw, 128px) + 12px);
+  bottom: auto;
+  width: min(340px, calc(100vw - 280px));
   margin-top: 0;
   padding: 6px 12px;
   transform: translateX(-50%);
@@ -3952,6 +4004,13 @@ html:has(.home-immersive) #root {
   .home-panels {
     width: min(380px, 46vw);
   }
+
+  .home-game-title {
+    top: max(1.4%, calc(env(safe-area-inset-top, 0px) + 4px));
+    left: calc(max(2.4%, env(safe-area-inset-left, 0px)) + clamp(68px, 8vw, 92px));
+    font-size: clamp(44px, 4.6vw, 58px);
+    max-width: calc(42% - 80px);
+  }
 }
 
 @media (max-width: 820px) {
@@ -3966,7 +4025,7 @@ html:has(.home-immersive) #root {
     position: relative;
     left: auto;
     top: auto;
-    margin: 12vh auto 12px;
+    margin: 18vh auto 12px;
     flex-direction: column;
     transform: none;
   }
@@ -3982,6 +4041,22 @@ html:has(.home-immersive) #root {
 
   .home-fox-art {
     height: clamp(120px, 24vh, 180px);
+  }
+
+  .home-game-title {
+    top: max(clamp(52px, 10vh, 84px), calc(env(safe-area-inset-top, 0px) + 56px));
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: min(86vw, calc(100vw - 128px));
+    font-size: clamp(34px, 8.4vw, 48px);
+    letter-spacing: 0;
+    text-align: center;
+    white-space: normal;
+    z-index: 32;
+  }
+
+  .home-game-title__line {
+    display: block;
   }
 
   .screen.home-screen .home-play-btn {
@@ -4354,6 +4429,25 @@ html:has(.learn-screen) #root {
   background: linear-gradient(180deg, #66bb6a 0%, #43a047 48%, #2e7d32 100%);
 }
 
+.learn-next.learn-next--dest-learn,
+.internal-next.learn-next--dest-learn {
+  background: linear-gradient(180deg, #5ec8ff 0%, #2ea4e8 48%, #1d8fd4 100%);
+  box-shadow:
+    0 9px 0 #1d7ebd,
+    0 14px 18px rgb(0 0 0 / 18%),
+    inset 0 7px 0 rgb(255 255 255 / 42%);
+}
+
+.learn-next.learn-next--dest-learn:hover,
+.internal-next.learn-next--dest-learn:hover {
+  background: linear-gradient(180deg, #7ad4ff 0%, #4bb4f0 48%, #2ea4e8 100%);
+}
+
+.learn-next.learn-next--dest-learn:active,
+.internal-next.learn-next--dest-learn:active {
+  background: linear-gradient(180deg, #2ea4e8 0%, #1d8fd4 48%, #1d7ebd 100%);
+}
+
 .learn-next:disabled,
 .internal-next:disabled {
   background: #a5d6a7;
@@ -4417,15 +4511,45 @@ html:has(.learn-screen) #root {
 
 .stage-side-nav--prev {
   left: max(clamp(8px, 1.2vw, 16px), env(safe-area-inset-left, 0px));
-  background: linear-gradient(180deg, #ffc14d 0%, #ff9f1c 48%, #fb8c00 100%);
-  box-shadow:
-    0 9px 0 #e65100,
-    0 14px 18px rgb(0 0 0 / 18%),
-    inset 0 7px 0 rgb(255 255 255 / 42%);
 }
 
 .stage-side-nav--next {
   right: max(clamp(8px, 1.2vw, 16px), env(safe-area-inset-right, 0px));
+}
+
+.stage-side-nav__btn--learn {
+  background: linear-gradient(180deg, #5ec8ff 0%, #2ea4e8 48%, #1d8fd4 100%);
+  box-shadow:
+    0 9px 0 #1d7ebd,
+    0 14px 18px rgb(0 0 0 / 18%),
+    inset 0 7px 0 rgb(255 255 255 / 42%);
+}
+
+.stage-side-nav__btn--find {
+  background: linear-gradient(180deg, #c29bff 0%, #8b5cf6 48%, #7c3aed 100%);
+  box-shadow:
+    0 9px 0 #6d3ed1,
+    0 14px 18px rgb(0 0 0 / 18%),
+    inset 0 7px 0 rgb(255 255 255 / 42%);
+}
+
+.stage-side-nav__btn--picture {
+  background: linear-gradient(180deg, #ffb14a 0%, #f08a16 48%, #e07b0c 100%);
+  box-shadow:
+    0 9px 0 #c86a08,
+    0 14px 18px rgb(0 0 0 / 18%),
+    inset 0 7px 0 rgb(255 255 255 / 42%);
+}
+
+.stage-side-nav__btn--listen {
+  background: linear-gradient(180deg, #ff8ab3 0%, #ef5d8e 48%, #e34d80 100%);
+  box-shadow:
+    0 9px 0 #c43d6c,
+    0 14px 18px rgb(0 0 0 / 18%),
+    inset 0 7px 0 rgb(255 255 255 / 42%);
+}
+
+.stage-side-nav__btn--finish {
   background: linear-gradient(180deg, #8be08a 0%, #66bb6a 48%, #43a047 100%);
   box-shadow:
     0 9px 0 #2e7d32,
@@ -5545,6 +5669,11 @@ html:has(.listen-screen) #root {
 }
 
 @media (max-width: 430px) {
+  .home-game-title {
+    font-size: clamp(30px, 7.8vw, 40px);
+    max-width: min(84vw, calc(100vw - 112px));
+  }
+
   .picture-choices {
     flex-wrap: wrap;
     justify-content: center;
@@ -5641,6 +5770,11 @@ html:has(.listen-screen) #root {
     z-index: 4;
   }
 
+  .learn-screen .learn-advance--dock {
+    top: calc(max(8px, env(safe-area-inset-top, 0px)) + 118px);
+    width: min(220px, calc(100vw - 24px));
+  }
+
   .learn-screen .learn-scene-content {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -5735,24 +5869,6 @@ html:has(.listen-screen) #root {
       "bubble"
       "letter"
       "fox";
-  }
-
-  .learn-screen .stage-side-nav__btn {
-    width: 48px;
-    height: 48px;
-  }
-
-  .learn-screen .stage-side-nav__btn .toy-icon {
-    width: 28px;
-    height: 28px;
-  }
-
-  .learn-screen .stage-side-nav--prev {
-    left: max(4px, env(safe-area-inset-left, 0px));
-  }
-
-  .learn-screen .stage-side-nav--next {
-    right: max(4px, env(safe-area-inset-right, 0px));
   }
 
   .learn-screen .learn-next.internal-next {
@@ -5991,10 +6107,9 @@ html:has(.listen-screen) #root {
   }
 
   .learn-advance--dock {
-    width: min(360px, calc(100vw - 24px));
-    bottom: calc(
-      max(10px, env(safe-area-inset-bottom, 0px) + 10px) + 118px + 8px
-    );
+    top: calc(env(safe-area-inset-top, 0px) + 110px);
+    bottom: auto;
+    width: min(280px, calc(100vw - 120px));
   }
 
   .game-controls__buttons {

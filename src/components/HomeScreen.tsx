@@ -17,6 +17,7 @@ import { ACTIVITY_OPTIONS, CATEGORY_OPTIONS, ORDER_OPTIONS, studyOrderVisuals } 
 import { LetterPickGrid } from "./LetterPickGrid";
 import { playerPreferenceAriaLabel, playerPreferenceIcon } from "./PlayerChooser";
 import { HomeButton } from "./HomeButton";
+import { GameTitle } from "./GameTitle";
 import { MusicToggleButton } from "./MusicToggleButton";
 
 interface HomeScreenProps {
@@ -104,21 +105,35 @@ export function HomeScreen({
 
     const equalize = () => {
       const cards = Array.from(grid.querySelectorAll<HTMLElement>(".home-settings-card"));
-      if (cards.length === 0) {
+      const topCards = cards.filter((card) => !card.classList.contains("home-settings-card--compact"));
+      const compactCards = cards.filter((card) => card.classList.contains("home-settings-card--compact"));
+      compactCards.forEach((card) => {
+        card.style.minHeight = "max-content";
+      });
+      void grid.offsetHeight;
+      const compactMax = Math.ceil(
+        Math.max(0, ...compactCards.map((card) => card.getBoundingClientRect().height))
+      );
+      if (compactMax > 0) {
+        compactCards.forEach((card) => {
+          card.style.minHeight = `${compactMax}px`;
+        });
+      }
+      if (topCards.length === 0) {
         return;
       }
       grid.style.removeProperty("--home-settings-card-min-height");
-      cards.forEach((card) => {
+      topCards.forEach((card) => {
         card.style.minHeight = "max-content";
       });
       void grid.offsetHeight;
       const maxHeight = Math.ceil(
-        Math.max(...cards.map((card) => card.getBoundingClientRect().height))
+        Math.max(...topCards.map((card) => card.getBoundingClientRect().height))
       );
       if (maxHeight > 0) {
         const value = `${maxHeight}px`;
         grid.style.setProperty("--home-settings-card-min-height", value);
-        cards.forEach((card) => {
+        topCards.forEach((card) => {
           card.style.minHeight = value;
         });
       }
@@ -168,7 +183,7 @@ export function HomeScreen({
         draggable={false}
       />
 
-      <h1 className="visually-hidden">Весёлый алфавит</h1>
+      <GameTitle />
 
       <div className="home-cluster">
         <img
@@ -219,7 +234,7 @@ export function HomeScreen({
             onChange={onPlayActivityChange}
           />
         </HomePanel>
-        <HomePanel kind="order">
+        <HomePanel kind="order" compact>
           <HomeChoiceList
             name="Порядок изучения"
             value={studyOrder}
@@ -230,7 +245,7 @@ export function HomeScreen({
             }}
           />
         </HomePanel>
-        <HomePanel kind="category">
+        <HomePanel kind="category" compact>
           <HomeChoiceList
             name="Категория букв"
             value={letterCategory}

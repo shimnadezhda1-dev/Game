@@ -47,10 +47,10 @@ interface UseRoundArgs {
   onCorrect: (letterId: string, origin?: Point) => void;
   onMistake: (letterId: string) => void;
   onSpeak: (text: string, options?: { key?: string; onEnd?: () => void }) => void;
-  onFinished?: () => void;
+  onFinished?: () => boolean | void;
 }
 
-const FEEDBACK_MS = 900;
+const FEEDBACK_MS = 1500;
 
 export const CORRECT_HINT_AFTER_MISTAKES = 2;
 
@@ -201,19 +201,22 @@ export function useRound({
   }, [target, speakQuestion]);
 
   const finishRound = useCallback(() => {
+    if (onFinishedRef.current) {
+      const advanced = onFinishedRef.current();
+      if (advanced === false) {
+        return;
+      }
+    }
     lockedRef.current = false;
     setSelected(null);
     setWrongCount(0);
     setActiveOptionCount(requestedOptionCountRef.current);
-    if (onFinishedRef.current) {
-      setPhase("question");
-      onFinishedRef.current();
-      return;
-    }
     setPhase("question");
-    setTarget((current) =>
-      weightedLetterPick(lettersRef.current, statsRef.current, current.id)
-    );
+    if (!onFinishedRef.current) {
+      setTarget((current) =>
+        weightedLetterPick(lettersRef.current, statsRef.current, current.id)
+      );
+    }
   }, []);
 
   function choose(id: string, event: { currentTarget: EventTarget }) {

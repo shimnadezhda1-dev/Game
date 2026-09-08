@@ -1,6 +1,8 @@
+import { useEffect, useRef } from "react";
 import { LetterItem, LetterStats, OptionCount } from "../types";
 import type { Point } from "../utils/point";
 import { letterVoiceKey } from "../audio/voiceCatalog";
+import { audioManager } from "../audio/AudioManager";
 import { getListenTone } from "../data/letterRegistry";
 import { showCorrectHint, useRound } from "../utils/useRound";
 import { GoldStar } from "./GoldStar";
@@ -26,8 +28,9 @@ interface ListenAndChooseGameProps {
   onBack: () => void;
   onPrev?: () => void;
   onStageNext?: () => void;
-  onFinished?: () => void;
+  onFinished?: () => boolean | void;
   showInternalNext?: boolean;
+  showMasteryCelebration?: boolean;
 }
 
 export function ListenAndChooseGame({
@@ -46,7 +49,8 @@ export function ListenAndChooseGame({
   onPrev,
   onStageNext,
   onFinished,
-  showInternalNext = true
+  showInternalNext = true,
+  showMasteryCelebration = true
 }: ListenAndChooseGameProps) {
   const optionLetters = optionPool ?? letters;
   const lookupLetters = optionCatalog ?? optionLetters;
@@ -72,6 +76,8 @@ export function ListenAndChooseGame({
 
   const celebrating = round.phase === "feedback";
   const letterMark = round.target.upper;
+  const onSpeakRef = useRef(onSpeak);
+  onSpeakRef.current = onSpeak;
 
   function playTargetLetter() {
     if (celebrating) {
@@ -79,6 +85,27 @@ export function ListenAndChooseGame({
     }
     onSpeak(round.target.upper, { key: letterVoiceKey("listen", round.target.id) });
   }
+
+  useEffect(() => {
+    if (round.phase !== "question") {
+      return;
+    }
+    if (lockTarget && lockTarget.id !== round.target.id) {
+      return;
+    }
+    const letterId = round.target.id;
+    const glyph = round.target.upper;
+    const timer = window.setTimeout(() => {
+      onSpeakRef.current(glyph, { key: letterVoiceKey("listen", letterId) });
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [round.phase, round.target.id, lockTarget?.id]);
+
+  useEffect(() => {
+    return () => {
+      audioManager.stopSpeaking();
+    };
+  }, []);
 
   return (
     <div className="screen listen-screen">
@@ -106,7 +133,7 @@ export function ListenAndChooseGame({
         </button>
       </GameHudRight>
 
-      {celebrating ? (
+      {celebrating && showMasteryCelebration ? (
         <div className="listen-reward" aria-live="polite">
           <div className="listen-reward-burst" aria-hidden="true">
             {Array.from({ length: 8 }).map((_, index) => (
@@ -171,10 +198,15 @@ export function ListenAndChooseGame({
         </div>
       )}
 
-      <StageNav onPrev={onPrev} onNext={onStageNext} />
+      <StageNav onPrev={onPrev} onNext={onStageNext} prevDest="picture" nextDest="learn" />
 
       {awaitNext && celebrating && showInternalNext ? (
-        <button type="button" className="learn-next internal-next" onClick={round.continueRound} aria-label="Дальше">
+        <button
+          type="button"
+          className="learn-next internal-next learn-next--dest-learn"
+          onClick={round.continueRound}
+          aria-label="Знакомство с буквой"
+        >
           <NextArrowIcon />
         </button>
       ) : null}

@@ -9,7 +9,6 @@ import type { Point } from "../utils/point";
 import { letterVoiceKey } from "../audio/voiceCatalog";
 import { showCorrectHint, useRound } from "../utils/useRound";
 import { StageNav } from "./StageNav";
-import { NextArrowIcon } from "./ToyIcons";
 import { assetUrl, ASSETS } from "../utils/assets";
 import { HomeButton } from "./HomeButton";
 import { GameHudRight } from "./GameHudRight";
@@ -31,7 +30,7 @@ interface PictureLetterGameProps {
   onBack: () => void;
   onPrev?: () => void;
   onStageNext?: () => void;
-  onFinished?: () => void;
+  onFinished?: () => boolean | void;
 }
 
 export function PictureLetterGame({
@@ -170,13 +169,7 @@ export function PictureLetterGame({
         </div>
       </div>
 
-      <StageNav onPrev={onPrev} onNext={onStageNext} />
-
-      {awaitNext && round.phase === "feedback" ? (
-        <button type="button" className="learn-next internal-next" onClick={round.continueRound} aria-label="Дальше">
-          <NextArrowIcon />
-        </button>
-      ) : null}
+      <StageNav onPrev={onPrev} onNext={onStageNext} prevDest="find" nextDest="listen" />
     </div>
   );
 }

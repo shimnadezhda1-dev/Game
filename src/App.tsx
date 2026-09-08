@@ -409,6 +409,9 @@ function App() {
             onAdvanceSecondsChange={
               progress.studyOrder !== "pick" ? setLearnAdvanceSeconds : undefined
             }
+            onGoNextActivity={() => {
+              setPlayActivity("find");
+            }}
             allowLetterSkip={progress.studyOrder !== "pick"}
           />
         );

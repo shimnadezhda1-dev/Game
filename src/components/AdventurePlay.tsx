@@ -149,10 +149,6 @@ export function AdventurePlay({
     [optionCatalog, optionCount]
   );
   const pictureBank = useMemo(() => pictureContentBank(optionCatalog), [optionCatalog]);
-  const hasNextLesson =
-    studyOrder === "random"
-      ? playLetters.length > 0
-      : nextLetterIndex(currentLetterIndex, playLetters.length) !== null;
 
   useEffect(() => {
     onCurrentLetterChange?.(letter.id);
@@ -235,7 +231,9 @@ export function AdventurePlay({
       }
       setPlayLetters(advanced.deck);
       setCurrentLetterIndex(advanced.index);
-      setStep(activityToStep(startActivity));
+      onCurrentLetterChange?.(advanced.deck[advanced.index]?.id);
+      onPlayActivityChange?.("learn");
+      setStep("learn");
       setNextReady(false);
       return;
     }
@@ -245,7 +243,9 @@ export function AdventurePlay({
       return;
     }
     setCurrentLetterIndex(next);
-    setStep(activityToStep(startActivity));
+    onCurrentLetterChange?.(playLetters[next]?.id);
+    onPlayActivityChange?.("learn");
+    setStep("learn");
     setNextReady(false);
   }
 
@@ -261,6 +261,11 @@ export function AdventurePlay({
     const next = STAGE_FLOW[index - 1];
     onPlayActivityChange?.(stepToActivity(next));
     setStep(next);
+  }
+
+  function goLearnSameLetter() {
+    onPlayActivityChange?.("learn");
+    setStep("learn");
   }
 
   function goStageNext() {
@@ -280,27 +285,36 @@ export function AdventurePlay({
   const showStagePrev = currentStageIndex > 0 && step !== "complete";
   const showStageNext = currentStageIndex >= 0 && currentStageIndex < STAGE_FLOW.length - 1;
   const standaloneLearn = startActivity === "learn";
+  const autoNextPracticeLetter = studyOrder !== "pick";
   const autoAdvanceLearn =
     standaloneLearn && studyOrder !== "pick" && step === "learn";
   const onStagePrev = showStagePrev ? goStagePrev : undefined;
   const onStageNext =
     standaloneLearn && step === "learn" ? undefined : showStageNext ? goStageNext : undefined;
 
-  function goStandaloneNextLetter() {
+  function goToNextLetterInCurrentActivity(wrapAtEnd = true): boolean {
     if (studyOrder === "pick") {
-      return;
+      return false;
     }
     if (studyOrder === "random") {
       const advanced = advanceLetterDeck(playLetters, currentLetterIndex, letters);
       if (!advanced) {
-        return;
+        return false;
       }
       setPlayLetters(advanced.deck);
       setCurrentLetterIndex(advanced.index);
-      return;
+      return true;
     }
     const next = nextLetterIndex(currentLetterIndex, playLetters.length);
-    setCurrentLetterIndex(next ?? 0);
+    if (next === null) {
+      if (wrapAtEnd && playLetters.length > 0) {
+        setCurrentLetterIndex(0);
+        return true;
+      }
+      return false;
+    }
+    setCurrentLetterIndex(next);
+    return true;
   }
 
   if (step === "complete") {
@@ -324,7 +338,7 @@ export function AdventurePlay({
         optionCatalog={optionCatalog}
         hint="image"
         prompt={findLetterPrompt(letter)}
-        awaitNext
+        awaitNext={!autoNextPracticeLetter}
         stars={progress.stars}
         onCorrect={onCorrect}
         onMistake={onMistake}
@@ -332,7 +346,11 @@ export function AdventurePlay({
         onBack={onBack}
         onPrev={onStagePrev}
         onStageNext={onStageNext}
-        onFinished={() => setStep("findPicture")}
+        onFinished={
+          autoNextPracticeLetter
+            ? () => goToNextLetterInCurrentActivity(false)
+            : undefined
+        }
       />
     );
   }
@@ -348,7 +366,7 @@ export function AdventurePlay({
         optionCatalog={optionCatalog}
         hint="image"
         prompt={findLetterPrompt(letter)}
-        awaitNext
+        awaitNext={!autoNextPracticeLetter}
         stars={progress.stars}
         onCorrect={onCorrect}
         onMistake={onMistake}
@@ -356,7 +374,11 @@ export function AdventurePlay({
         onBack={onBack}
         onPrev={onStagePrev}
         onStageNext={onStageNext}
-        onFinished={() => setStep("findPicture")}
+        onFinished={
+          autoNextPracticeLetter
+            ? () => goToNextLetterInCurrentActivity(false)
+            : undefined
+        }
       />
     );
   }
@@ -370,7 +392,7 @@ export function AdventurePlay({
         optionCount={optionCount}
         pictureBank={pictureBank}
         pictureExampleHistory={pictureExampleHistoryRef.current}
-        awaitNext
+        awaitNext={!autoNextPracticeLetter}
         stars={progress.stars}
         onCorrect={onCorrect}
         onMistake={onMistake}
@@ -378,7 +400,11 @@ export function AdventurePlay({
         onBack={onBack}
         onPrev={onStagePrev}
         onStageNext={onStageNext}
-        onFinished={() => setStep("listenChoose")}
+        onFinished={
+          autoNextPracticeLetter
+            ? () => goToNextLetterInCurrentActivity(false)
+            : undefined
+        }
       />
     );
   }
@@ -392,21 +418,19 @@ export function AdventurePlay({
         optionCount={optionCount}
         optionPool={glyphPool}
         optionCatalog={optionCatalog}
-        awaitNext
+        awaitNext={!autoNextPracticeLetter}
         stars={progress.stars}
-        onCorrect={(id, origin) => {
-          onCorrect(id, origin);
-          if (!hasNextLesson) {
-            onLetterMastered(letter.id);
-          }
-        }}
+        onCorrect={onCorrect}
         onMistake={onMistake}
         onSpeak={onSpeak}
         onBack={onBack}
         onPrev={onStagePrev}
-        onStageNext={onStageNext}
-        onFinished={finishLetter}
-        showInternalNext={hasNextLesson}
+        onStageNext={goLearnSameLetter}
+        onFinished={
+          autoNextPracticeLetter ? () => goToNextLetterInCurrentActivity(false) : undefined
+        }
+        showInternalNext={false}
+        showMasteryCelebration={false}
       />
     );
   }
@@ -444,13 +468,13 @@ export function AdventurePlay({
       stars={progress.stars}
       onSpeak={onSpeak}
       onHome={onBack}
-      onNext={standaloneLearn ? goStandaloneNextLetter : () => setStep("findHint")}
-      onStageNext={onStageNext}
+      onNext={standaloneLearn ? () => goToNextLetterInCurrentActivity(true) : () => setStep("findHint")}
       autoAdvance={autoAdvanceLearn}
       advanceDelaySec={learnAdvanceSeconds}
       onAdvanceSecondsChange={
         autoAdvanceLearn ? onLearnAdvanceSecondsChange : undefined
       }
+      onGoNextActivity={goStageNext}
       allowLetterSkip={standaloneLearn && studyOrder !== "pick"}
     />
   );

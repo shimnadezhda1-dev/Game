@@ -72,11 +72,14 @@ export function HomeChoiceList<T extends string>({
 interface HomePanelProps {
   kind: PlayMenuKind;
   children: ReactNode;
+  compact?: boolean;
 }
 
-export function HomePanel({ kind, children }: HomePanelProps) {
+export function HomePanel({ kind, children, compact = false }: HomePanelProps) {
   return (
-    <section className="home-panel home-settings-card">
+    <section
+      className={`home-panel home-settings-card${compact ? " home-settings-card--compact" : ""}`}
+    >
       <h2 className="home-panel__title">
         <MenuImageButton kind={kind} />
       </h2>
