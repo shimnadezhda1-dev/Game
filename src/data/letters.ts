@@ -22,6 +22,24 @@ function pictureExample(id: string, word: string, image: string): PictureExample
   };
 }
 
+/**
+ * Approved extra Picture variants for А–Д (content matrix v1).
+ * Keep these off `pictureExamples` until the files exist under `public/`.
+ * `buildPictureRoundOptions` already excludes same-letter words as distractors.
+ */
+export const PENDING_PICTURE_EXAMPLES_A_TO_D = [
+  { letterId: "A", id: "A-bus", word: "Автобус", image: "/assets/picture/bus.webp" },
+  { letterId: "A", id: "A-orange", word: "Апельсин", image: "/assets/picture/orange.webp" },
+  { letterId: "B", id: "B-banana", word: "Банан", image: "/assets/picture/banana.webp" },
+  { letterId: "B", id: "B-butterfly", word: "Бабочка", image: "/assets/picture/butterfly.webp" },
+  { letterId: "V", id: "V-bucket", word: "Ведро", image: "/assets/picture/bucket.webp" },
+  { letterId: "V", id: "V-bicycle", word: "Велосипед", image: "/assets/picture/bicycle.webp" },
+  { letterId: "G", id: "G-goose", word: "Гусь", image: "/assets/picture/goose.webp" },
+  { letterId: "G", id: "G-pear", word: "Груша", image: "/assets/picture/pear.webp" },
+  { letterId: "D", id: "D-tree", word: "Дерево", image: "/assets/picture/tree.webp" },
+  { letterId: "D", id: "D-dolphin", word: "Дельфин", image: "/assets/picture/dolphin.webp" }
+] as const;
+
 function letterEntry(letter: LetterContent): LetterItem {
   const images = letter.images;
   const primaryPicture = letter.pictureExamples?.find(
@@ -51,6 +69,7 @@ export const LETTER_CONTENT: LetterContent[] = [
     eligibleActivities: [...ALL_ACTIVITIES],
     pictureExamples: [
       pictureExample("A-watermelon", "Арбуз", "/assets/picture/watermelon.webp")
+      // Pending extras when files exist: A-bus Автобус, A-orange Апельсин.
     ],
     images: {
       card: "/assets/letters/a-watermelon.webp",
@@ -91,6 +110,7 @@ export const LETTER_CONTENT: LetterContent[] = [
     eligibleActivities: [...ALL_ACTIVITIES],
     pictureExamples: [
       pictureExample("B-drum", "Барабан", "/assets/letters/b-drum.webp")
+      // Pending extras when files exist: B-banana Банан, B-butterfly Бабочка.
     ],
     images: {
       card: "/assets/letters/b-drum.webp",
@@ -131,6 +151,7 @@ export const LETTER_CONTENT: LetterContent[] = [
     eligibleActivities: [...ALL_ACTIVITIES],
     pictureExamples: [
       pictureExample("V-wolf", "Волк", "/assets/letters/v-wolf.webp")
+      // Pending extras when files exist: V-bucket Ведро, V-bicycle Велосипед.
     ],
     images: {
       card: "/assets/letters/v-wolf.webp",
@@ -170,6 +191,7 @@ export const LETTER_CONTENT: LetterContent[] = [
     eligibleActivities: [...ALL_ACTIVITIES],
     pictureExamples: [
       pictureExample("G-mushroom", "Гриб", "/assets/picture/mushroom.webp")
+      // Pending extras when files exist: G-goose Гусь, G-pear Груша.
     ],
     images: {
       card: "/assets/letters/g-mushroom.webp",
@@ -209,6 +231,7 @@ export const LETTER_CONTENT: LetterContent[] = [
     eligibleActivities: [...ALL_ACTIVITIES],
     pictureExamples: [
       pictureExample("D-house", "Дом", "/assets/picture/house.webp")
+      // Pending extras when files exist: D-tree Дерево, D-dolphin Дельфин.
     ],
     images: {
       card: "/assets/letters/d-house.webp",
