@@ -248,12 +248,98 @@ export const LETTER_CONTENT: LetterContent[] = [
     },
     pronunciation: "дэ"
   },
-  { id: "E", upper: "Е", lower: "е", word: "Енот", difficulty: 2, group: 2, contentReady: false },
-  { id: "Yo", upper: "Ё", lower: "ё", word: "", needsContent: true, difficulty: 2, group: 2, contentReady: false },
-  { id: "Zh", upper: "Ж", lower: "ж", word: "Жираф", difficulty: 2, group: 2, contentReady: false },
-  { id: "Z", upper: "З", lower: "з", word: "Заяц", difficulty: 2, group: 2, contentReady: false },
-  { id: "I", upper: "И", lower: "и", word: "Игла", difficulty: 2, group: 2, contentReady: false },
-  { id: "J", upper: "Й", lower: "й", word: "", needsContent: true, difficulty: 2, group: 2, contentReady: false },
+  {
+    id: "E",
+    upper: "Е",
+    lower: "е",
+    word: "Енот",
+    difficulty: 2,
+    group: 2,
+    contentReady: false,
+    eligibleActivities: ["picture"],
+    pictureExamples: [
+      pictureExample("E-raccoon", "Енот", "/assets/picture/raccoon.webp"),
+      pictureExample("E-unicorn", "Единорог", "/assets/picture/unicorn.webp"),
+      pictureExample("E-blackberry", "Ежевика", "/assets/picture/blackberry.webp")
+    ]
+  },
+  {
+    id: "Yo",
+    upper: "Ё",
+    lower: "ё",
+    word: "",
+    needsContent: true,
+    difficulty: 2,
+    group: 2,
+    contentReady: false,
+    eligibleActivities: ["picture"],
+    pictureExamples: [
+      pictureExample("Yo-hedgehog", "Ёж", "/assets/picture/hedgehog.webp"),
+      pictureExample("Yo-christmas-tree", "Ёлка", "/assets/picture/christmas-tree.webp"),
+      pictureExample("Yo-brush", "Ёршик", "/assets/picture/brush.webp")
+    ]
+  },
+  {
+    id: "Zh",
+    upper: "Ж",
+    lower: "ж",
+    word: "Жираф",
+    difficulty: 2,
+    group: 2,
+    contentReady: false,
+    eligibleActivities: ["picture"],
+    pictureExamples: [
+      pictureExample("Zh-beetle", "Жук", "/assets/picture/beetle.webp"),
+      pictureExample("Zh-giraffe", "Жираф", "/assets/picture/giraffe.webp"),
+      pictureExample("Zh-acorn", "Желудь", "/assets/picture/acorn.webp")
+    ]
+  },
+  {
+    id: "Z",
+    upper: "З",
+    lower: "з",
+    word: "Заяц",
+    difficulty: 2,
+    group: 2,
+    contentReady: false,
+    eligibleActivities: ["picture"],
+    pictureExamples: [
+      pictureExample("Z-hare", "Заяц", "/assets/picture/hare.webp"),
+      pictureExample("Z-umbrella", "Зонт", "/assets/picture/umbrella.webp"),
+      pictureExample("Z-zebra", "Зебра", "/assets/picture/zebra.webp")
+    ]
+  },
+  {
+    id: "I",
+    upper: "И",
+    lower: "и",
+    word: "Игла",
+    difficulty: 2,
+    group: 2,
+    contentReady: false,
+    eligibleActivities: ["picture"],
+    pictureExamples: [
+      pictureExample("I-turkey", "Индюк", "/assets/picture/turkey.webp"),
+      pictureExample("I-needle", "Игла", "/assets/picture/needle.webp"),
+      pictureExample("I-toys", "Игрушки", "/assets/picture/toys.webp")
+    ]
+  },
+  {
+    id: "J",
+    upper: "Й",
+    lower: "й",
+    word: "",
+    needsContent: true,
+    difficulty: 2,
+    group: 2,
+    contentReady: false,
+    eligibleActivities: ["picture"],
+    pictureExamples: [
+      pictureExample("J-yogurt", "Йогурт", "/assets/picture/yogurt.webp"),
+      pictureExample("J-yogi", "Йог", "/assets/picture/yogi.webp"),
+      pictureExample("J-iodine", "Йод", "/assets/picture/iodine.webp")
+    ]
+  },
   { id: "K", upper: "К", lower: "к", word: "Кот", difficulty: 2, group: 2, contentReady: false },
   { id: "L", upper: "Л", lower: "л", word: "Лимон", difficulty: 2, group: 2, contentReady: false },
   { id: "M", upper: "М", lower: "м", word: "Мяч", difficulty: 2, group: 2, contentReady: false },
