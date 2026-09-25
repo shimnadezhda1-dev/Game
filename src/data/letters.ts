@@ -340,11 +340,81 @@ export const LETTER_CONTENT: LetterContent[] = [
       pictureExample("J-iodine", "Йод", "/assets/picture/iodine.webp")
     ]
   },
-  { id: "K", upper: "К", lower: "к", word: "Кот", difficulty: 2, group: 2, contentReady: false },
-  { id: "L", upper: "Л", lower: "л", word: "Лимон", difficulty: 2, group: 2, contentReady: false },
-  { id: "M", upper: "М", lower: "м", word: "Мяч", difficulty: 2, group: 2, contentReady: false },
-  { id: "N", upper: "Н", lower: "н", word: "Нос", difficulty: 2, group: 2, contentReady: false },
-  { id: "O", upper: "О", lower: "о", word: "Облако", difficulty: 2, group: 2, contentReady: false },
+  {
+    id: "K",
+    upper: "К",
+    lower: "к",
+    word: "Кот",
+    difficulty: 2,
+    group: 2,
+    contentReady: false,
+    eligibleActivities: ["picture"],
+    pictureExamples: [
+      pictureExample("K-cat", "Кот", "/assets/picture/cat.webp"),
+      pictureExample("K-ship", "Корабль", "/assets/picture/ship.webp"),
+      pictureExample("K-doll", "Кукла", "/assets/picture/doll.webp")
+    ]
+  },
+  {
+    id: "L",
+    upper: "Л",
+    lower: "л",
+    word: "Лимон",
+    difficulty: 2,
+    group: 2,
+    contentReady: false,
+    eligibleActivities: ["picture"],
+    pictureExamples: [
+      pictureExample("L-lion", "Лев", "/assets/picture/lion.webp"),
+      pictureExample("L-lemon", "Лимон", "/assets/picture/lemon.webp"),
+      pictureExample("L-spoon", "Ложка", "/assets/picture/spoon.webp")
+    ]
+  },
+  {
+    id: "M",
+    upper: "М",
+    lower: "м",
+    word: "Мяч",
+    difficulty: 2,
+    group: 2,
+    contentReady: false,
+    eligibleActivities: ["picture"],
+    pictureExamples: [
+      pictureExample("M-ball", "Мяч", "/assets/picture/ball.webp"),
+      pictureExample("M-car", "Машина", "/assets/picture/car.webp"),
+      pictureExample("M-carrot", "Морковь", "/assets/picture/carrot.webp")
+    ]
+  },
+  {
+    id: "N",
+    upper: "Н",
+    lower: "н",
+    word: "Нос",
+    difficulty: 2,
+    group: 2,
+    contentReady: false,
+    eligibleActivities: ["picture"],
+    pictureExamples: [
+      pictureExample("N-rhino", "Носорог", "/assets/picture/rhino.webp"),
+      pictureExample("N-scissors", "Ножницы", "/assets/picture/scissors.webp"),
+      pictureExample("N-sock", "Носок", "/assets/picture/sock.webp")
+    ]
+  },
+  {
+    id: "O",
+    upper: "О",
+    lower: "о",
+    word: "Облако",
+    difficulty: 2,
+    group: 2,
+    contentReady: false,
+    eligibleActivities: ["picture"],
+    pictureExamples: [
+      pictureExample("O-donkey", "Осёл", "/assets/picture/donkey.webp"),
+      pictureExample("O-cloud", "Облако", "/assets/picture/cloud.webp"),
+      pictureExample("O-cucumber", "Огурец", "/assets/picture/cucumber.webp")
+    ]
+  },
   { id: "P", upper: "П", lower: "п", word: "Петух", difficulty: 2, group: 2, contentReady: false },
   { id: "R", upper: "Р", lower: "р", word: "Рыба", difficulty: 2, group: 2, contentReady: false },
   { id: "S", upper: "С", lower: "с", word: "Слон", difficulty: 2, group: 2, contentReady: false },
