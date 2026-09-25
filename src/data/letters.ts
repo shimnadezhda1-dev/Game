@@ -1,4 +1,4 @@
-import { LetterContent, LetterItem, LetterVoiceKind, PictureExample } from "../types";
+import { LetterContent, LetterItem, LetterVoiceKind, PictureExample, SpecialExample } from "../types";
 import { letterIntroSpeech } from "../utils/letterCopy";
 
 const ALL_ACTIVITIES = ["learn", "find", "picture", "listen"] as const;
@@ -20,6 +20,16 @@ function pictureExample(id: string, word: string, image: string): PictureExample
     allowedAsTarget: true,
     allowedAsDistractor: true
   };
+}
+
+function specialExample(
+  id: string,
+  word: string,
+  image: string,
+  targetLetter: string,
+  targetIndex: number
+): SpecialExample {
+  return { id, word, image, targetLetter, targetIndex };
 }
 
 function letterEntry(letter: LetterContent): LetterItem {
@@ -415,23 +425,261 @@ export const LETTER_CONTENT: LetterContent[] = [
       pictureExample("O-cucumber", "Огурец", "/assets/picture/cucumber.webp")
     ]
   },
-  { id: "P", upper: "П", lower: "п", word: "Петух", difficulty: 2, group: 2, contentReady: false },
-  { id: "R", upper: "Р", lower: "р", word: "Рыба", difficulty: 2, group: 2, contentReady: false },
-  { id: "S", upper: "С", lower: "с", word: "Слон", difficulty: 2, group: 2, contentReady: false },
-  { id: "T", upper: "Т", lower: "т", word: "Тигр", difficulty: 2, group: 2, contentReady: false },
-  { id: "U", upper: "У", lower: "у", word: "Утка", difficulty: 2, group: 2, contentReady: false },
-  { id: "F", upper: "Ф", lower: "ф", word: "Флаг", difficulty: 2, group: 2, contentReady: false },
-  { id: "Kh", upper: "Х", lower: "х", word: "Хлеб", difficulty: 2, group: 2, contentReady: false },
-  { id: "Ts", upper: "Ц", lower: "ц", word: "Цветок", difficulty: 2, group: 2, contentReady: false },
-  { id: "Ch", upper: "Ч", lower: "ч", word: "Чайник", difficulty: 2, group: 2, contentReady: false },
-  { id: "Sh", upper: "Ш", lower: "ш", word: "Шар", difficulty: 2, group: 2, contentReady: false },
-  { id: "Shch", upper: "Щ", lower: "щ", word: "Щука", difficulty: 2, group: 2, contentReady: false },
-  { id: "Hard", upper: "Ъ", lower: "ъ", word: "", needsContent: true, difficulty: 2, group: 2, contentReady: false },
-  { id: "Yery", upper: "Ы", lower: "ы", word: "", needsContent: true, difficulty: 2, group: 2, contentReady: false },
-  { id: "Soft", upper: "Ь", lower: "ь", word: "", needsContent: true, difficulty: 2, group: 2, contentReady: false },
-  { id: "Eh", upper: "Э", lower: "э", word: "Экскаватор", difficulty: 2, group: 2, contentReady: false },
-  { id: "Yu", upper: "Ю", lower: "ю", word: "Юла", difficulty: 2, group: 2, contentReady: false },
-  { id: "Ya", upper: "Я", lower: "я", word: "Яблоко", difficulty: 2, group: 2, contentReady: false }
+  {
+    id: "P",
+    upper: "П",
+    lower: "п",
+    word: "Пингвин",
+    difficulty: 2,
+    group: 2,
+    contentReady: false,
+    eligibleActivities: ["picture"],
+    pictureExamples: [
+      pictureExample("P-penguin", "Пингвин", "/assets/picture/penguin.webp"),
+      pictureExample("P-rooster", "Петух", "/assets/picture/rooster.webp"),
+      pictureExample("P-parrot", "Попугай", "/assets/picture/parrot.webp")
+    ]
+  },
+  {
+    id: "R",
+    upper: "Р",
+    lower: "р",
+    word: "Рыба",
+    difficulty: 2,
+    group: 2,
+    contentReady: false,
+    eligibleActivities: ["picture"],
+    pictureExamples: [
+      pictureExample("R-fish", "Рыба", "/assets/picture/fish.webp"),
+      pictureExample("R-rocket", "Ракета", "/assets/picture/rocket.webp"),
+      pictureExample("R-robot", "Робот", "/assets/picture/robot.webp")
+    ]
+  },
+  {
+    id: "S",
+    upper: "С",
+    lower: "с",
+    word: "Слон",
+    difficulty: 2,
+    group: 2,
+    contentReady: false,
+    eligibleActivities: ["picture"],
+    pictureExamples: [
+      pictureExample("S-elephant", "Слон", "/assets/picture/elephant.webp"),
+      pictureExample("S-dog", "Собака", "/assets/picture/dog.webp"),
+      pictureExample("S-airplane", "Самолёт", "/assets/picture/airplane.webp")
+    ]
+  },
+  {
+    id: "T",
+    upper: "Т",
+    lower: "т",
+    word: "Тигр",
+    difficulty: 2,
+    group: 2,
+    contentReady: false,
+    eligibleActivities: ["picture"],
+    pictureExamples: [
+      pictureExample("T-tiger", "Тигр", "/assets/picture/tiger.webp"),
+      pictureExample("T-tractor", "Трактор", "/assets/picture/tractor.webp"),
+      pictureExample("T-cake", "Торт", "/assets/picture/cake.webp")
+    ]
+  },
+  {
+    id: "U",
+    upper: "У",
+    lower: "у",
+    word: "Утка",
+    difficulty: 2,
+    group: 2,
+    contentReady: false,
+    eligibleActivities: ["picture"],
+    pictureExamples: [
+      pictureExample("U-duck", "Утка", "/assets/picture/duck.webp"),
+      pictureExample("U-snail", "Улитка", "/assets/picture/snail.webp"),
+      pictureExample("U-iron", "Утюг", "/assets/picture/iron.webp")
+    ]
+  },
+  {
+    id: "F",
+    upper: "Ф",
+    lower: "ф",
+    word: "Фотоаппарат",
+    difficulty: 2,
+    group: 2,
+    contentReady: false,
+    eligibleActivities: ["picture"],
+    pictureExamples: [
+      pictureExample("F-camera", "Фотоаппарат", "/assets/picture/camera.webp"),
+      pictureExample("F-lantern", "Фонарь", "/assets/picture/lantern.webp"),
+      pictureExample("F-flamingo", "Фламинго", "/assets/picture/flamingo.webp")
+    ]
+  },
+  {
+    id: "Kh",
+    upper: "Х",
+    lower: "х",
+    word: "Хомяк",
+    difficulty: 2,
+    group: 2,
+    contentReady: false,
+    eligibleActivities: ["picture"],
+    pictureExamples: [
+      pictureExample("Kh-hamster", "Хомяк", "/assets/picture/hamster.webp"),
+      pictureExample("Kh-bread", "Хлеб", "/assets/picture/bread.webp"),
+      pictureExample("Kh-fridge", "Холодильник", "/assets/picture/fridge.webp")
+    ]
+  },
+  {
+    id: "Ts",
+    upper: "Ц",
+    lower: "ц",
+    word: "Цыплёнок",
+    difficulty: 2,
+    group: 2,
+    contentReady: false,
+    eligibleActivities: ["picture"],
+    pictureExamples: [
+      pictureExample("Ts-chick", "Цыплёнок", "/assets/picture/chick.webp"),
+      pictureExample("Ts-heron", "Цапля", "/assets/picture/heron.webp"),
+      pictureExample("Ts-flower", "Цветок", "/assets/picture/flower.webp")
+    ]
+  },
+  {
+    id: "Ch",
+    upper: "Ч",
+    lower: "ч",
+    word: "Чайник",
+    difficulty: 2,
+    group: 2,
+    contentReady: false,
+    eligibleActivities: ["picture"],
+    pictureExamples: [
+      pictureExample("Ch-teapot", "Чайник", "/assets/picture/teapot.webp"),
+      pictureExample("Ch-clock", "Часы", "/assets/picture/clock.webp"),
+      pictureExample("Ch-turtle", "Черепаха", "/assets/picture/turtle.webp")
+    ]
+  },
+  {
+    id: "Sh",
+    upper: "Ш",
+    lower: "ш",
+    word: "Шар",
+    difficulty: 2,
+    group: 2,
+    contentReady: false,
+    eligibleActivities: ["picture"],
+    pictureExamples: [
+      pictureExample("Sh-balloon", "Шар", "/assets/picture/balloon.webp"),
+      pictureExample("Sh-hat", "Шапка", "/assets/picture/hat.webp"),
+      pictureExample("Sh-wardrobe", "Шкаф", "/assets/picture/wardrobe.webp")
+    ]
+  },
+  {
+    id: "Shch",
+    upper: "Щ",
+    lower: "щ",
+    word: "Щука",
+    difficulty: 2,
+    group: 2,
+    contentReady: false,
+    eligibleActivities: ["picture"],
+    pictureExamples: [
+      pictureExample("Shch-pike", "Щука", "/assets/picture/pike.webp"),
+      pictureExample("Shch-toothbrush", "Щётка", "/assets/picture/toothbrush.webp"),
+      pictureExample("Shch-shield", "Щит", "/assets/picture/shield.webp")
+    ]
+  },
+  {
+    id: "Hard",
+    upper: "Ъ",
+    lower: "ъ",
+    word: "",
+    needsContent: true,
+    difficulty: 2,
+    group: 2,
+    contentReady: false,
+    specialExamples: [
+      specialExample("Hard-entrance", "Подъезд", "/assets/picture/entrance.webp", "Ъ", 3),
+      specialExample("Hard-lift", "Подъёмник", "/assets/picture/lift-platform.webp", "Ъ", 3),
+      specialExample("Hard-hug", "Объятие", "/assets/picture/hug.webp", "Ъ", 2)
+    ]
+  },
+  {
+    id: "Yery",
+    upper: "Ы",
+    lower: "ы",
+    word: "",
+    needsContent: true,
+    difficulty: 2,
+    group: 2,
+    contentReady: false,
+    specialExamples: [
+      specialExample("Yery-cheese", "Сыр", "/assets/picture/cheese-y.webp", "Ы", 1),
+      specialExample("Yery-fish", "Рыба", "/assets/picture/fish-y.webp", "Ы", 1),
+      specialExample("Yery-pumpkin", "Тыква", "/assets/picture/pumpkin.webp", "Ы", 1)
+    ]
+  },
+  {
+    id: "Soft",
+    upper: "Ь",
+    lower: "ь",
+    word: "",
+    needsContent: true,
+    difficulty: 2,
+    group: 2,
+    contentReady: false,
+    specialExamples: [
+      specialExample("Soft-horse", "Конь", "/assets/picture/horse-soft.webp", "Ь", 3),
+      specialExample("Soft-goose", "Гусь", "/assets/picture/goose-soft.webp", "Ь", 3),
+      specialExample("Soft-moose", "Лось", "/assets/picture/moose.webp", "Ь", 3)
+    ]
+  },
+  {
+    id: "Eh",
+    upper: "Э",
+    lower: "э",
+    word: "Экскаватор",
+    difficulty: 2,
+    group: 2,
+    contentReady: false,
+    eligibleActivities: ["picture"],
+    pictureExamples: [
+      pictureExample("Eh-excavator", "Экскаватор", "/assets/picture/excavator.webp"),
+      pictureExample("Eh-icecream", "Эскимо", "/assets/picture/icecream.webp"),
+      pictureExample("Eh-screen", "Экран", "/assets/picture/screen.webp")
+    ]
+  },
+  {
+    id: "Yu",
+    upper: "Ю",
+    lower: "ю",
+    word: "Юла",
+    difficulty: 2,
+    group: 2,
+    contentReady: false,
+    eligibleActivities: ["picture"],
+    pictureExamples: [
+      pictureExample("Yu-spinning-top", "Юла", "/assets/picture/spinning-top.webp"),
+      pictureExample("Yu-skirt", "Юбка", "/assets/picture/skirt.webp"),
+      pictureExample("Yu-yunga", "Юнга", "/assets/picture/yunga.webp")
+    ]
+  },
+  {
+    id: "Ya",
+    upper: "Я",
+    lower: "я",
+    word: "Яблоко",
+    difficulty: 2,
+    group: 2,
+    contentReady: false,
+    eligibleActivities: ["picture"],
+    pictureExamples: [
+      pictureExample("Ya-apple", "Яблоко", "/assets/picture/apple.webp"),
+      pictureExample("Ya-anchor", "Якорь", "/assets/picture/anchor.webp"),
+      pictureExample("Ya-lizard", "Ящерица", "/assets/picture/lizard.webp")
+    ]
+  }
 ];
 
 export const LETTERS: LetterItem[] = LETTER_CONTENT.map(letterEntry);

@@ -58,6 +58,14 @@ export interface PictureExample {
   allowedAsDistractor: boolean;
 }
 
+export interface SpecialExample {
+  id: string;
+  word: string;
+  image: string;
+  targetLetter: string;
+  targetIndex: number;
+}
+
 export interface PictureExampleEntry extends PictureExample {
   letterId: string;
   letterUpper: string;
@@ -96,6 +104,7 @@ export interface LetterContent {
   eligibleActivities?: EligibleActivity[];
   images?: LetterImages;
   pictureExamples?: PictureExample[];
+  specialExamples?: SpecialExample[];
   audio?: LetterAudio;
   theme?: LetterTheme;
   pronunciation?: string;
