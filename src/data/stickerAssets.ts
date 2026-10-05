@@ -19,12 +19,13 @@ const EXTRA_EXISTING_ASSETS = new Set([
   "/assets/ui/stars.webp",
   "/assets/home/sun-smiling.webp",
   "/assets/home/rainbow-clean.png",
-  "/assets/character/fox-happy.webp"
+  "/assets/character/fox-happy.webp",
+  "/assets/stickers/sun-new.png"
 ]);
 
 /** Used only until real files appear in /assets/stickers/. Not duplicated across the catalog. */
 const PREVIEW_FALLBACK_BY_ID: Record<string, string> = {
-  "sticker-01": "/assets/home/sun-smiling.webp",
+  "sticker-01": "/assets/stickers/sun-new.png",
   "sticker-02": "/assets/home/rainbow-clean.png",
   "sticker-03": "/assets/ui/stars.webp",
   "sticker-04": "/assets/ui/rewards-chest.webp"
