@@ -1,17 +1,22 @@
 interface WorldBackgroundProps {
   variant?: "cover" | "play";
+  sunSrc?: string;
 }
 
-export function WorldBackground({ variant = "play" }: WorldBackgroundProps) {
+export function WorldBackground({ variant = "play", sunSrc }: WorldBackgroundProps) {
   return (
     <div className={`world world-${variant}`} aria-hidden>
       <div className="world-sky" />
       <div className="toy-sun">
-        <span className="sun-core">
-          <i className="sun-eye sun-eye-l" />
-          <i className="sun-eye sun-eye-r" />
-          <i className="sun-smile" />
-        </span>
+        {sunSrc ? (
+          <img className="toy-sun-art" src={sunSrc} alt="" draggable={false} />
+        ) : (
+          <span className="sun-core">
+            <i className="sun-eye sun-eye-l" />
+            <i className="sun-eye sun-eye-r" />
+            <i className="sun-smile" />
+          </span>
+        )}
       </div>
       <div className="cloud cloud-a" />
       <div className="cloud cloud-b" />

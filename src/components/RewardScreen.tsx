@@ -66,7 +66,7 @@ export function RewardScreen({
 
   return (
     <div className="screen reward-screen reward-overlay" role="dialog" aria-modal="true">
-      <WorldBackground variant="play" />
+      <WorldBackground variant="play" sunSrc={assetUrl("/assets/stickers-page/sun.png")} />
       <div className="confetti-layer reward-confetti" aria-hidden>
         {Array.from({ length: 8 }).map((_, index) => (
           <span key={index} className={`confetti-bit bit-${index % 6}`} />

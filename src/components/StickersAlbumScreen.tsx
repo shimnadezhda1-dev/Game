@@ -30,6 +30,12 @@ export function StickersAlbumScreen({ progress, onBack, onSetFavorite }: Sticker
 
   return (
     <div className="screen stickers-album">
+      <img
+        className="stickers-album__sun"
+        src={assetUrl("/assets/stickers-page/sun.png")}
+        alt=""
+        draggable={false}
+      />
       <HomeButton onClick={onBack} />
       <h1 className="stickers-album__title">Мои наклейки</h1>
       <p className="stickers-album__total">

@@ -2394,6 +2394,23 @@ body {
   z-index: 1;
 }
 
+.toy-sun-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .reward-screen .toy-sun {
+    top: 8px;
+    right: 3%;
+    width: clamp(52px, 12vw, 64px);
+    height: clamp(52px, 12vw, 64px);
+  }
+}
+
 .sun-core {
   display: block;
   width: 100%;
@@ -6596,6 +6613,17 @@ html:has(.listen-screen) #root {
   overflow-y: auto;
   align-items: stretch;
   padding-top: 84px;
+}
+
+.stickers-album__sun {
+  position: absolute;
+  top: clamp(8px, 2vh, 18px);
+  right: max(28px, 5%);
+  width: clamp(58px, 10vh, 92px);
+  height: clamp(58px, 10vh, 92px);
+  object-fit: contain;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .stickers-album__title {
