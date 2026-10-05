@@ -23,7 +23,7 @@ const EXTRA_EXISTING_ASSETS = new Set([
   "/assets/stickers/sun-new.png"
 ]);
 
-/** Used only until real files appear in /assets/stickers/. Not duplicated across the catalog. */
+/** Backup paths, kept in sync with VISIBLE_STICKER_ART titles in stickerCatalog.ts. */
 const PREVIEW_FALLBACK_BY_ID: Record<string, string> = {
   "sticker-01": "/assets/stickers/sun-new.png",
   "sticker-02": "/assets/home/rainbow-clean.png",

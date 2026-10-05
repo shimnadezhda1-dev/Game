@@ -113,13 +113,57 @@ function regularSticker(
   };
 }
 
+/**
+ * Real artwork currently on disk. Title/collection/asset stay on the same sticker.id
+ * so already unlocked IDs keep their image after a label fix.
+ */
+export const VISIBLE_STICKER_ART: Record<
+  string,
+  { title: string; asset: string; collectionId: string }
+> = {
+  "sticker-01": {
+    title: "Солнышко",
+    asset: "/assets/stickers/sun-new.png",
+    collectionId: "meadow-friends"
+  },
+  "sticker-02": {
+    title: "Радуга",
+    asset: "/assets/home/rainbow-clean.png",
+    collectionId: "sky-party"
+  },
+  "sticker-03": {
+    title: "Звёздочка",
+    asset: "/assets/ui/stars.webp",
+    collectionId: "sky-party"
+  },
+  "sticker-04": {
+    title: "Сундучок",
+    asset: "/assets/ui/rewards-chest.webp",
+    collectionId: "sky-party"
+  }
+};
+
+function withVisibleArtwork(item: StickerItem): StickerItem {
+  const art = VISIBLE_STICKER_ART[item.id];
+  if (!art) {
+    return item;
+  }
+  return {
+    ...item,
+    title: art.title,
+    asset: art.asset,
+    collectionId: art.collectionId,
+    collectionTitle: COLLECTION_TITLES[art.collectionId] ?? item.collectionTitle
+  };
+}
+
 function makeRegularStickers(): StickerItem[] {
   const meadow = MEADOW_NAMES.map((title, index) =>
     regularSticker(index + 1, "meadow-friends", title)
   );
   const sky = SKY_NAMES.map((title, index) => regularSticker(index + 21, "sky-party", title));
   const toys = TOY_NAMES.map((title, index) => regularSticker(index + 41, "toy-magic", title));
-  return [...meadow, ...sky, ...toys];
+  return [...meadow, ...sky, ...toys].map(withVisibleArtwork);
 }
 
 export const LEGACY_STICKERS: readonly StickerItem[] = [
