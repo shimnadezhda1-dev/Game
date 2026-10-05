@@ -14,7 +14,10 @@ export interface RewardItem {
   fallbackVisual: RewardFallbackVisual;
 }
 
-export const REWARD_THRESHOLDS = [5, 10, 15, 20] as const;
+export const REWARD_THRESHOLDS = [
+  5, 10, 15, 20, 25, 30, 35, 40, 45, 50,
+  55, 60, 65, 70, 75, 80, 85, 90, 95, 100
+] as const;
 
 export type RewardThreshold = (typeof REWARD_THRESHOLDS)[number];
 

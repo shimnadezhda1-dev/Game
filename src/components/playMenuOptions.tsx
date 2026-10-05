@@ -153,11 +153,12 @@ export const ACTIVITY_OPTIONS: Array<{
     value: "learn",
     label: "1. Знакомство с буквой",
     tone: "blue",
+    icon: <IconBook />,
     image: activityVisuals.learn
   },
   { value: "find", label: "2. Найди букву", tone: "purple", icon: <IconSearch /> },
   { value: "picture", label: "3. Что начинается на букву", tone: "orange", icon: <IconQuestion /> },
-  { value: "listen", label: "4. Послушай и выбери букву", tone: "pink", icon: <IconSound /> }
+  { value: "listen", label: "4. Послушай и выбери картинку", tone: "pink", icon: <IconSound /> }
 ];
 
 export const ORDER_OPTIONS: Array<{

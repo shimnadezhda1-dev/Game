@@ -17,6 +17,7 @@ export type Screen =
   | "picture"
   | "listen"
   | "stars"
+  | "stickers"
   | "reward";
 
 export type RoundPhase = "question" | "feedback";
@@ -137,6 +138,14 @@ export interface ProgressState {
   letterStats: Record<string, LetterStats>;
   unlockedGroupIndex: number;
   unlockedRewards: string[];
+  rewardedThresholds: number[];
+  unlockedStickerIds: string[];
+  claimedMilestonesThisCycle: number[];
+  favoriteStickerId: string | null;
+  completedLettersThisCycle: string[];
+  completedAlphabetCycles: number;
+  alphabetCycleCompleted: boolean;
+  unlockedAchievements: string[];
   soundEnabled: boolean;
   optionCount: OptionCount;
   playActivity: PlayActivity;
@@ -145,4 +154,5 @@ export interface ProgressState {
   selectedLetterId: string;
   playerPreference: PlayerPreference | null;
   learnAdvanceSeconds: number;
+  activityProgress: Record<PlayActivity, { letterId: string | null }>;
 }

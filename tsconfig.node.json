@@ -13,6 +13,7 @@
     "src/data/letters.ts",
     "src/data/validateLetterContent.ts",
     "src/types.ts",
-    "src/utils/letterCopy.ts"
+    "src/utils/letterCopy.ts",
+    "src/audio/letterFolders.ts"
   ]
 }

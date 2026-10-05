@@ -17,6 +17,8 @@ export function isConsonantLetter(letter: Pick<LetterItem, "upper">): boolean {
   return !isVowelLetter(letter) && !SIGN_LETTERS.has(letter.upper);
 }
 
+export const PLAY_ACTIVITIES: PlayActivity[] = ["learn", "find", "picture", "listen"];
+
 export function validPlayActivity(value: unknown): value is PlayActivity {
   return value === "learn" || value === "find" || value === "picture" || value === "listen";
 }

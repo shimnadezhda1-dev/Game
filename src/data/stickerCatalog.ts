@@ -1,0 +1,249 @@
+import { RewardAudience, RewardFallbackVisual, RewardItem } from "./rewardCatalog";
+import { resolveStickerAsset, stickerAssetExists } from "./stickerAssets";
+
+export type StickerKind = "regular" | "achievement" | "legacy";
+
+export interface StickerCollection {
+  id: string;
+  title: string;
+  order: number;
+}
+
+export interface StickerItem extends RewardItem {
+  kind: StickerKind;
+  order: number;
+}
+
+export const STICKER_COLLECTIONS: readonly StickerCollection[] = [
+  { id: "meadow-friends", title: "Друзья поляны", order: 1 },
+  { id: "sky-party", title: "Небо и праздник", order: 2 },
+  { id: "toy-magic", title: "Игрушки и чудеса", order: 3 },
+  { id: "achievements", title: "Достижения", order: 4 }
+];
+
+const COLLECTION_TITLES: Record<string, string> = Object.fromEntries(
+  STICKER_COLLECTIONS.map((collection) => [collection.id, collection.title])
+);
+
+const MEADOW_NAMES = [
+  "Солнышко",
+  "Ромашка",
+  "Божья коровка",
+  "Зайчик",
+  "Белочка",
+  "Ёжик",
+  "Птичка",
+  "Бабочка",
+  "Грибочек",
+  "Ягодка",
+  "Листочек",
+  "Улитка",
+  "Лягушонок",
+  "Котёнок",
+  "Щенок",
+  "Рыбка",
+  "Утёнок",
+  "Мышонок",
+  "Пчёлка",
+  "Жучок"
+];
+
+const SKY_NAMES = [
+  "Звёздочка",
+  "Луна",
+  "Облачко",
+  "Радуга",
+  "Сердечко",
+  "Воздушный шар",
+  "Фейерверк",
+  "Подарок",
+  "Конфетка",
+  "Тортик",
+  "Флажок",
+  "Колокольчик",
+  "Снежинка",
+  "Ёлочка",
+  "Комета",
+  "Планета",
+  "Ракета",
+  "Корона",
+  "Медалька",
+  "Смайлик"
+];
+
+const TOY_NAMES = [
+  "Кубик",
+  "Мячик",
+  "Машинка",
+  "Паровозик",
+  "Кораблик",
+  "Самолёт",
+  "Робот",
+  "Динозаврик",
+  "Единорог",
+  "Фея",
+  "Пирамидка",
+  "Барабан",
+  "Книжка",
+  "Карандаш",
+  "Пузыри",
+  "Волчок",
+  "Пазл",
+  "Клоун",
+  "Цирк",
+  "Волшебная палочка"
+];
+
+function regularSticker(
+  order: number,
+  collectionId: string,
+  title: string
+): StickerItem {
+  const id = `sticker-${String(order).padStart(2, "0")}`;
+  return {
+    id,
+    title,
+    collectionId,
+    collectionTitle: COLLECTION_TITLES[collectionId] ?? collectionId,
+    preferredAudience: "universal",
+    asset: `/assets/stickers/${id}.webp`,
+    fallbackVisual: "sticker",
+    kind: "regular",
+    order
+  };
+}
+
+function makeRegularStickers(): StickerItem[] {
+  const meadow = MEADOW_NAMES.map((title, index) =>
+    regularSticker(index + 1, "meadow-friends", title)
+  );
+  const sky = SKY_NAMES.map((title, index) => regularSticker(index + 21, "sky-party", title));
+  const toys = TOY_NAMES.map((title, index) => regularSticker(index + 41, "toy-magic", title));
+  return [...meadow, ...sky, ...toys];
+}
+
+export const LEGACY_STICKERS: readonly StickerItem[] = [
+  {
+    id: "gift",
+    title: "Подарок",
+    collectionId: "sky-party",
+    collectionTitle: COLLECTION_TITLES["sky-party"],
+    preferredAudience: "universal",
+    asset: null,
+    fallbackVisual: "gift",
+    kind: "legacy",
+    order: 1001
+  },
+  {
+    id: "sticker",
+    title: "Яркий стикер",
+    collectionId: "achievements",
+    collectionTitle: COLLECTION_TITLES.achievements,
+    preferredAudience: "universal",
+    asset: null,
+    fallbackVisual: "sticker",
+    kind: "legacy",
+    order: 1002
+  },
+  {
+    id: "medal",
+    title: "Медаль",
+    collectionId: "achievements",
+    collectionTitle: COLLECTION_TITLES.achievements,
+    preferredAudience: "universal",
+    asset: null,
+    fallbackVisual: "medal",
+    kind: "legacy",
+    order: 1003
+  },
+  {
+    id: "fox",
+    title: "Танец лисёнка",
+    collectionId: "achievements",
+    collectionTitle: COLLECTION_TITLES.achievements,
+    preferredAudience: "universal",
+    asset: null,
+    fallbackVisual: "fox",
+    kind: "legacy",
+    order: 1004
+  }
+];
+
+export const ALPHABET_ACHIEVEMENT_ID = "alphabet-expert";
+
+export const ALPHABET_ACHIEVEMENT_STICKER: StickerItem = {
+  id: ALPHABET_ACHIEVEMENT_ID,
+  title: "Знаток алфавита",
+  collectionId: "achievements",
+  collectionTitle: COLLECTION_TITLES.achievements,
+  preferredAudience: "universal",
+  asset: "/assets/character/fox-celebrate.webp",
+  fallbackVisual: "fox",
+  kind: "achievement",
+  order: 2000
+};
+
+export const REGULAR_STICKER_CATALOG: readonly StickerItem[] = makeRegularStickers();
+
+export const STICKER_CATALOG: readonly StickerItem[] = [
+  ...REGULAR_STICKER_CATALOG,
+  ...LEGACY_STICKERS,
+  ALPHABET_ACHIEVEMENT_STICKER
+];
+
+export function getStickerById(id: string): StickerItem | undefined {
+  return STICKER_CATALOG.find((item) => item.id === id);
+}
+
+export function resolvedSticker(item: StickerItem): StickerItem {
+  return {
+    ...item,
+    asset: resolveStickerAsset(item.id, item.asset)
+  };
+}
+
+export function awardableRegularStickers(): StickerItem[] {
+  return REGULAR_STICKER_CATALOG.map(resolvedSticker).filter((item) => stickerAssetExists(item.asset));
+}
+
+export function pickNextRegularSticker(unlockedIds: readonly string[]): StickerItem | null {
+  const unlocked = new Set(unlockedIds);
+  return awardableRegularStickers().find((item) => !unlocked.has(item.id)) ?? null;
+}
+
+export function albumCollections(): StickerCollection[] {
+  return STICKER_COLLECTIONS.filter((collection) => collection.id !== "achievements").sort(
+    (a, b) => a.order - b.order
+  );
+}
+
+export function stickersInCollection(collectionId: string): StickerItem[] {
+  return STICKER_CATALOG.filter((item) => item.collectionId === collectionId && item.kind !== "legacy").sort(
+    (a, b) => a.order - b.order
+  );
+}
+
+export function collectionCounts(
+  collectionId: string,
+  unlockedIds: readonly string[]
+): { unlocked: number; total: number } {
+  const items = stickersInCollection(collectionId);
+  const unlocked = new Set(unlockedIds);
+  return {
+    unlocked: items.filter((item) => unlocked.has(item.id)).length,
+    total: items.length
+  };
+}
+
+export function asRewardItem(item: StickerItem): RewardItem {
+  const resolved = resolvedSticker(item);
+  return {
+    id: resolved.id,
+    title: resolved.title,
+    collectionId: resolved.collectionId,
+    collectionTitle: resolved.collectionTitle,
+    preferredAudience: resolved.preferredAudience as RewardAudience | readonly RewardAudience[],
+    asset: resolved.asset,
+    fallbackVisual: resolved.fallbackVisual as RewardFallbackVisual
+  };
+}

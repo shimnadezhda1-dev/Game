@@ -63,11 +63,14 @@ function validatePath(
   kind: "image" | "audio",
   pathExists?: (path: string) => boolean
 ): void {
-  const prefix = kind === "image" ? "/assets/" : "/audio/";
+  const prefixOk =
+    kind === "image"
+      ? path.startsWith("/assets/")
+      : path.startsWith("/audio/") || path.startsWith("/assets/audio/");
   const extension = kind === "image" ? /\.(?:webp|png|svg)$/ : /\.(?:mp3|wav)$/;
 
   if (
-    !path.startsWith(prefix) ||
+    !prefixOk ||
     path.includes("\\") ||
     path.includes("..") ||
     path.startsWith("/Game/") ||
@@ -208,6 +211,40 @@ export function validateLetterContent(
       }
     });
 
+    if (letter.word.trim()) {
+      const examples = letter.pictureExamples ?? [];
+      const learnMatch = examples.find((example) => example.word === letter.word);
+      if (learnMatch) {
+        validatePath(
+          errors,
+          letter.id,
+          "learnExample.image",
+          learnMatch.image,
+          "image",
+          options.pathExists
+        );
+      }
+    }
+
+    (letter.specialExamples ?? []).forEach((example, exampleIndex) => {
+      const field = `specialExamples[${exampleIndex}]`;
+      if (!example.word.trim()) {
+        errors.push(`${letter.id}.${field}.word: non-empty word is required`);
+      }
+      if (!example.image.trim()) {
+        errors.push(`${letter.id}.${field}.image: image is required`);
+      } else {
+        validatePath(
+          errors,
+          letter.id,
+          `${field}.image`,
+          example.image,
+          "image",
+          options.pathExists
+        );
+      }
+    });
+
     Object.entries(letter.audio ?? {}).forEach(([kind, clip]) => {
       if (!clip) {
         return;
@@ -234,24 +271,22 @@ export function validateLetterContent(
       return;
     }
 
-    const requiredImages = [
-      "card",
-      "glyph",
-      "object",
-      "findObject",
-      "choice"
-    ] as const;
-    requiredImages.forEach((field) => {
-      if (!letter.images?.[field]) {
-        errors.push(`${letter.id}.images.${field}: required for contentReady letter`);
-      }
-    });
+    if (!letter.images?.object && !letter.images?.findObject && !letter.images?.picture) {
+      errors.push(`${letter.id}.images: object or picture image required for contentReady letter`);
+    }
 
-    ACTIVITIES.forEach((activity) => {
+    (["learn", "find", "listen"] as const).forEach((activity) => {
       if (!eligible.includes(activity)) {
         errors.push(`${letter.id}.eligibleActivities: missing "${activity}"`);
       }
     });
+    if (PICTURE_TARGET_BLOCKED_IDS.has(letter.id) || letter.id === "Yery") {
+      if (eligible.includes("picture")) {
+        errors.push(`${letter.id}.eligibleActivities: must not include picture`);
+      }
+    } else if (!eligible.includes("picture")) {
+      errors.push(`${letter.id}.eligibleActivities: missing "picture"`);
+    }
     if (
       eligible.includes("picture") &&
       !letter.pictureExamples?.some(
@@ -260,21 +295,16 @@ export function validateLetterContent(
     ) {
       errors.push(`${letter.id}.pictureExamples: target example required for Picture`);
     }
-    VOICE_KINDS.forEach((kind) => {
+    const requiredVoice: LetterVoiceKind[] = eligible.includes("picture")
+      ? VOICE_KINDS
+      : VOICE_KINDS.filter((kind) => kind !== "picture");
+    requiredVoice.forEach((kind) => {
       if (!letter.audio?.[kind]) {
         errors.push(`${letter.id}.audio.${kind}: required for contentReady letter`);
       }
     });
     if (!letter.pronunciation) {
       errors.push(`${letter.id}.pronunciation: required for contentReady letter`);
-    }
-    if (
-      !letter.theme?.toy?.palette ||
-      !letter.theme.cardTone ||
-      letter.theme.findNativeHue === undefined ||
-      !letter.theme.listenTone
-    ) {
-      errors.push(`${letter.id}.theme: complete contextual theme required`);
     }
   });
 

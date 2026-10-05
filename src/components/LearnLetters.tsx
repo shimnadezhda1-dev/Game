@@ -4,6 +4,8 @@ import { LearnScene } from "./LearnScene";
 import { NextArrowIcon } from "./ToyIcons";
 import { StageNav } from "./StageNav";
 import { letterIntroSpeech } from "../utils/letterCopy";
+import { letterVoiceKey } from "../audio/voiceCatalog";
+import { audioManager } from "../audio/AudioManager";
 import { assetUrl, ASSETS } from "../utils/assets";
 import { HomeButton } from "./HomeButton";
 import { GameHudRight } from "./GameHudRight";
@@ -15,11 +17,12 @@ interface LearnLettersProps {
   letters?: LetterItem[];
   onSelectLetter?: (id: string) => void;
   onNext: () => void;
-  onSpeak: (text: string, options?: { key?: string; onEnd?: () => void }) => void;
+  onSpeak: (text: string, options?: { key?: string; path?: string; onEnd?: () => void }) => void;
   onBack?: () => void;
   onHome: () => void;
   onStageNext?: () => void;
   autoAdvance?: boolean;
+  audioEntryKey?: number;
   advanceDelaySec?: number;
   allowLetterSkip?: boolean;
   onAdvanceSecondsChange?: (value: number) => void;
@@ -34,15 +37,18 @@ export function LearnLetters({
   onHome,
   onStageNext,
   autoAdvance = false,
-  advanceDelaySec = 5,
+  audioEntryKey = 0,
+  advanceDelaySec = 3,
   allowLetterSkip = true,
   onAdvanceSecondsChange,
   onGoNextActivity
 }: LearnLettersProps) {
   const [pulseNext, setPulseNext] = useState(false);
   const [introDone, setIntroDone] = useState(false);
+  const [paused, setPaused] = useState(false);
   const speakGenRef = useRef(0);
   const waitTimerRef = useRef<number | null>(null);
+  const pausedRef = useRef(false);
 
   function clearWaitTimer() {
     if (waitTimerRef.current !== null) {
@@ -53,20 +59,35 @@ export function LearnLetters({
 
   function scheduleAdvance(generation: number) {
     clearWaitTimer();
-    if (!autoAdvance) {
+    if (!autoAdvance || pausedRef.current) {
       return;
     }
     waitTimerRef.current = window.setTimeout(() => {
-      if (generation !== speakGenRef.current) {
+      if (generation !== speakGenRef.current || pausedRef.current) {
         return;
       }
       onNext();
     }, Math.max(1, advanceDelaySec) * 1000);
   }
 
+  function togglePause() {
+    const nextPaused = !pausedRef.current;
+    pausedRef.current = nextPaused;
+    setPaused(nextPaused);
+    if (nextPaused) {
+      clearWaitTimer();
+      return;
+    }
+    if (introDone && autoAdvance) {
+      scheduleAdvance(speakGenRef.current);
+    }
+  }
+
   function speakLetter(withPulse: boolean) {
     const generation = speakGenRef.current;
+    const audioKey = letterVoiceKey("letter", letter.id);
     onSpeak(letterIntroSpeech(letter), {
+      key: audioKey,
       onEnd: () => {
         if (generation !== speakGenRef.current) {
           return;
@@ -108,14 +129,14 @@ export function LearnLetters({
       window.clearTimeout(timer);
       window.clearTimeout(fallback);
       clearWaitTimer();
+      audioManager.stopSpeaking();
     };
-  }, [letter.id]);
+  }, [letter.id, audioEntryKey]);
 
   useEffect(() => {
     if (autoAdvance) {
       return;
     }
-    speakGenRef.current += 1;
     clearWaitTimer();
   }, [autoAdvance]);
 
@@ -179,11 +200,21 @@ export function LearnLetters({
       ) : null}
 
       {showTimer ? (
-        <LearnAdvanceSlider
-          className="learn-advance--dock"
-          value={advanceDelaySec}
-          onChange={(value) => onAdvanceSecondsChange?.(value)}
-        />
+        <div className="learn-advance-row">
+          <LearnAdvanceSlider
+            className="learn-advance--dock"
+            value={advanceDelaySec}
+            onChange={(value) => onAdvanceSecondsChange?.(value)}
+          />
+          <button
+            type="button"
+            className={`learn-pause ${paused ? "is-paused" : ""}`}
+            onClick={togglePause}
+            aria-label={paused ? "Продолжить" : "Пауза"}
+          >
+            <span aria-hidden="true">{paused ? "▶" : "⏸"}</span>
+          </button>
+        </div>
       ) : null}
     </div>
   );

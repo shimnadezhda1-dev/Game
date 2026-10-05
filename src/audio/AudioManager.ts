@@ -1,11 +1,21 @@
 import { assetUrl } from "../utils/assets";
 import { getLetterPronunciation } from "../data/letterRegistry";
 import { backgroundMusic } from "./BackgroundMusicManager";
+import { resolveRuVoicePath } from "./ruVoiceBank";
 import { VOICE_FILES, type VoiceKey } from "./voiceCatalog";
 
 export interface SpeakOptions {
   key?: VoiceKey | string;
+  path?: string;
   onEnd?: () => void;
+  allowTts?: boolean;
+}
+
+function voiceLog(event: string, path?: string): void {
+  if (!import.meta.env.DEV) {
+    return;
+  }
+  console.info(path ? `${event} ${path}` : event);
 }
 
 function softenText(text: string): string {
@@ -19,20 +29,16 @@ function splitChunks(text: string): string[] {
     .filter(Boolean);
 }
 
-function isFemaleVoice(name: string): boolean {
-  return /irina|milena|elena|oksana|katya|alena|anna|tanya|maria|marina|female|женск|google/i.test(
-    name
-  );
-}
+export const RUSSIAN_TTS = {
+  lang: "ru-RU",
+  rate: 0.92,
+  pitch: 1.06,
+  volume: 1
+} as const;
 
 function pickVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null {
   const russian = voices.filter((voice) => voice.lang.toLowerCase().startsWith("ru"));
-  const pool = russian.length ? russian : voices;
-  const female = pool.find((voice) => isFemaleVoice(voice.name));
-  if (female) {
-    return female;
-  }
-  return pool.find((voice) => /neural|natural|premium/i.test(voice.name)) ?? pool[0] ?? null;
+  return russian.find((voice) => voice.default) ?? null;
 }
 
 class AudioManager {
@@ -40,24 +46,30 @@ class AudioManager {
   private voice: SpeechSynthesisVoice | null = null;
   private audioContext: AudioContext | null = null;
   private clip: HTMLAudioElement | null = null;
+  private voiceBusy = false;
   private missing = new Set<string>();
   private endTimer: number | null = null;
   private chunkTimer: number | null = null;
   private token = 0;
-  private lastText = "";
   private finishedToken = -1;
   private startedTts = -1;
+  private voicesReady: Promise<void> = Promise.resolve();
+  private lastVoicePath = "";
 
   constructor() {
     if ("speechSynthesis" in window) {
-      const apply = () => {
-        const voices = window.speechSynthesis.getVoices();
-        if (voices.length) {
+      this.voicesReady = new Promise((resolve) => {
+        const apply = () => {
+          const voices = window.speechSynthesis.getVoices();
+          if (!voices.length) {
+            return;
+          }
           this.voice = pickVoice(voices);
-        }
-      };
-      apply();
-      window.speechSynthesis.addEventListener("voiceschanged", apply);
+          resolve();
+        };
+        apply();
+        window.speechSynthesis.addEventListener("voiceschanged", apply);
+      });
     }
   }
 
@@ -72,46 +84,131 @@ class AudioManager {
     return this.enabled;
   }
 
+  lastPlayedPath(): string {
+    return this.lastVoicePath;
+  }
+
+  isVoiceBusy(): boolean {
+    return this.voiceBusy;
+  }
+
+  playVoice(path: string, onEnd?: () => void): void {
+    this.speak("", { path, onEnd });
+  }
+
+  playVoiceAndWait(path: string): Promise<void> {
+    return new Promise((resolve) => {
+      this.speak("", {
+        path,
+        onEnd: () => resolve()
+      });
+    });
+  }
+
   speak(text: string, options: SpeakOptions = {}): void {
     if (!this.enabled) {
       options.onEnd?.();
       return;
     }
     this.stopSpeaking();
-    this.lastText = text;
     const token = ++this.token;
     backgroundMusic.duck();
-    const key = options.key;
-    if (key && !this.missing.has(key)) {
-      this.playVoiceFile(key, token, options.onEnd);
+    const resolved = resolveRuVoicePath(options.key, options.path);
+    const fallbackListed = options.key ? VOICE_FILES[options.key as VoiceKey] : undefined;
+    const path = resolved ?? fallbackListed;
+    if (path && !this.missing.has(path)) {
+      this.playVoiceFile(path, token, options.onEnd);
       return;
     }
-    this.speakTts(text, token, options.onEnd);
+    if (options.allowTts) {
+      this.speakTts(text, token, options.onEnd);
+      return;
+    }
+    voiceLog("VOICE SKIP (no mp3, tts disabled)", options.key ?? options.path);
+    this.finish(options.onEnd);
   }
 
-  private playVoiceFile(key: string, token: number, onEnd?: () => void): void {
-    const listed = VOICE_FILES[key as VoiceKey];
-    const path = listed ?? `/audio/voice/${key}.mp3`;
-    const audio = new Audio(assetUrl(path));
+  private detachVoiceHandlers(audio: HTMLAudioElement): void {
+    audio.onended = null;
+    audio.onerror = null;
+    audio.onpause = null;
+  }
+
+  private resetVoiceElement(): void {
+    const audio = this.clip;
+    if (!audio) {
+      return;
+    }
+    this.detachVoiceHandlers(audio);
+    audio.pause();
+    audio.removeAttribute("src");
+    try {
+      audio.load();
+    } catch {
+      // Ignore reset errors on detached elements.
+    }
+    this.clip = null;
+  }
+
+  private playVoiceFile(path: string, token: number, onEnd?: () => void): void {
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+    this.resetVoiceElement();
+    const audio = new Audio();
+    audio.preload = "auto";
     this.clip = audio;
+    this.lastVoicePath = path;
+    this.voiceBusy = true;
+    voiceLog("VOICE PLAY", path);
+
+    const fail = () => {
+      if (token !== this.token) {
+        return;
+      }
+      this.missing.add(path);
+      this.voiceBusy = false;
+      voiceLog("VOICE ERROR", path);
+      this.finish(onEnd);
+    };
+
     audio.onended = () => {
-      if (token === this.token) {
-        this.finish(onEnd);
+      if (token !== this.token) {
+        return;
       }
+      voiceLog("VOICE ENDED", path);
+      this.voiceBusy = false;
+      this.finish(onEnd);
     };
-    audio.onerror = () => {
-      this.missing.add(key);
-      this.clip = null;
-      if (token === this.token) {
-        this.speakTts(this.lastText, token, onEnd);
+    audio.onerror = fail;
+
+    let started = false;
+    const startPlayback = () => {
+      if (started || token !== this.token) {
+        return;
       }
+      started = true;
+      window.setTimeout(() => {
+        if (token !== this.token) {
+          return;
+        }
+        void audio.play().catch(fail);
+      }, 40);
     };
-    void audio.play().catch(() => {
-      this.missing.add(key);
-      if (token === this.token) {
-        this.speakTts(this.lastText, token, onEnd);
+
+    this.endTimer = window.setTimeout(() => {
+      if (token !== this.token) {
+        return;
       }
-    });
+      this.voiceBusy = false;
+      voiceLog("VOICE TIMEOUT", path);
+      this.finish(onEnd);
+    }, 12000);
+
+    audio.addEventListener("canplaythrough", startPlayback, { once: true });
+    audio.addEventListener("canplay", startPlayback, { once: true });
+    audio.src = assetUrl(path);
+    audio.load();
   }
 
   private speakTts(text: string, token: number, onEnd?: () => void): void {
@@ -130,7 +227,14 @@ class AudioManager {
       this.finish(onEnd);
       return;
     }
-    this.speakTtsChunk(chunks, 0, token, onEnd);
+    const voiceWait = new Promise<void>((resolve) => {
+      window.setTimeout(resolve, 800);
+    });
+    void Promise.race([this.voicesReady, voiceWait]).then(() => {
+      if (token === this.token) {
+        this.speakTtsChunk(chunks, 0, token, onEnd);
+      }
+    });
   }
 
   private speakTtsChunk(chunks: string[], index: number, token: number, onEnd?: () => void): void {
@@ -146,13 +250,13 @@ class AudioManager {
       this.endTimer = null;
     }
     const utterance = new SpeechSynthesisUtterance(softenText(chunks[index]));
-    utterance.lang = "ru-RU";
-    utterance.rate = 0.68;
-    utterance.pitch = 1.02;
-    utterance.volume = 1;
+    utterance.lang = RUSSIAN_TTS.lang;
+    utterance.rate = RUSSIAN_TTS.rate;
+    utterance.pitch = RUSSIAN_TTS.pitch;
+    utterance.volume = RUSSIAN_TTS.volume;
     if (this.voice) {
       utterance.voice = this.voice;
-      utterance.lang = this.voice.lang || "ru-RU";
+      utterance.lang = this.voice.lang || RUSSIAN_TTS.lang;
     }
     utterance.onend = () => {
       if (token !== this.token) {
@@ -230,6 +334,9 @@ class AudioManager {
   }
 
   stopSpeaking(): void {
+    this.token += 1;
+    this.voiceBusy = false;
+    voiceLog("VOICE STOP");
     if (this.endTimer !== null) {
       window.clearTimeout(this.endTimer);
       this.endTimer = null;
@@ -238,11 +345,7 @@ class AudioManager {
       window.clearTimeout(this.chunkTimer);
       this.chunkTimer = null;
     }
-    if (this.clip) {
-      this.clip.pause();
-      this.clip.src = "";
-      this.clip = null;
-    }
+    this.resetVoiceElement();
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
@@ -251,3 +354,15 @@ class AudioManager {
 }
 
 export const audioManager = new AudioManager();
+
+export function speakRussian(text: string, options: SpeakOptions = {}): void {
+  audioManager.speak(text, options);
+}
+
+export function playVoice(path: string, onEnd?: () => void): void {
+  audioManager.playVoice(path, onEnd);
+}
+
+export function playVoiceAndWait(path: string): Promise<void> {
+  return audioManager.playVoiceAndWait(path);
+}

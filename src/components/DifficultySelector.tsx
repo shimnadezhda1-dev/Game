@@ -55,6 +55,11 @@ export function DifficultySelector({
             onClick={() => onChange(option.value)}
           >
             <span className="difficulty-option__main">
+              {value === option.value ? (
+                <span className="difficulty-option__check" aria-hidden="true">
+                  ✓
+                </span>
+              ) : null}
               <StarMarks count={option.stars} />
               <span>{option.label}</span>
               {!available ? <span aria-hidden="true">🔒</span> : null}

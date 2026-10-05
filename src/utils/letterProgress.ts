@@ -47,6 +47,17 @@ export function startPlayLetterIndex(_progress?: ProgressState): number {
   return FIRST_LETTER_INDEX;
 }
 
+export function indexForSavedLetterId(
+  letters: readonly Pick<LetterItem, "id">[],
+  letterId: string | null | undefined
+): number {
+  if (!letterId) {
+    return FIRST_LETTER_INDEX;
+  }
+  const index = letters.findIndex((item) => item.id === letterId);
+  return index >= 0 ? index : FIRST_LETTER_INDEX;
+}
+
 export function clampLetterIndex(index: number, alphabetLength: number): number {
   if (!Number.isFinite(index) || alphabetLength <= 0) {
     return FIRST_LETTER_INDEX;

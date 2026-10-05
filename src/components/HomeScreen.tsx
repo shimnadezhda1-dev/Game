@@ -24,6 +24,7 @@ interface HomeScreenProps {
   onGoLearn: () => void;
   onPlayGames: () => void;
   onOpenStars: () => void;
+  onOpenStickers: () => void;
   onSpeak: (text: string, options?: { key?: string; onEnd?: () => void }) => void;
   onToggleMusic: () => void;
   musicOn: boolean;
@@ -41,6 +42,7 @@ interface HomeScreenProps {
   onSelectedLetterChange: (id: string) => void;
   foxCelebrate?: boolean;
   playerPreference: PlayerPreference | null;
+  favoriteStickerSrc?: string | null;
   onOpenPlayerChooser: () => void;
 }
 
@@ -49,7 +51,7 @@ const FIRST_VISIT_KEY = "happy-alphabet-first-visit-v1";
 export function HomeScreen({
   onGoLearn,
   onPlayGames,
-  onSpeak,
+  onOpenStickers,
   onToggleMusic,
   musicOn,
   optionCount,
@@ -65,6 +67,7 @@ export function HomeScreen({
   pickableLetters,
   onSelectedLetterChange,
   playerPreference,
+  favoriteStickerSrc,
   onOpenPlayerChooser
 }: HomeScreenProps) {
   const [pulsePlay, setPulsePlay] = useState(false);
@@ -89,11 +92,10 @@ export function HomeScreen({
       return;
     }
     localStorage.setItem(FIRST_VISIT_KEY, "1");
-    onSpeak("Привет! Давай играть с буквами!", { key: "welcome" });
     setPulsePlay(true);
     const timer = window.setTimeout(() => setPulsePlay(false), 2200);
     return () => window.clearTimeout(timer);
-  }, [onSpeak]);
+  }, []);
 
   useLayoutEffect(() => {
     const grid = settingsGridRef.current;
@@ -276,6 +278,16 @@ export function HomeScreen({
 
       <HomeButton ariaLabel="Домой" />
 
+      <button
+        type="button"
+        className="home-ui home-ui-stickers"
+        onClick={onOpenStickers}
+        aria-label="Мои наклейки"
+        title="Мои наклейки"
+      >
+        <span aria-hidden="true">🏷️</span>
+      </button>
+
       <MusicToggleButton
         musicOn={musicOn}
         onToggle={onToggleMusic}
@@ -295,7 +307,11 @@ export function HomeScreen({
         aria-label={playerPreferenceAriaLabel(playerPreference)}
         onClick={onOpenPlayerChooser}
       >
-        <span aria-hidden="true">{playerPreferenceIcon(playerPreference)}</span>
+        {favoriteStickerSrc ? (
+          <img className="home-ui-profile__sticker" src={favoriteStickerSrc} alt="" draggable={false} />
+        ) : (
+          <span aria-hidden="true">{playerPreferenceIcon(playerPreference)}</span>
+        )}
       </button>
     </div>
   );

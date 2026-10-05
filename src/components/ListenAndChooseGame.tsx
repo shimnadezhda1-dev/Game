@@ -66,7 +66,7 @@ export function ListenAndChooseGame({
     onSpeak,
     onFinished,
     autoSpeak: false,
-    speakPrompt: () => "Послушай и выбери букву!",
+    speakPrompt: () => "Послушай и выбери картинку!",
     speakKey: () => "listen-prompt",
     praise: (letter) => `Ура! Ты выучил букву ${letter.upper}!`,
     praiseKey: (letter) => letterVoiceKey("reward", letter.id),
@@ -155,7 +155,7 @@ export function ListenAndChooseGame({
         </div>
       ) : (
         <div className="listen-board">
-          <h1 className="listen-title">Послушай и выбери букву!</h1>
+          <h1 className="listen-title">Послушай и выбери картинку!</h1>
           <button
             className="listen-play"
             onClick={playTargetLetter}

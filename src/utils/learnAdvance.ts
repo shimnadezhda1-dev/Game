@@ -1,6 +1,6 @@
 export const LEARN_ADVANCE_MIN = 1;
 export const LEARN_ADVANCE_MAX = 10;
-export const LEARN_ADVANCE_DEFAULT = 5;
+export const LEARN_ADVANCE_DEFAULT = 3;
 
 export function clampLearnAdvanceSeconds(value: unknown): number {
   const numeric = typeof value === "number" ? value : Number(value);

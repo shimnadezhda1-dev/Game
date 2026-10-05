@@ -1,7 +1,7 @@
 const GAME_TITLE = "Весёлый алфавит";
 const [TITLE_FIRST, TITLE_SECOND] = GAME_TITLE.split(" ");
 
-const LETTER_COLORS = [
+export const TITLE_LETTER_COLORS = [
   "#ff9a1a",
   "#ffd23f",
   "#6fce4a",
@@ -9,6 +9,32 @@ const LETTER_COLORS = [
   "#2f8de8",
   "#ff6b88"
 ] as const;
+
+export function TitleStyleLetters({
+  text,
+  className,
+  startIndex = 0
+}: {
+  text: string;
+  className: string;
+  startIndex?: number;
+}) {
+  return (
+    <>
+      {Array.from(text).map((character, index) => (
+        <span
+          key={`${text}-${startIndex}-${index}`}
+          className={className}
+          style={{
+            color: TITLE_LETTER_COLORS[(startIndex + index) % TITLE_LETTER_COLORS.length]
+          }}
+        >
+          {character}
+        </span>
+      ))}
+    </>
+  );
+}
 
 function TitleWord({
   word,
@@ -18,17 +44,7 @@ function TitleWord({
   startIndex: number;
 }) {
   return (
-    <>
-      {Array.from(word).map((character, index) => (
-        <span
-          key={`${word}-${index}`}
-          className="home-game-title__letter"
-          style={{ color: LETTER_COLORS[(startIndex + index) % LETTER_COLORS.length] }}
-        >
-          {character}
-        </span>
-      ))}
-    </>
+    <TitleStyleLetters text={word} className="home-game-title__letter" startIndex={startIndex} />
   );
 }
 

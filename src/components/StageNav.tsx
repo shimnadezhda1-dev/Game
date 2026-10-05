@@ -6,7 +6,7 @@ const DEST_LABEL: Record<StageNavDest, string> = {
   learn: "Знакомство с буквой",
   find: "Найди букву",
   picture: "Что начинается на букву",
-  listen: "Послушай и выбери букву",
+  listen: "Послушай и выбери картинку",
   finish: "Дальше"
 };
 

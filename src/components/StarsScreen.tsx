@@ -4,6 +4,7 @@ import { LetterItem, ProgressState } from "../types";
 import { LetterVisual } from "./LetterVisual";
 import { STAR_REWARDS } from "../utils/rewards";
 import { getRewardById } from "../data/rewardCatalog";
+import { getStickerById } from "../data/stickerCatalog";
 import { isLetterMastered } from "../utils/selectors";
 import { assetUrl, ASSETS } from "../utils/assets";
 import { letterTone } from "../utils/cardTones";
@@ -39,8 +40,8 @@ export function StarsScreen({ progress, letters, onSpeak }: StarsScreenProps) {
       <div className="reward-row">
         {STAR_REWARDS.map((slot, index) => {
           const earnedId = progress.unlockedRewards[index];
-          const earned = earnedId ? getRewardById(earnedId) : undefined;
-          const open = Boolean(earned) || progress.stars >= slot.at;
+          const earned = earnedId ? getStickerById(earnedId) ?? getRewardById(earnedId) : undefined;
+          const open = progress.rewardedThresholds.includes(slot.at);
           const visual = earned?.fallbackVisual ?? slot.id;
           return (
             <div key={`${slot.at}-${earnedId ?? "locked"}`} className={`mini-reward ${open ? "open" : "locked"}`}>

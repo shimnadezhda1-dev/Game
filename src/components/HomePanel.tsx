@@ -25,40 +25,46 @@ export function HomeChoiceList<T extends string>({
   value,
   options,
   onChange,
-  rowLayout = false
+  rowLayout: _rowLayout = false
 }: HomeChoiceListProps<T>) {
   return (
     <div className="home-choice-list" role="radiogroup" aria-label={name}>
       {options.map((option) => {
-        const useArt = Boolean(option.image) && !rowLayout;
+        const selected = value === option.value;
+        const icon = option.icon ?? (
+          option.image ? (
+            <img
+              className="home-choice__icon-img"
+              src={assetUrl(option.image)}
+              alt=""
+              draggable={false}
+            />
+          ) : null
+        );
         return (
           <button
             key={option.value}
             type="button"
             className={`home-choice home-choice--${option.tone} ${
-              useArt ? "home-choice--art" : ""
-            } ${value === option.value ? "is-selected" : ""}`}
+              selected ? "is-selected" : ""
+            }`}
             role="radio"
-            aria-checked={value === option.value}
+            aria-checked={selected}
             aria-label={option.label}
             disabled={option.disabled}
             onClick={() => onChange(option.value)}
           >
-            {useArt ? (
-              <img
-                className="home-choice__art"
-                src={assetUrl(option.image!)}
-                alt=""
-                draggable={false}
-              />
-            ) : (
-              <>
-                <span className="home-choice__icon" aria-hidden="true">
-                  {option.icon}
-                </span>
-                <span className="home-choice__label">{option.label}</span>
-              </>
-            )}
+            {selected ? (
+              <span className="home-choice__check" aria-hidden="true">
+                ✓
+              </span>
+            ) : null}
+            {icon ? (
+              <span className="home-choice__icon" aria-hidden="true">
+                {icon}
+              </span>
+            ) : null}
+            <span className="home-choice__label">{option.label}</span>
             {option.disabled ? (
               <small className="home-choice__soon">{option.unavailableLabel ?? "Пока нельзя"}</small>
             ) : null}

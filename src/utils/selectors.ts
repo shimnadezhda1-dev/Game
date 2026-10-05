@@ -5,6 +5,7 @@ import {
   PictureExampleEntry,
   ProgressState
 } from "../types";
+import { PICTURE_SKIP_LETTER_IDS } from "../audio/letterFolders";
 import { LETTER_GROUPS, LETTERS } from "../data/letters";
 
 export function shuffle<T>(items: T[]): T[] {
@@ -27,13 +28,12 @@ export function getLetterStats(
   return stats[letterId] ?? emptyStats();
 }
 
-export function unlockedLetters(progress: ProgressState, letters: LetterItem[] = LETTERS): LetterItem[] {
-  const maxGroup = Math.max(0, progress.unlockedGroupIndex);
-  const pool = letters.filter((letter) => letter.contentReady && letter.group <= maxGroup);
+export function unlockedLetters(_progress: ProgressState, letters: LetterItem[] = LETTERS): LetterItem[] {
+  const pool = letters.filter((letter) => letter.contentReady);
   if (pool.length) {
     return pool;
   }
-  return letters.filter((letter) => letter.contentReady).slice(0, 3);
+  return letters.slice(0, 3);
 }
 
 export function isLetterMastered(progress: ProgressState, letterId: string): boolean {
@@ -208,6 +208,170 @@ export function buildPictureRoundOptions(
       example.pictureEligible &&
       example.allowedAsDistractor &&
       normalizedInitial(example.word) !== targetUpper
+  );
+  const available = distractors.length + 1;
+  if (available < count) {
+    return { ok: false, requested: count, available };
+  }
+
+  const picked = shuffle(distractors).slice(0, count - 1);
+  return {
+    ok: true,
+    options: shuffle([targetExample.id, ...picked.map((example) => example.id)]),
+    correctOptionId: targetExample.id,
+    targetExample
+  };
+}
+
+function specialExamplesAsPictureEntries(
+  letter: Pick<LetterItem, "id" | "upper" | "specialExamples" | "contentReady">
+): PictureExampleEntry[] {
+  return (letter.specialExamples ?? [])
+    .filter((example) => Boolean(example.word.trim()) && Boolean(example.image.trim()))
+    .map((example) => ({
+      id: example.id,
+      word: example.word,
+      image: example.image,
+      pictureEligible: true,
+      allowedAsTarget: true,
+      allowedAsDistractor: false,
+      letterId: letter.id,
+      letterUpper: letter.upper,
+      letterContentReady: letter.contentReady
+    }));
+}
+
+function normalizeRuWord(word: string): string {
+  return word.trim().toLocaleLowerCase("ru-RU");
+}
+
+export function wordContainsHardSign(word: string): boolean {
+  return normalizeRuWord(word).includes("ъ");
+}
+
+export function wordContainsYery(word: string): boolean {
+  return normalizeRuWord(word).includes("ы");
+}
+
+export function wordContainsSoftSign(word: string): boolean {
+  return normalizeRuWord(word).includes("ь");
+}
+
+export function wordContainsListenSpecialMark(word: string, letterId: string): boolean {
+  if (letterId === "Hard") {
+    return wordContainsHardSign(word);
+  }
+  if (letterId === "Yery") {
+    return wordContainsYery(word);
+  }
+  if (letterId === "Soft") {
+    return wordContainsSoftSign(word);
+  }
+  return false;
+}
+
+function warnListenSpecial(message: string, extra?: unknown): void {
+  if (import.meta.env.DEV) {
+    console.warn(`[listen-special] ${message}`, extra ?? "");
+  }
+}
+
+function buildSpecialListenRoundOptions(
+  targetId: string,
+  bank: PictureExampleEntry[],
+  count: OptionCount,
+  previousTargetExampleId?: string
+): PictureRoundOptionsResult {
+  const matches = (word: string) => wordContainsListenSpecialMark(word, targetId);
+  const targetCandidates = bank.filter(
+    (example) => example.letterId === targetId && example.pictureEligible && matches(example.word)
+  );
+  const preferredTargets =
+    targetCandidates.length > 1 && previousTargetExampleId
+      ? targetCandidates.filter((example) => example.id !== previousTargetExampleId)
+      : targetCandidates;
+  const targetExample = shuffle(preferredTargets.length ? preferredTargets : targetCandidates)[0];
+
+  if (!targetExample || !matches(targetExample.word)) {
+    warnListenSpecial(`${targetId}: no correct target word containing the special mark`);
+    return { ok: false, requested: count, available: 0 };
+  }
+
+  const distractors = bank.filter(
+    (example) =>
+      example.id !== targetExample.id &&
+      example.image !== targetExample.image &&
+      example.pictureEligible &&
+      !matches(example.word)
+  );
+  if (distractors.length < count - 1) {
+    warnListenSpecial(`${targetId}: not enough safe distractors`, {
+      needed: count - 1,
+      available: distractors.length
+    });
+    return { ok: false, requested: count, available: distractors.length + 1 };
+  }
+
+  const picked = shuffle(distractors).slice(0, count - 1);
+  const chosen = [targetExample, ...picked];
+  const matchingOptionCount = chosen.filter((example) => matches(example.word)).length;
+  if (matchingOptionCount !== 1) {
+    warnListenSpecial(`${targetId}: ambiguous option set`, {
+      matchingOptionCount,
+      words: chosen.map((example) => example.word)
+    });
+    return { ok: false, requested: count, available: matchingOptionCount };
+  }
+
+  return {
+    ok: true,
+    options: shuffle(chosen.map((example) => example.id)),
+    correctOptionId: targetExample.id,
+    targetExample
+  };
+}
+
+/** Listen-and-choose-picture: ordinary letters by initial; Ъ/Ы/Ь by mark-in-word. */
+export function buildListenRoundOptions(
+  target: Pick<LetterItem, "id" | "upper" | "specialExamples" | "contentReady">,
+  examples: readonly PictureExampleEntry[],
+  letters: readonly Pick<LetterItem, "id" | "upper" | "specialExamples" | "contentReady">[],
+  count: OptionCount,
+  previousTargetExampleId?: string
+): PictureRoundOptionsResult {
+  const bank = uniquePictureExamples([
+    ...examples,
+    ...letters.flatMap(specialExamplesAsPictureEntries)
+  ]);
+
+  if (PICTURE_SKIP_LETTER_IDS.has(target.id)) {
+    return buildSpecialListenRoundOptions(target.id, bank, count, previousTargetExampleId);
+  }
+
+  const byLetter = bank.filter(
+    (example) => example.letterId === target.id && example.allowedAsTarget && example.pictureEligible
+  );
+  const matchingInitial = byLetter.filter(
+    (example) => normalizedInitial(example.word) === target.upper
+  );
+  const targetExamples = matchingInitial.length > 0 ? matchingInitial : byLetter;
+  const preferredTargets =
+    targetExamples.length > 1 && previousTargetExampleId
+      ? targetExamples.filter((example) => example.id !== previousTargetExampleId)
+      : targetExamples;
+  const targetExample = shuffle(preferredTargets)[0];
+
+  if (!targetExample) {
+    return { ok: false, requested: count, available: 0 };
+  }
+
+  const distractors = bank.filter(
+    (example) =>
+      example.id !== targetExample.id &&
+      example.image !== targetExample.image &&
+      example.pictureEligible &&
+      example.allowedAsDistractor &&
+      example.letterId !== target.id
   );
   const available = distractors.length + 1;
   if (available < count) {

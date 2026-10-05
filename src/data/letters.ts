@@ -1,7 +1,52 @@
-import { LetterContent, LetterItem, LetterVoiceKind, PictureExample, SpecialExample } from "../types";
+import { letterVoiceAssetPath, PICTURE_SKIP_LETTER_IDS } from "../audio/letterFolders";
+import {
+  EligibleActivity,
+  LetterAudio,
+  LetterContent,
+  LetterItem,
+  LetterVoiceKind,
+  PictureExample,
+  SpecialExample
+} from "../types";
 import { letterIntroSpeech } from "../utils/letterCopy";
 
 const ALL_ACTIVITIES = ["learn", "find", "picture", "listen"] as const;
+
+const DEFAULT_PRONUNCIATION: Record<string, string> = {
+  A: "а",
+  B: "бэ",
+  V: "вэ",
+  G: "гэ",
+  D: "дэ",
+  E: "е",
+  Yo: "ё",
+  Zh: "жэ",
+  Z: "зэ",
+  I: "и",
+  J: "й",
+  K: "ка",
+  L: "эль",
+  M: "эм",
+  N: "эн",
+  O: "о",
+  P: "пэ",
+  R: "эр",
+  S: "эс",
+  T: "тэ",
+  U: "у",
+  F: "эф",
+  Kh: "ха",
+  Ts: "цэ",
+  Ch: "че",
+  Sh: "ша",
+  Shch: "ща",
+  Hard: "твёрдый знак",
+  Yery: "ы",
+  Soft: "мягкий знак",
+  Eh: "э",
+  Yu: "ю",
+  Ya: "я"
+};
 
 function audioClip(kind: LetterVoiceKind, letterId: string) {
   const key = `${kind}-${letterId.toLowerCase()}`;
@@ -49,7 +94,57 @@ function letterEntry(letter: LetterContent): LetterItem {
   };
 }
 
-export const LETTER_CONTENT: LetterContent[] = [
+function ruAudio(kind: LetterVoiceKind, letterId: string) {
+  const path = letterVoiceAssetPath(kind, letterId);
+  return path
+    ? {
+        key: `${kind}-${letterId.toLowerCase()}`,
+        path
+      }
+    : undefined;
+}
+
+function finalizeLetterContent(letter: LetterContent): LetterContent {
+  const primaryPicture = letter.pictureExamples?.find(
+    (example) => example.pictureEligible && example.allowedAsTarget
+  );
+  const primaryImage =
+    letter.images?.object ??
+    letter.images?.picture ??
+    primaryPicture?.image ??
+    letter.specialExamples?.[0]?.image;
+  const skipPicture = PICTURE_SKIP_LETTER_IDS.has(letter.id) || !primaryPicture;
+  const eligibleActivities: EligibleActivity[] = skipPicture
+    ? ["learn", "find", "listen"]
+    : [...ALL_ACTIVITIES];
+  const audio: LetterAudio = {
+    letter: letter.audio?.letter ?? ruAudio("letter", letter.id),
+    find: letter.audio?.find ?? ruAudio("find", letter.id),
+    correct: letter.audio?.correct ?? ruAudio("correct", letter.id),
+    listen: letter.audio?.listen ?? ruAudio("listen", letter.id),
+    reward: letter.audio?.reward ?? ruAudio("reward", letter.id)
+  };
+  if (!skipPicture) {
+    audio.picture = letter.audio?.picture ?? ruAudio("picture", letter.id);
+  }
+
+  return {
+    ...letter,
+    contentReady: true,
+    eligibleActivities,
+    images: {
+      ...letter.images,
+      object: letter.images?.object ?? primaryImage,
+      findObject: letter.images?.findObject ?? letter.images?.object ?? primaryImage,
+      picture: letter.images?.picture ?? primaryPicture?.image ?? primaryImage,
+      card: letter.images?.card ?? primaryImage
+    },
+    audio,
+    pronunciation: letter.pronunciation ?? DEFAULT_PRONUNCIATION[letter.id] ?? letter.lower
+  };
+}
+
+const RAW_LETTER_CONTENT: LetterContent[] = [
   {
     id: "A",
     upper: "А",
@@ -271,14 +366,20 @@ export const LETTER_CONTENT: LetterContent[] = [
       pictureExample("E-raccoon", "Енот", "/assets/picture/raccoon.webp"),
       pictureExample("E-unicorn", "Единорог", "/assets/picture/unicorn.webp"),
       pictureExample("E-blackberry", "Ежевика", "/assets/picture/blackberry.webp")
-    ]
+    ],
+    images: {
+      glyph: "/assets/letters/E.webp",
+      object: "/assets/picture/raccoon.webp",
+      findObject: "/assets/picture/raccoon.webp",
+      picture: "/assets/picture/raccoon.webp"
+    },
+    pronunciation: "е"
   },
   {
     id: "Yo",
     upper: "Ё",
     lower: "ё",
-    word: "",
-    needsContent: true,
+    word: "Ёж",
     difficulty: 2,
     group: 2,
     contentReady: false,
@@ -287,7 +388,14 @@ export const LETTER_CONTENT: LetterContent[] = [
       pictureExample("Yo-hedgehog", "Ёж", "/assets/picture/hedgehog.webp"),
       pictureExample("Yo-christmas-tree", "Ёлка", "/assets/picture/christmas-tree.webp"),
       pictureExample("Yo-brush", "Ёршик", "/assets/picture/brush.webp")
-    ]
+    ],
+    images: {
+      glyph: "/assets/letters/Yo.webp",
+      object: "/assets/picture/hedgehog.webp",
+      findObject: "/assets/picture/hedgehog.webp",
+      picture: "/assets/picture/hedgehog.webp"
+    },
+    pronunciation: "ё"
   },
   {
     id: "Zh",
@@ -302,7 +410,10 @@ export const LETTER_CONTENT: LetterContent[] = [
       pictureExample("Zh-beetle", "Жук", "/assets/picture/beetle.webp"),
       pictureExample("Zh-giraffe", "Жираф", "/assets/picture/giraffe.webp"),
       pictureExample("Zh-acorn", "Желудь", "/assets/picture/acorn.webp")
-    ]
+    ],
+    images: {
+      glyph: "/assets/letters/Zh.webp"
+    }
   },
   {
     id: "Z",
@@ -317,7 +428,10 @@ export const LETTER_CONTENT: LetterContent[] = [
       pictureExample("Z-hare", "Заяц", "/assets/picture/hare.webp"),
       pictureExample("Z-umbrella", "Зонт", "/assets/picture/umbrella.webp"),
       pictureExample("Z-zebra", "Зебра", "/assets/picture/zebra.webp")
-    ]
+    ],
+    images: {
+      glyph: "/assets/letters/Z.webp"
+    }
   },
   {
     id: "I",
@@ -332,7 +446,10 @@ export const LETTER_CONTENT: LetterContent[] = [
       pictureExample("I-turkey", "Индюк", "/assets/picture/turkey.webp"),
       pictureExample("I-needle", "Игла", "/assets/picture/needle.webp"),
       pictureExample("I-toys", "Игрушки", "/assets/picture/toys.webp")
-    ]
+    ],
+    images: {
+      glyph: "/assets/letters/I.webp"
+    }
   },
   {
     id: "J",
@@ -348,7 +465,10 @@ export const LETTER_CONTENT: LetterContent[] = [
       pictureExample("J-yogurt", "Йогурт", "/assets/picture/yogurt.webp"),
       pictureExample("J-yogi", "Йог", "/assets/picture/yogi.webp"),
       pictureExample("J-iodine", "Йод", "/assets/picture/iodine.webp")
-    ]
+    ],
+    images: {
+      glyph: "/assets/letters/J.webp"
+    }
   },
   {
     id: "K",
@@ -363,7 +483,10 @@ export const LETTER_CONTENT: LetterContent[] = [
       pictureExample("K-cat", "Кот", "/assets/picture/cat.webp"),
       pictureExample("K-ship", "Корабль", "/assets/picture/ship.webp"),
       pictureExample("K-doll", "Кукла", "/assets/picture/doll.webp")
-    ]
+    ],
+    images: {
+      glyph: "/assets/letters/K.webp"
+    }
   },
   {
     id: "L",
@@ -378,7 +501,10 @@ export const LETTER_CONTENT: LetterContent[] = [
       pictureExample("L-lion", "Лев", "/assets/picture/lion.webp"),
       pictureExample("L-lemon", "Лимон", "/assets/picture/lemon.webp"),
       pictureExample("L-spoon", "Ложка", "/assets/picture/spoon.webp")
-    ]
+    ],
+    images: {
+      glyph: "/assets/letters/L.webp"
+    }
   },
   {
     id: "M",
@@ -393,13 +519,16 @@ export const LETTER_CONTENT: LetterContent[] = [
       pictureExample("M-ball", "Мяч", "/assets/picture/ball.webp"),
       pictureExample("M-car", "Машина", "/assets/picture/car.webp"),
       pictureExample("M-carrot", "Морковь", "/assets/picture/carrot.webp")
-    ]
+    ],
+    images: {
+      glyph: "/assets/letters/M.webp"
+    }
   },
   {
     id: "N",
     upper: "Н",
     lower: "н",
-    word: "Нос",
+    word: "Носорог",
     difficulty: 2,
     group: 2,
     contentReady: false,
@@ -408,7 +537,10 @@ export const LETTER_CONTENT: LetterContent[] = [
       pictureExample("N-rhino", "Носорог", "/assets/picture/rhino.webp"),
       pictureExample("N-scissors", "Ножницы", "/assets/picture/scissors.webp"),
       pictureExample("N-sock", "Носок", "/assets/picture/sock.webp")
-    ]
+    ],
+    images: {
+      glyph: "/assets/letters/N.webp"
+    }
   },
   {
     id: "O",
@@ -423,7 +555,10 @@ export const LETTER_CONTENT: LetterContent[] = [
       pictureExample("O-donkey", "Осёл", "/assets/picture/donkey.webp"),
       pictureExample("O-cloud", "Облако", "/assets/picture/cloud.webp"),
       pictureExample("O-cucumber", "Огурец", "/assets/picture/cucumber.webp")
-    ]
+    ],
+    images: {
+      glyph: "/assets/letters/O.webp"
+    }
   },
   {
     id: "P",
@@ -438,7 +573,10 @@ export const LETTER_CONTENT: LetterContent[] = [
       pictureExample("P-penguin", "Пингвин", "/assets/picture/penguin.webp"),
       pictureExample("P-rooster", "Петух", "/assets/picture/rooster.webp"),
       pictureExample("P-parrot", "Попугай", "/assets/picture/parrot.webp")
-    ]
+    ],
+    images: {
+      glyph: "/assets/letters/P.webp"
+    }
   },
   {
     id: "R",
@@ -453,7 +591,10 @@ export const LETTER_CONTENT: LetterContent[] = [
       pictureExample("R-fish", "Рыба", "/assets/picture/fish.webp"),
       pictureExample("R-rocket", "Ракета", "/assets/picture/rocket.webp"),
       pictureExample("R-robot", "Робот", "/assets/picture/robot.webp")
-    ]
+    ],
+    images: {
+      glyph: "/assets/letters/R.webp"
+    }
   },
   {
     id: "S",
@@ -468,7 +609,10 @@ export const LETTER_CONTENT: LetterContent[] = [
       pictureExample("S-elephant", "Слон", "/assets/picture/elephant.webp"),
       pictureExample("S-dog", "Собака", "/assets/picture/dog.webp"),
       pictureExample("S-airplane", "Самолёт", "/assets/picture/airplane.webp")
-    ]
+    ],
+    images: {
+      glyph: "/assets/letters/S.webp"
+    }
   },
   {
     id: "T",
@@ -483,7 +627,10 @@ export const LETTER_CONTENT: LetterContent[] = [
       pictureExample("T-tiger", "Тигр", "/assets/picture/tiger.webp"),
       pictureExample("T-tractor", "Трактор", "/assets/picture/tractor.webp"),
       pictureExample("T-cake", "Торт", "/assets/picture/cake.webp")
-    ]
+    ],
+    images: {
+      glyph: "/assets/letters/T.webp"
+    }
   },
   {
     id: "U",
@@ -498,7 +645,10 @@ export const LETTER_CONTENT: LetterContent[] = [
       pictureExample("U-duck", "Утка", "/assets/picture/duck.webp"),
       pictureExample("U-snail", "Улитка", "/assets/picture/snail.webp"),
       pictureExample("U-iron", "Утюг", "/assets/picture/iron.webp")
-    ]
+    ],
+    images: {
+      glyph: "/assets/letters/U.webp"
+    }
   },
   {
     id: "F",
@@ -513,7 +663,10 @@ export const LETTER_CONTENT: LetterContent[] = [
       pictureExample("F-camera", "Фотоаппарат", "/assets/picture/camera.webp"),
       pictureExample("F-lantern", "Фонарь", "/assets/picture/lantern.webp"),
       pictureExample("F-flamingo", "Фламинго", "/assets/picture/flamingo.webp")
-    ]
+    ],
+    images: {
+      glyph: "/assets/letters/F.webp"
+    }
   },
   {
     id: "Kh",
@@ -528,7 +681,10 @@ export const LETTER_CONTENT: LetterContent[] = [
       pictureExample("Kh-hamster", "Хомяк", "/assets/picture/hamster.webp"),
       pictureExample("Kh-bread", "Хлеб", "/assets/picture/bread.webp"),
       pictureExample("Kh-fridge", "Холодильник", "/assets/picture/fridge.webp")
-    ]
+    ],
+    images: {
+      glyph: "/assets/letters/Kh.webp"
+    }
   },
   {
     id: "Ts",
@@ -543,7 +699,10 @@ export const LETTER_CONTENT: LetterContent[] = [
       pictureExample("Ts-chick", "Цыплёнок", "/assets/picture/chick.webp"),
       pictureExample("Ts-heron", "Цапля", "/assets/picture/heron.webp"),
       pictureExample("Ts-flower", "Цветок", "/assets/picture/flower.webp")
-    ]
+    ],
+    images: {
+      glyph: "/assets/letters/Ts.webp"
+    }
   },
   {
     id: "Ch",
@@ -558,7 +717,10 @@ export const LETTER_CONTENT: LetterContent[] = [
       pictureExample("Ch-teapot", "Чайник", "/assets/picture/teapot.webp"),
       pictureExample("Ch-clock", "Часы", "/assets/picture/clock.webp"),
       pictureExample("Ch-turtle", "Черепаха", "/assets/picture/turtle.webp")
-    ]
+    ],
+    images: {
+      glyph: "/assets/letters/Ch.webp"
+    }
   },
   {
     id: "Sh",
@@ -573,7 +735,10 @@ export const LETTER_CONTENT: LetterContent[] = [
       pictureExample("Sh-balloon", "Шар", "/assets/picture/balloon.webp"),
       pictureExample("Sh-hat", "Шапка", "/assets/picture/hat.webp"),
       pictureExample("Sh-wardrobe", "Шкаф", "/assets/picture/wardrobe.webp")
-    ]
+    ],
+    images: {
+      glyph: "/assets/letters/Sh.webp"
+    }
   },
   {
     id: "Shch",
@@ -588,7 +753,10 @@ export const LETTER_CONTENT: LetterContent[] = [
       pictureExample("Shch-pike", "Щука", "/assets/picture/pike.webp"),
       pictureExample("Shch-toothbrush", "Щётка", "/assets/picture/toothbrush.webp"),
       pictureExample("Shch-shield", "Щит", "/assets/picture/shield.webp")
-    ]
+    ],
+    images: {
+      glyph: "/assets/letters/Shch.webp"
+    }
   },
   {
     id: "Hard",
@@ -603,7 +771,10 @@ export const LETTER_CONTENT: LetterContent[] = [
       specialExample("Hard-entrance", "Подъезд", "/assets/picture/entrance.webp", "Ъ", 3),
       specialExample("Hard-lift", "Подъёмник", "/assets/picture/lift-platform.webp", "Ъ", 3),
       specialExample("Hard-hug", "Объятие", "/assets/picture/hug.webp", "Ъ", 2)
-    ]
+    ],
+    images: {
+      glyph: "/assets/letters/Hard.webp"
+    }
   },
   {
     id: "Yery",
@@ -618,7 +789,10 @@ export const LETTER_CONTENT: LetterContent[] = [
       specialExample("Yery-cheese", "Сыр", "/assets/picture/cheese-y.webp", "Ы", 1),
       specialExample("Yery-fish", "Рыба", "/assets/picture/fish-y.webp", "Ы", 1),
       specialExample("Yery-pumpkin", "Тыква", "/assets/picture/pumpkin.webp", "Ы", 1)
-    ]
+    ],
+    images: {
+      glyph: "/assets/letters/Yery.webp"
+    }
   },
   {
     id: "Soft",
@@ -633,7 +807,10 @@ export const LETTER_CONTENT: LetterContent[] = [
       specialExample("Soft-horse", "Конь", "/assets/picture/horse-soft.webp", "Ь", 3),
       specialExample("Soft-goose", "Гусь", "/assets/picture/goose-soft.webp", "Ь", 3),
       specialExample("Soft-moose", "Лось", "/assets/picture/moose.webp", "Ь", 3)
-    ]
+    ],
+    images: {
+      glyph: "/assets/letters/Soft.webp"
+    }
   },
   {
     id: "Eh",
@@ -648,7 +825,10 @@ export const LETTER_CONTENT: LetterContent[] = [
       pictureExample("Eh-excavator", "Экскаватор", "/assets/picture/excavator.webp"),
       pictureExample("Eh-icecream", "Эскимо", "/assets/picture/icecream.webp"),
       pictureExample("Eh-screen", "Экран", "/assets/picture/screen.webp")
-    ]
+    ],
+    images: {
+      glyph: "/assets/letters/Eh.webp"
+    }
   },
   {
     id: "Yu",
@@ -663,7 +843,10 @@ export const LETTER_CONTENT: LetterContent[] = [
       pictureExample("Yu-spinning-top", "Юла", "/assets/picture/spinning-top.webp"),
       pictureExample("Yu-skirt", "Юбка", "/assets/picture/skirt.webp"),
       pictureExample("Yu-yunga", "Юнга", "/assets/picture/yunga.webp")
-    ]
+    ],
+    images: {
+      glyph: "/assets/letters/Yu.webp"
+    }
   },
   {
     id: "Ya",
@@ -678,9 +861,14 @@ export const LETTER_CONTENT: LetterContent[] = [
       pictureExample("Ya-apple", "Яблоко", "/assets/picture/apple.webp"),
       pictureExample("Ya-anchor", "Якорь", "/assets/picture/anchor.webp"),
       pictureExample("Ya-lizard", "Ящерица", "/assets/picture/lizard.webp")
-    ]
+    ],
+    images: {
+      glyph: "/assets/letters/Ya.webp"
+    }
   }
 ];
+
+export const LETTER_CONTENT: LetterContent[] = RAW_LETTER_CONTENT.map(finalizeLetterContent);
 
 export const LETTERS: LetterItem[] = LETTER_CONTENT.map(letterEntry);
 

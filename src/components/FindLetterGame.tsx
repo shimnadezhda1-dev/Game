@@ -1,18 +1,21 @@
 import { LetterItem, LetterStats, OptionCount } from "../types";
 import type { Point } from "../utils/point";
 import { letterVoiceKey } from "../audio/voiceCatalog";
+import { audioManager } from "../audio/AudioManager";
+import { playFindLetterPrompt } from "../audio/findLetterPrompt";
 import { GameStage } from "./GameStage";
 import { LetterHint } from "./LetterHint";
 import { LetterTile } from "./LetterTile";
 import { StageNav } from "./StageNav";
 import { useRound } from "../utils/useRound";
 import { assetUrl, ASSETS } from "../utils/assets";
-import { findLetterPrompt, letterChoiceSrc, letterGlyphSrc, letterObjectSrc } from "../utils/letterCopy";
+import { findLetterPrompt, letterGlyphSrc, letterObjectSrc } from "../utils/letterCopy";
 import { planFindColors } from "../utils/findColors";
 import { ToyLetter } from "./ToyLetter";
 import { HomeButton } from "./HomeButton";
 import { GameHudRight } from "./GameHudRight";
-import { useMemo } from "react";
+import { RestartActivityButton } from "./RestartActivityButton";
+import { useEffect, useMemo, useRef } from "react";
 
 interface FindLetterGameProps {
   letters: LetterItem[];
@@ -27,12 +30,14 @@ interface FindLetterGameProps {
   awaitNext?: boolean;
   stars?: number;
   onCorrect: (letterId: string, origin?: Point) => void;
+  onAfterSuccess?: () => Promise<void>;
   onMistake: (letterId: string) => void;
-  onSpeak: (text: string, options?: { key?: string; onEnd?: () => void }) => void;
+  onSpeak: (text: string, options?: { key?: string; path?: string; onEnd?: () => void }) => void;
   onBack: () => void;
   onPrev?: () => void;
   onStageNext?: () => void;
   onFinished?: () => boolean | void;
+  onRequestRestart?: () => void;
 }
 
 export function FindLetterGame({
@@ -47,12 +52,14 @@ export function FindLetterGame({
   awaitNext = false,
   stars = 0,
   onCorrect,
+  onAfterSuccess,
   onMistake,
   onSpeak,
   onBack,
   onPrev,
   onStageNext,
-  onFinished
+  onFinished,
+  onRequestRestart
 }: FindLetterGameProps) {
   const optionLetters = optionPool ?? letters;
   const lookupLetters = optionCatalog ?? optionLetters;
@@ -64,14 +71,69 @@ export function FindLetterGame({
     optionPool: optionLetters,
     awaitNext,
     onCorrect,
+    onAfterSuccess,
     onMistake,
     onSpeak,
     onFinished,
     speakPrompt: (item) => findLetterPrompt(item),
     speakKey: (item) => letterVoiceKey("find", item.id),
     praise: (item) => `Молодец! Это буква ${item.upper}!`,
-    praiseKey: (letter) => letterVoiceKey("correct", letter.id)
+    praiseKey: (letter) => letterVoiceKey("correct", letter.id),
+    playWrongSound: false,
+    autoSpeak: false
   });
+
+  const targetRef = useRef(round.target);
+  targetRef.current = round.target;
+  const phaseRef = useRef(round.phase);
+  phaseRef.current = round.phase;
+  const findGenRef = useRef(0);
+  const pauseTimerRef = useRef<number | null>(null);
+
+  function clearFindPause() {
+    if (pauseTimerRef.current !== null) {
+      window.clearTimeout(pauseTimerRef.current);
+      pauseTimerRef.current = null;
+    }
+  }
+
+  function pauseMs(ms: number): Promise<void> {
+    return new Promise((resolve) => {
+      pauseTimerRef.current = window.setTimeout(() => {
+        pauseTimerRef.current = null;
+        resolve();
+      }, ms);
+    });
+  }
+
+  function playFindLetterPromptForCurrent() {
+    if (phaseRef.current !== "question") {
+      return;
+    }
+    clearFindPause();
+    audioManager.stopSpeaking();
+    const generation = ++findGenRef.current;
+    const stillCurrent = () =>
+      generation === findGenRef.current && phaseRef.current === "question";
+    void playFindLetterPrompt(targetRef.current.id, stillCurrent, pauseMs);
+  }
+
+  useEffect(() => {
+    if (round.phase !== "question" || round.optionError) {
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      playFindLetterPromptForCurrent();
+    }, 50);
+    return () => {
+      window.clearTimeout(timer);
+      findGenRef.current += 1;
+      clearFindPause();
+      if (phaseRef.current === "question") {
+        audioManager.stopSpeaking();
+      }
+    };
+  }, [round.target.id, round.phase, round.optionError]);
 
   const bubble =
     round.phase === "feedback" ? "Молодец!" : prompt ?? `Найди букву ${round.target.upper}!`;
@@ -101,7 +163,7 @@ export function FindLetterGame({
         <GameHudRight stars={stars}>
           <button
             className="learn-sound"
-            onClick={round.replay}
+            onClick={playFindLetterPromptForCurrent}
             disabled={round.phase === "feedback"}
             aria-label="Прослушать"
           >
@@ -156,9 +218,7 @@ export function FindLetterGame({
               if (!letter) {
                 return null;
               }
-              const art = letterChoiceSrc(letter);
               const tone = colorPlan.buttonColors[id] ?? "pink";
-              const hueRotate = colorPlan.buttonHueRotates[id] ?? 0;
               const className = [
                 "find-choice",
                 round.selected === id && id !== round.target.id ? "is-wrong" : "",
@@ -176,20 +236,15 @@ export function FindLetterGame({
                   onClick={(event) => round.choose(id, event)}
                   aria-label={letter.upper}
                 >
-                  {art ? (
-                    <img
-                      src={assetUrl(art)}
-                      alt={letter.upper}
-                      draggable={false}
-                      style={{ filter: `hue-rotate(${hueRotate}deg)` }}
-                    />
-                  ) : (
-                    <span className={`find-choice-tile find-choice-tile-${tone}`}>{letter.upper}</span>
-                  )}
+                  <span className={`find-choice-tile find-choice-tile-${tone}`}>
+                    <span className="letterTileLabel">{letter.upper}</span>
+                  </span>
                 </button>
               );
             })}
           </div>
+
+          {onRequestRestart ? <RestartActivityButton onClick={onRequestRestart} /> : null}
         </div>
 
         <StageNav onPrev={onPrev} onNext={onStageNext} prevDest="learn" nextDest="picture" />
@@ -201,7 +256,7 @@ export function FindLetterGame({
     <GameStage
       foxMood={round.phase === "feedback" ? "celebrate" : "tip"}
       bubble={bubble}
-      onReplay={round.replay}
+      onReplay={playFindLetterPromptForCurrent}
       replayKey={round.target.id}
       replayDisabled={round.phase === "feedback"}
       onBack={onBack}
@@ -228,6 +283,7 @@ export function FindLetterGame({
           );
         })}
       </div>
+      {onRequestRestart ? <RestartActivityButton onClick={onRequestRestart} /> : null}
     </GameStage>
   );
 }

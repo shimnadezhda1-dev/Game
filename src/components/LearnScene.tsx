@@ -1,14 +1,46 @@
+import type { CSSProperties } from "react";
 import { LetterItem } from "../types";
+import { getToyLetterTheme } from "../data/letterRegistry";
 import { assetUrl, ASSETS } from "../utils/assets";
 import { letterGlyphSrc, letterIntroLines, letterObjectSrc } from "../utils/letterCopy";
-import { ToyLetter } from "./ToyLetter";
 
 interface LearnSceneProps {
   letter: LetterItem;
 }
 
+/** A–D glyphs are tightly cropped portraits and stay on the original baseline. */
+const TIGHT_LEARN_GLYPH_IDS = new Set(["A", "B", "V", "G", "D"]);
+
+function LearnLetterGlyph({ letter }: { letter: LetterItem }) {
+  const glyphSrc = letterGlyphSrc(letter);
+  if (glyphSrc) {
+    const tightCrop = TIGHT_LEARN_GLYPH_IDS.has(letter.id);
+    return (
+      <img
+        className={tightCrop ? "learn-letter-art" : "learn-letter-art learn-letter-art--square"}
+        src={assetUrl(glyphSrc)}
+        alt={letter.upper}
+        draggable={false}
+      />
+    );
+  }
+
+  const { palette } = getToyLetterTheme(letter.id);
+  const markStyle = {
+    "--learn-letter-light": palette.light,
+    "--learn-letter-mid": palette.mid,
+    "--learn-letter-dark": palette.dark,
+    "--learn-letter-shade": palette.shade
+  } as CSSProperties;
+
+  return (
+    <span className="learn-letter-mark" style={markStyle} data-letter={letter.upper} aria-hidden="true">
+      {letter.upper}
+    </span>
+  );
+}
+
 export function LearnScene({ letter }: LearnSceneProps) {
-  const letterSrc = letterGlyphSrc(letter);
   const objectSrc = letterObjectSrc(letter, "learn");
   const lines = letterIntroLines(letter);
 
@@ -30,16 +62,7 @@ export function LearnScene({ letter }: LearnSceneProps) {
         </div>
 
         <div className="learn-letter-area">
-          {letterSrc ? (
-            <img
-              className="learn-letter-art"
-              src={assetUrl(letterSrc)}
-              alt={letter.upper}
-              draggable={false}
-            />
-          ) : (
-            <ToyLetter letterId={letter.id} glyph={letter.upper} size="hero" />
-          )}
+          <LearnLetterGlyph letter={letter} />
         </div>
 
         <div className="learn-object-area">

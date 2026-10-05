@@ -3,7 +3,6 @@ import { HomeScreen } from "./components/HomeScreen";
 import { LearnLetters } from "./components/LearnLetters";
 import { FindLetterGame } from "./components/FindLetterGame";
 import { PictureLetterGame } from "./components/PictureLetterGame";
-import { ListenAndChooseGame } from "./components/ListenAndChooseGame";
 import { Progress } from "./components/Progress";
 import { RewardScreen } from "./components/RewardScreen";
 import { FlyingStar } from "./components/FlyingStar";
@@ -11,7 +10,9 @@ import { StarsScreen } from "./components/StarsScreen";
 import { AdventurePlay } from "./components/AdventurePlay";
 import { GameControls } from "./components/GameControls";
 import { LETTERS, contentReadyLetters } from "./data/letters";
-import { audioManager } from "./audio/AudioManager";
+import { audioManager, speakRussian, type SpeakOptions } from "./audio/AudioManager";
+import { bumpPlayFlow, flowLog } from "./audio/playFlow";
+import { resetListenInstruction } from "./audio/listenSession";
 import { backgroundMusic } from "./audio/BackgroundMusicManager";
 import {
   LetterCategory,
@@ -35,11 +36,57 @@ import {
   unlockedLetters
 } from "./utils/selectors";
 import { unlockRewardAtThreshold } from "./utils/rewards";
-import { getRewardById, REWARD_THRESHOLDS, RewardItem } from "./data/rewardCatalog";
-import { playLetterPool, letterAllowsActivity, filterLettersByCategory } from "./utils/playSettings";
+import { RewardItem } from "./data/rewardCatalog";
+import { ALPHABET_ACHIEVEMENT_ID, getStickerById, resolvedSticker } from "./data/stickerCatalog";
+import { stickerAssetExists } from "./data/stickerAssets";
+import {
+  addCompletedCycleLetter,
+  applyAlphabetAchievement,
+  isAlphabetCycleComplete,
+  startNewAlphabetAdventure,
+  uniqueIds,
+  uniqueNumbers
+} from "./utils/stickerLogic";
+import { StickersAlbumScreen } from "./components/StickersAlbumScreen";
+import { AlphabetCompleteScreen } from "./components/AlphabetCompleteScreen";
+import { playLetterPool, letterAllowsActivity, filterLettersByCategory, validPlayActivity, PLAY_ACTIVITIES } from "./utils/playSettings";
+import {
+  activityLetterId,
+  resetActivityLetter,
+  startLetterIdForActivity,
+  withActivityLetter
+} from "./utils/activityProgress";
 import { clampLearnAdvanceSeconds } from "./utils/learnAdvance";
 import { PlayerChooser } from "./components/PlayerChooser";
+import { RestartActivityConfirm } from "./components/RestartActivityConfirm";
 import { MusicControlProvider } from "./components/MusicControlContext";
+
+function VoiceDebugLine() {
+  const [path, setPath] = useState("");
+  const host = window.location.hostname;
+  const visible =
+    new URLSearchParams(window.location.search).has("voiceDebug") &&
+    (host === "127.0.0.1" || host === "localhost");
+
+  useEffect(() => {
+    if (!visible) {
+      return;
+    }
+    const timer = window.setInterval(() => {
+      setPath(audioManager.lastPlayedPath());
+    }, 250);
+    return () => window.clearInterval(timer);
+  }, [visible]);
+
+  if (!visible) {
+    return null;
+  }
+  return (
+    <p className="voice-debug-line" aria-hidden="true">
+      Current voice file: {path || "—"}
+    </p>
+  );
+}
 
 interface Flight {
   fromX: number;
@@ -48,20 +95,46 @@ interface Flight {
   toY: number;
 }
 
+function readLocalPreview(): { letterId: "E" | "Yo"; activity: PlayActivity } | null {
+  const host = window.location.hostname;
+  if (host !== "127.0.0.1" && host !== "localhost") {
+    return null;
+  }
+  const params = new URLSearchParams(window.location.search);
+  const letterId = params.get("previewLetter");
+  const activity = params.get("previewActivity");
+  if ((letterId !== "E" && letterId !== "Yo") || !validPlayActivity(activity)) {
+    return null;
+  }
+  return { letterId, activity };
+}
+
 function App() {
-  const [screen, setScreen] = useState<Screen>("home"); // never restored from localStorage
+  const preview = useMemo(() => readLocalPreview(), []);
+  const previewLetter = preview ? LETTERS.find((letter) => letter.id === preview.letterId) : undefined;
+  const [screen, setScreen] = useState<Screen>(preview ? "adventure" : "home"); // never restored from localStorage
   const [progress, setProgress] = useState<ProgressState>(() => loadProgress());
   const [activeReward, setActiveReward] = useState<{
     item: RewardItem;
     threshold: number;
   } | null>(null);
+  const [isCelebrating, setIsCelebrating] = useState(false);
   const [musicOn, setMusicOn] = useState(() => backgroundMusic.isEnabled());
   const [flight, setFlight] = useState<Flight | null>(null);
   const [bankPulse, setBankPulse] = useState(false);
   const [playEpoch, setPlayEpoch] = useState(0);
-  const [playerChooserOpen, setPlayerChooserOpen] = useState(true);
-  const previousUnlockedRewardsRef = useRef(progress.unlockedRewards);
+  const [resumeMode, setResumeMode] = useState<"fresh" | "continue">("continue");
+  const [restartConfirm, setRestartConfirm] = useState(false);
+  const [playerChooserOpen, setPlayerChooserOpen] = useState(() => !preview);
+  const pendingRewardRef = useRef<{
+    item: RewardItem;
+    threshold: number;
+  } | null>(null);
+  const rewardClosedRef = useRef<(() => void) | null>(null);
+  const celebratingRef = useRef(false);
+  const progressRef = useRef(progress);
   const starTimerRef = useRef<number | null>(null);
+  progressRef.current = progress;
 
   useEffect(() => {
     return backgroundMusic.subscribe(() => setMusicOn(backgroundMusic.isEnabled()));
@@ -82,18 +155,21 @@ function App() {
     [progress]
   );
   const adventureLetters = useMemo(
-    () => playLetterPool(contentReadyLetters(LETTERS), progress.letterCategory),
-    [progress.letterCategory]
-  );
-  const supportedOptionCounts = useMemo(() => availableOptionCounts(LETTERS), []);
-  const pickableLetters = useMemo(
     () =>
-      filterLettersByCategory(contentReadyLetters(LETTERS), progress.letterCategory).filter(
-        (letter) => letterAllowsActivity(letter, progress.playActivity)
+      playLetterPool(contentReadyLetters(LETTERS), progress.letterCategory).filter((letter) =>
+        letterAllowsActivity(letter, progress.playActivity)
       ),
     [progress.letterCategory, progress.playActivity]
   );
+  const supportedOptionCounts = useMemo(() => availableOptionCounts(LETTERS), []);
+  const pickableLetters = useMemo(
+    () => filterLettersByCategory(LETTERS, progress.letterCategory),
+    [progress.letterCategory]
+  );
   const currentPlayLetter =
+    adventureLetters.find(
+      (letter) => letter.id === activityLetterId(progress, progress.playActivity)
+    ) ??
     adventureLetters.find((letter) => letter.id === progress.selectedLetterId) ??
     adventureLetters[0];
   const glyphOptions = useMemo(
@@ -101,8 +177,12 @@ function App() {
     [progress.optionCount]
   );
   const pictureExamples = useMemo(() => pictureContentBank(LETTERS), []);
+  const learnCursorId = activityLetterId(progress, "learn");
   const learnLetter =
-    playLetters[progress.currentLearnIndex % playLetters.length] ?? playLetters[0] ?? LETTERS[0];
+    playLetters.find((letter) => letter.id === learnCursorId) ??
+    playLetters[progress.currentLearnIndex % playLetters.length] ??
+    playLetters[0] ??
+    LETTERS[0];
 
   useEffect(() => {
     audioManager.setEnabled(progress.soundEnabled);
@@ -124,27 +204,65 @@ function App() {
     };
   }, []);
 
-  const speak = useCallback((text: string, options?: { key?: string; onEnd?: () => void }) => {
-    audioManager.speak(text, options);
+  const speak = useCallback((text: string, options?: SpeakOptions) => {
+    if (celebratingRef.current) {
+      return;
+    }
+    speakRussian(text, options);
   }, []);
 
-  useEffect(() => {
-    const previous = previousUnlockedRewardsRef.current;
-    previousUnlockedRewardsRef.current = progress.unlockedRewards;
-    const newlyId = progress.unlockedRewards.find((id) => !previous.includes(id));
-    if (!newlyId) {
-      return;
+  const abortPlayFlow = useCallback(() => {
+    bumpPlayFlow();
+    audioManager.stopSpeaking();
+    if (starTimerRef.current !== null) {
+      window.clearTimeout(starTimerRef.current);
+      starTimerRef.current = null;
     }
-    const item = getRewardById(newlyId);
-    if (!item) {
-      return;
-    }
-    const threshold =
-      REWARD_THRESHOLDS[Math.max(0, progress.unlockedRewards.length - 1)] ??
-      REWARD_THRESHOLDS[0];
-    setActiveReward({ item, threshold });
-    speak("Ура! Новая наклейка!");
-  }, [progress.unlockedRewards, speak]);
+    pendingRewardRef.current = null;
+    celebratingRef.current = false;
+    setIsCelebrating(false);
+    setActiveReward(null);
+    const closeReward = rewardClosedRef.current;
+    rewardClosedRef.current = null;
+    closeReward?.();
+  }, []);
+
+  const waitForQueuedReward = useCallback(() => {
+    return Promise.resolve().then(() => {
+      const reward = pendingRewardRef.current;
+      pendingRewardRef.current = null;
+      if (!reward) {
+        return;
+      }
+      flowLog("REWARD OPEN");
+      celebratingRef.current = true;
+      setIsCelebrating(true);
+      setActiveReward(reward);
+      return new Promise<void>((resolve) => {
+        rewardClosedRef.current = () => {
+          flowLog("REWARD CLOSE");
+          celebratingRef.current = false;
+          setIsCelebrating(false);
+          setActiveReward(null);
+          resolve();
+        };
+      });
+    });
+  }, []);
+
+  function closeRewardOverlay() {
+    audioManager.stopSpeaking();
+    const closeReward = rewardClosedRef.current;
+    rewardClosedRef.current = null;
+    closeReward?.();
+  }
+
+  function enterAdventure() {
+    backgroundMusic.startFromGesture();
+    resetListenInstruction();
+    setPlayEpoch((epoch) => epoch + 1);
+    go("adventure");
+  }
 
   function startAdventure() {
     if (progress.playerPreference === null) {
@@ -153,18 +271,53 @@ function App() {
     if (!supportedOptionCounts.includes(progress.optionCount)) {
       return;
     }
-    backgroundMusic.startFromGesture();
-    setPlayEpoch((epoch) => epoch + 1);
-    go("adventure");
+    setResumeMode("continue");
+    enterAdventure();
+  }
+
+  function confirmRestartActivity() {
+    const activity = progress.playActivity;
+    if (activity === "learn") {
+      setRestartConfirm(false);
+      return;
+    }
+    const pool = playLetterPool(contentReadyLetters(LETTERS), progress.letterCategory).filter(
+      (letter) => letterAllowsActivity(letter, activity)
+    );
+    const startId = startLetterIdForActivity({
+      studyOrder: progress.studyOrder,
+      pool,
+      pickLetterId: progress.selectedLetterId
+    });
+    setProgress((prev) => resetActivityLetter(prev, activity, startId));
+    setResumeMode("fresh");
+    setRestartConfirm(false);
+    enterAdventure();
   }
 
   function go(next: Screen) {
-    audioManager.stopSpeaking();
+    abortPlayFlow();
+    flowLog("NAV", next);
     setPlayerChooserOpen(false);
+    setRestartConfirm(false);
     setScreen(next);
   }
 
   function addStar(letterId: string) {
+    const snapshot = progressRef.current;
+    const queued = unlockRewardAtThreshold(
+      snapshot.playerPreference,
+      snapshot.unlockedStickerIds,
+      snapshot.claimedMilestonesThisCycle,
+      snapshot.stars,
+      snapshot.stars + 1
+    );
+    if (queued) {
+      pendingRewardRef.current = {
+        item: queued.item,
+        threshold: queued.threshold
+      };
+    }
     setProgress((prev) => {
       const prevStats = getLetterStats(prev.letterStats, letterId);
       const nextStars = prev.stars + 1;
@@ -182,9 +335,22 @@ function App() {
           : prev.learnedLetterIds;
       const unlocked = unlockRewardAtThreshold(
         prev.playerPreference,
-        prev.unlockedRewards,
+        prev.unlockedStickerIds,
+        prev.claimedMilestonesThisCycle,
         prev.stars,
         nextStars
+      );
+      if (unlocked) {
+        pendingRewardRef.current = {
+          item: unlocked.item,
+          threshold: unlocked.threshold
+        };
+      }
+      const unlockedStickerIds = uniqueIds(
+        unlocked ? [...prev.unlockedStickerIds, unlocked.item.id] : prev.unlockedStickerIds
+      );
+      const claimedMilestonesThisCycle = uniqueNumbers(
+        unlocked ? [...prev.claimedMilestonesThisCycle, unlocked.threshold] : prev.claimedMilestonesThisCycle
       );
       const next: ProgressState = {
         ...prev,
@@ -193,9 +359,10 @@ function App() {
         letterStats: nextStats,
         mistakeCounts: prev.mistakeCounts,
         learnedLetterIds,
-        unlockedRewards: unlocked
-          ? Array.from(new Set([...prev.unlockedRewards, unlocked.item.id]))
-          : prev.unlockedRewards
+        unlockedStickerIds,
+        unlockedRewards: unlockedStickerIds,
+        claimedMilestonesThisCycle,
+        rewardedThresholds: claimedMilestonesThisCycle
       };
       next.unlockedGroupIndex = maybeUnlockNextGroup(next);
       return next;
@@ -205,7 +372,6 @@ function App() {
   }
 
   function markCorrect(letterId: string, origin?: Point) {
-    audioManager.playSuccess();
     const bank = document.getElementById("star-bank")?.getBoundingClientRect();
     const fromX = origin?.x ?? window.innerWidth / 2;
     const fromY = origin?.y ?? window.innerHeight / 2;
@@ -216,9 +382,9 @@ function App() {
       window.clearTimeout(starTimerRef.current);
     }
     starTimerRef.current = window.setTimeout(() => {
-      addStar(letterId);
       setFlight(null);
     }, 850);
+    addStar(letterId);
   }
 
   function markMistake(letterId: string) {
@@ -245,7 +411,18 @@ function App() {
   function nextLearnLetter() {
     setProgress((prev) => {
       const pool = unlockedLetters(prev);
-      return { ...prev, currentLearnIndex: (prev.currentLearnIndex + 1) % pool.length };
+      const currentId = activityLetterId(prev, "learn");
+      const currentIndex = Math.max(
+        0,
+        pool.findIndex((item) => item.id === currentId)
+      );
+      const nextIndex = (currentIndex + 1) % pool.length;
+      const nextId = pool[nextIndex]?.id ?? pool[0]?.id ?? "A";
+      return withActivityLetter(
+        { ...prev, currentLearnIndex: nextIndex },
+        "learn",
+        nextId
+      );
     });
   }
 
@@ -253,7 +430,13 @@ function App() {
     setProgress((prev) => {
       const pool = unlockedLetters(prev);
       const index = pool.findIndex((item) => item.id === id);
-      return { ...prev, currentLearnIndex: index >= 0 ? index : prev.currentLearnIndex };
+      const nextIndex = index >= 0 ? index : prev.currentLearnIndex;
+      const nextId = pool[nextIndex]?.id ?? id;
+      return withActivityLetter(
+        { ...prev, currentLearnIndex: nextIndex },
+        "learn",
+        nextId
+      );
     });
   }
 
@@ -286,23 +469,49 @@ function App() {
   }
 
   function setPlayActivity(playActivity: PlayActivity) {
-    if (!letterAllowsActivity(currentPlayLetter, playActivity)) {
+    if (["adventure", "learn", "find", "picture", "listen"].includes(screen)) {
+      const alreadyOnLearn =
+        playActivity === "learn" && progress.playActivity === "learn" && screen === "adventure";
+      if (playActivity === progress.playActivity && screen === "adventure" && !alreadyOnLearn) {
+        return;
+      }
+      setResumeMode("continue");
+      setProgress((prev) => ({ ...prev, playActivity }));
+      enterAdventure();
       return;
     }
     setProgress((prev) => ({ ...prev, playActivity }));
-    if (screen === "learn" || screen === "find" || screen === "picture" || screen === "listen") {
-      setPlayEpoch((epoch) => epoch + 1);
-      go("adventure");
-    }
+  }
+
+  function setPlayActivitySilent(playActivity: PlayActivity) {
+    setProgress((prev) => ({ ...prev, playActivity }));
   }
 
   function setStudyOrder(studyOrder: StudyOrder) {
-    setProgress((prev) => ({ ...prev, studyOrder }));
+    setProgress((prev) => {
+      if (prev.studyOrder === studyOrder) {
+        return prev;
+      }
+      const next = { ...prev, studyOrder };
+      if (studyOrder === "alpha") {
+        let updated = next;
+        for (const activity of PLAY_ACTIVITIES) {
+          const pool = playLetterPool(contentReadyLetters(LETTERS), prev.letterCategory).filter((item) =>
+            letterAllowsActivity(item, activity)
+          );
+          updated = withActivityLetter(updated, activity, pool[0]?.id ?? "A");
+        }
+        return updated;
+      }
+      return next;
+    });
   }
 
   function setLetterCategory(letterCategory: LetterCategory) {
     setProgress((prev) => {
-      const pool = playLetterPool(contentReadyLetters(LETTERS), letterCategory);
+      const pool = playLetterPool(contentReadyLetters(LETTERS), letterCategory).filter((letter) =>
+        letterAllowsActivity(letter, prev.playActivity)
+      );
       const selectedLetterId = pool.some((letter) => letter.id === prev.selectedLetterId)
         ? prev.selectedLetterId
         : pool[0]?.id ?? prev.selectedLetterId;
@@ -317,10 +526,8 @@ function App() {
     }));
   }
 
-  const setCurrentLetterId = useCallback((selectedLetterId: string) => {
-    setProgress((prev) =>
-      prev.selectedLetterId === selectedLetterId ? prev : { ...prev, selectedLetterId }
-    );
+  const setCurrentLetterId = useCallback((letterId: string, activity?: PlayActivity) => {
+    setProgress((prev) => withActivityLetter(prev, activity ?? prev.playActivity, letterId));
   }, []);
 
   function setSelectedLetter(selectedLetterId: string) {
@@ -338,17 +545,70 @@ function App() {
     });
   }
 
+  function onAlphabetLetterFinished(letterId: string): boolean {
+    const snapshot = progressRef.current;
+    if (snapshot.studyOrder !== "alpha") {
+      return false;
+    }
+    const nextLetters = addCompletedCycleLetter(snapshot.completedLettersThisCycle, letterId);
+    const justCompleted = isAlphabetCycleComplete(nextLetters) && !snapshot.alphabetCycleCompleted;
+    setProgress((prev) => {
+      if (prev.studyOrder !== "alpha") {
+        return prev;
+      }
+      const letters = addCompletedCycleLetter(prev.completedLettersThisCycle, letterId);
+      const done = isAlphabetCycleComplete(letters) && !prev.alphabetCycleCompleted;
+      const next = { ...prev, completedLettersThisCycle: letters };
+      if (!done) {
+        return next;
+      }
+      return applyAlphabetAchievement({
+        ...next,
+        alphabetCycleCompleted: true,
+        completedAlphabetCycles: prev.completedAlphabetCycles + 1
+      });
+    });
+    return justCompleted;
+  }
+
+  function setFavoriteSticker(id: string) {
+    setProgress((prev) => {
+      if (!prev.unlockedStickerIds.includes(id)) {
+        return prev;
+      }
+      return { ...prev, favoriteStickerId: id };
+    });
+  }
+
+  function startNewAdventureFromComplete() {
+    setProgress((prev) => startNewAlphabetAdventure(prev));
+    go("home");
+  }
+
   const backToHub = () => go("modeSelect");
   const backHome = () => go("home");
+  const favoriteItem = progress.favoriteStickerId
+    ? getStickerById(progress.favoriteStickerId)
+    : undefined;
+  const favoriteResolved = favoriteItem ? resolvedSticker(favoriteItem) : undefined;
+  const favoriteStickerSrc =
+    favoriteResolved && stickerAssetExists(favoriteResolved.asset)
+      ? assetUrl(favoriteResolved.asset ?? "")
+      : null;
 
   function renderScreen() {
     switch (screen) {
       case "home":
         return (
           <HomeScreen
-            onGoLearn={() => go("learn")}
+            onGoLearn={() => {
+              setProgress((prev) => ({ ...prev, playActivity: "learn" }));
+              setResumeMode("continue");
+              enterAdventure();
+            }}
             onPlayGames={startAdventure}
             onOpenStars={() => go("stars")}
+            onOpenStickers={() => go("stickers")}
             onSpeak={speak}
             onToggleMusic={toggleMusic}
             musicOn={musicOn}
@@ -366,6 +626,7 @@ function App() {
             onSelectedLetterChange={setSelectedLetter}
             foxCelebrate={progress.stars >= 20}
             playerPreference={progress.playerPreference}
+            favoriteStickerSrc={favoriteStickerSrc}
             onOpenPlayerChooser={() => setPlayerChooserOpen(true)}
           />
         );
@@ -374,23 +635,36 @@ function App() {
         return (
           <AdventurePlay
             key={playEpoch}
-            letters={adventureLetters}
+            letters={previewLetter ? [previewLetter] : adventureLetters}
             optionCatalog={LETTERS}
             optionCount={progress.optionCount}
             stats={progress.letterStats}
             progress={progress}
-            startActivity={progress.playActivity}
-            studyOrder={progress.studyOrder}
-            selectedLetterId={progress.selectedLetterId}
-            onCorrect={markCorrect}
-            onMistake={markMistake}
+            startActivity={preview?.activity ?? progress.playActivity}
+            studyOrder={previewLetter ? "pick" : progress.studyOrder}
+            selectedLetterId={previewLetter?.id ?? progress.selectedLetterId}
+            resumeLetterId={
+              previewLetter?.id ??
+              activityLetterId(progress, preview?.activity ?? progress.playActivity)
+            }
+            resumeMode={previewLetter ? "continue" : resumeMode}
+            onCorrect={previewLetter ? () => undefined : markCorrect}
+            onAfterSuccess={previewLetter ? undefined : waitForQueuedReward}
+            onMistake={previewLetter ? () => undefined : markMistake}
             onSpeak={speak}
+            audioEntryKey={playEpoch}
             onBack={backHome}
-            onLetterMastered={onLetterMastered}
-            onPlayActivityChange={setPlayActivity}
-            onCurrentLetterChange={setCurrentLetterId}
+            onLetterMastered={previewLetter ? () => undefined : onLetterMastered}
+            onAlphabetLetterFinished={previewLetter ? undefined : onAlphabetLetterFinished}
+            onPlayActivityChange={previewLetter ? () => undefined : setPlayActivitySilent}
+            onCurrentLetterChange={previewLetter ? () => undefined : setCurrentLetterId}
             learnAdvanceSeconds={progress.learnAdvanceSeconds}
-            onLearnAdvanceSecondsChange={setLearnAdvanceSeconds}
+            onLearnAdvanceSecondsChange={previewLetter ? undefined : setLearnAdvanceSeconds}
+            onRequestRestart={
+              previewLetter
+                ? undefined
+                : () => setRestartConfirm(true)
+            }
           />
         );
       case "learn":
@@ -410,7 +684,8 @@ function App() {
               progress.studyOrder !== "pick" ? setLearnAdvanceSeconds : undefined
             }
             onGoNextActivity={() => {
-              setPlayActivity("find");
+              setPlayActivitySilent("find");
+              enterAdventure();
             }}
             allowLetterSkip={progress.studyOrder !== "pick"}
           />
@@ -424,14 +699,17 @@ function App() {
             optionCatalog={LETTERS}
             stats={progress.letterStats}
             onCorrect={markCorrect}
+            onAfterSuccess={waitForQueuedReward}
             onMistake={markMistake}
             onSpeak={speak}
             onBack={backToHub}
+            onRequestRestart={() => setRestartConfirm(true)}
           />
         );
       case "picture":
         return (
           <PictureLetterGame
+            key="standalone-picture"
             letters={playLetters}
             optionCount={progress.optionCount}
             pictureBank={pictureExamples}
@@ -439,37 +717,55 @@ function App() {
             trailStep={progress.stars % 5}
             stars={progress.stars}
             onCorrect={markCorrect}
+            onAfterSuccess={waitForQueuedReward}
             onMistake={markMistake}
             onSpeak={speak}
             onBack={backToHub}
+            onRequestRestart={() => setRestartConfirm(true)}
           />
         );
       case "listen":
         return (
-          <ListenAndChooseGame
+          <PictureLetterGame
+            key="standalone-listen"
             letters={playLetters}
             optionCount={progress.optionCount}
-            optionPool={glyphOptions}
-            optionCatalog={LETTERS}
+            pictureBank={pictureExamples}
             stats={progress.letterStats}
             trailStep={progress.stars % 5}
             stars={progress.stars}
+            voiceMode="listen"
             onCorrect={markCorrect}
+            onAfterSuccess={waitForQueuedReward}
             onMistake={markMistake}
             onSpeak={speak}
             onBack={backToHub}
+            onRequestRestart={() => setRestartConfirm(true)}
           />
         );
       case "stars":
         return (
           <StarsScreen progress={progress} letters={contentReadyLetters(LETTERS)} onBack={backHome} onSpeak={speak} />
         );
+      case "stickers":
+        return (
+          <StickersAlbumScreen
+            progress={progress}
+            onBack={backHome}
+            onSetFavorite={setFavoriteSticker}
+          />
+        );
       default:
         return (
           <HomeScreen
-            onGoLearn={() => go("learn")}
+            onGoLearn={() => {
+              setProgress((prev) => ({ ...prev, playActivity: "learn" }));
+              setResumeMode("continue");
+              enterAdventure();
+            }}
             onPlayGames={startAdventure}
             onOpenStars={() => go("stars")}
+            onOpenStickers={() => go("stickers")}
             onSpeak={speak}
             onToggleMusic={toggleMusic}
             musicOn={musicOn}
@@ -486,6 +782,7 @@ function App() {
             pickableLetters={pickableLetters}
             onSelectedLetterChange={setSelectedLetter}
             playerPreference={progress.playerPreference}
+            favoriteStickerSrc={favoriteStickerSrc}
             onOpenPlayerChooser={() => setPlayerChooserOpen(true)}
           />
         );
@@ -496,12 +793,12 @@ function App() {
     <MusicControlProvider value={{ musicOn, onToggleMusic: toggleMusic }}>
     <div
       className={`app-shell ${
-        screen === "stars" ? "" : "home-fit"
+        screen === "stars" || screen === "stickers" ? "" : "home-fit"
       } ${screen === "home" ? "home-immersive" : ""} ${
         ["modeSelect", "adventure", "learn", "find", "picture", "listen"].includes(screen)
           ? "play-hud"
           : ""
-      }`}
+      } ${isCelebrating ? "app-shell--celebrating" : ""}`}
     >
       <Progress
         progress={progress}
@@ -515,7 +812,13 @@ function App() {
       />
       {flight ? <FlyingStar {...flight} /> : null}
       {renderScreen()}
-      {playerChooserOpen ? (
+      {restartConfirm && !preview ? (
+        <RestartActivityConfirm
+          onYes={confirmRestartActivity}
+          onNo={() => setRestartConfirm(false)}
+        />
+      ) : null}
+      {playerChooserOpen && !preview ? (
         <PlayerChooser
           value={progress.playerPreference}
           onChoose={(playerPreference) => {
@@ -524,7 +827,7 @@ function App() {
           }}
         />
       ) : null}
-      {!activeReward && ["modeSelect", "adventure", "learn", "find", "picture", "listen"].includes(screen) ? (
+      {!preview && !activeReward && !progress.alphabetCycleCompleted && ["modeSelect", "adventure", "learn", "find", "picture", "listen"].includes(screen) ? (
         <GameControls
           key={screen}
           optionCount={progress.optionCount}
@@ -547,9 +850,16 @@ function App() {
           threshold={activeReward.threshold}
           title="Ура! Новая наклейка!"
           reward={activeReward.item}
-          onClose={() => setActiveReward(null)}
+          onClose={closeRewardOverlay}
         />
       ) : null}
+      {progress.alphabetCycleCompleted && !preview ? (
+        <AlphabetCompleteScreen
+          isNewAchievement={progress.unlockedStickerIds.includes(ALPHABET_ACHIEVEMENT_ID)}
+          onStartNewAdventure={startNewAdventureFromComplete}
+        />
+      ) : null}
+      <VoiceDebugLine />
     </div>
     </MusicControlProvider>
   );

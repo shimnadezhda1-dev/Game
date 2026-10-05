@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { LetterItem, LetterStats, OptionCount, PlayActivity, ProgressState } from "../types";
 import type { Point } from "../utils/point";
 import { FindLetterGame } from "./FindLetterGame";
-import { ListenAndChooseGame } from "./ListenAndChooseGame";
 import { PictureLetterGame } from "./PictureLetterGame";
 import { GameStage } from "./GameStage";
 import { GoldStar } from "./GoldStar";
@@ -11,9 +10,11 @@ import { ToyLetter } from "./ToyLetter";
 import { glyphOptionPool, pictureContentBank } from "../utils/selectors";
 import { findLetterPrompt } from "../utils/letterCopy";
 import { letterVoiceKey } from "../audio/voiceCatalog";
+import { audioManager } from "../audio/AudioManager";
 import { assetUrl, ASSETS } from "../utils/assets";
 import { preloadImages } from "../utils/preload";
 import {
+  indexForSavedLetterId,
   letterByIndex,
   nextLetterIndex,
   startPlayLetterIndex
@@ -49,14 +50,20 @@ interface AdventurePlayProps {
   studyOrder?: ProgressState["studyOrder"];
   selectedLetterId?: string;
   onCorrect: (letterId: string, origin?: Point) => void;
+  onAfterSuccess?: () => Promise<void>;
   onMistake: (letterId: string) => void;
-  onSpeak: (text: string, options?: { key?: string; onEnd?: () => void }) => void;
+  onSpeak: (text: string, options?: { key?: string; path?: string; onEnd?: () => void }) => void;
   onBack: () => void;
   onLetterMastered: (letterId: string) => void;
+  onAlphabetLetterFinished?: (letterId: string) => boolean;
   onPlayActivityChange?: (value: PlayActivity) => void;
-  onCurrentLetterChange?: (id: string) => void;
+  audioEntryKey?: number;
+  onCurrentLetterChange?: (id: string, activity: PlayActivity) => void;
+  resumeLetterId?: string | null;
+  resumeMode?: "fresh" | "continue";
   learnAdvanceSeconds?: number;
   onLearnAdvanceSecondsChange?: (value: number) => void;
+  onRequestRestart?: () => void;
 }
 
 function activityToStep(activity: PlayActivity): Step {
@@ -99,12 +106,29 @@ function buildPlayLetters(
 function initialLetterIndex(
   letters: LetterItem[],
   studyOrder: ProgressState["studyOrder"] | undefined,
-  selectedLetterId: string | undefined
+  selectedLetterId: string | undefined,
+  resumeLetterId?: string | null,
+  resumeMode?: "fresh" | "continue"
 ): number {
+  if (resumeMode === "fresh") {
+    if (studyOrder === "pick" && selectedLetterId) {
+      const pickIndex = letters.findIndex((letter) => letter.id === selectedLetterId);
+      if (pickIndex >= 0) {
+        return pickIndex;
+      }
+    }
+    return startPlayLetterIndex();
+  }
   if (studyOrder === "pick" && selectedLetterId) {
     const index = letters.findIndex((letter) => letter.id === selectedLetterId);
     if (index >= 0) {
       return index;
+    }
+  }
+  if (resumeLetterId) {
+    const resumeIndex = letters.findIndex((letter) => letter.id === resumeLetterId);
+    if (resumeIndex >= 0) {
+      return resumeIndex;
     }
   }
   return startPlayLetterIndex();
@@ -120,20 +144,26 @@ export function AdventurePlay({
   studyOrder = "alpha",
   selectedLetterId,
   onCorrect,
+  onAfterSuccess,
   onMistake,
   onSpeak,
   onBack,
   onLetterMastered,
+  onAlphabetLetterFinished,
   onPlayActivityChange,
+  audioEntryKey = 0,
   onCurrentLetterChange,
-  learnAdvanceSeconds = 5,
-  onLearnAdvanceSecondsChange
+  resumeLetterId = null,
+  resumeMode = "continue",
+  learnAdvanceSeconds = 3,
+  onLearnAdvanceSecondsChange,
+  onRequestRestart
 }: AdventurePlayProps) {
   const [playLetters, setPlayLetters] = useState(() =>
     buildPlayLetters(letters, studyOrder)
   );
   const [currentLetterIndex, setCurrentLetterIndex] = useState(() =>
-    initialLetterIndex(playLetters, studyOrder, selectedLetterId)
+    initialLetterIndex(playLetters, studyOrder, selectedLetterId, resumeLetterId, resumeMode)
   );
   const [step, setStep] = useState<Step>(() => activityToStep(startActivity));
   const [nextReady, setNextReady] = useState(false);
@@ -143,7 +173,18 @@ export function AdventurePlay({
   const poolKeyRef = useRef(poolKey);
   const studyOrderRef = useRef(studyOrder);
   const letter = letterByIndex(playLetters, currentLetterIndex);
+  const currentActivity = stepToActivity(step);
   const currentStageIndex = STAGE_FLOW.indexOf(toFlowStep(step) ?? "learn");
+
+  function savedIndexForActivity(activity: PlayActivity): number {
+    if (studyOrder === "pick" && selectedLetterId) {
+      const pickIndex = playLetters.findIndex((item) => item.id === selectedLetterId);
+      if (pickIndex >= 0) {
+        return pickIndex;
+      }
+    }
+    return indexForSavedLetterId(playLetters, progress.activityProgress[activity]?.letterId);
+  }
   const glyphPool = useMemo(
     () => glyphOptionPool(optionCatalog, optionCount),
     [optionCatalog, optionCount]
@@ -151,11 +192,21 @@ export function AdventurePlay({
   const pictureBank = useMemo(() => pictureContentBank(optionCatalog), [optionCatalog]);
 
   useEffect(() => {
-    onCurrentLetterChange?.(letter.id);
-  }, [letter.id, onCurrentLetterChange]);
+    onCurrentLetterChange?.(letter.id, currentActivity);
+  }, [letter.id, currentActivity, onCurrentLetterChange]);
 
   useEffect(() => {
-    setStep(activityToStep(startActivity));
+    return () => {
+      audioManager.stopSpeaking();
+    };
+  }, []);
+
+  useEffect(() => {
+    const nextStep = activityToStep(startActivity);
+    setStep(nextStep);
+    if (studyOrder !== "pick") {
+      setCurrentLetterIndex(indexForSavedLetterId(playLetters, progress.activityProgress[startActivity]?.letterId));
+    }
   }, [startActivity]);
 
   useEffect(() => {
@@ -170,20 +221,32 @@ export function AdventurePlay({
     poolKeyRef.current = poolKey;
     studyOrderRef.current = studyOrder;
     if (poolChanged || orderChanged) {
-      const nextDeck = buildPlayLetters(letters, studyOrder, selectedLetterId);
+      const nextDeck = buildPlayLetters(letters, studyOrder, letter.id);
       setPlayLetters(nextDeck);
-      const nextIndex = nextDeck.findIndex((item) => item.id === selectedLetterId);
-      setCurrentLetterIndex(nextIndex >= 0 ? nextIndex : 0);
+      let nextIndex = 0;
+      if (studyOrder === "pick") {
+        const pickIndex = selectedLetterId
+          ? nextDeck.findIndex((item) => item.id === selectedLetterId)
+          : -1;
+        nextIndex = pickIndex >= 0 ? pickIndex : 0;
+      } else if (orderChanged && (studyOrder === "alpha" || studyOrder === "random")) {
+        nextIndex = 0;
+      } else {
+        const keepId = letter.id;
+        const found = nextDeck.findIndex((item) => item.id === keepId);
+        nextIndex = found >= 0 ? found : 0;
+      }
+      setCurrentLetterIndex(nextIndex);
       return;
     }
-    if (!selectedLetterId) {
+    if (studyOrder !== "pick" || !selectedLetterId) {
       return;
     }
     setCurrentLetterIndex((index) => {
       const nextIndex = playLetters.findIndex((item) => item.id === selectedLetterId);
       return nextIndex >= 0 ? nextIndex : index;
     });
-  }, [letters, poolKey, selectedLetterId, studyOrder]);
+  }, [letters, poolKey, selectedLetterId, studyOrder, resumeLetterId]);
 
   useEffect(() => {
     const paths = [
@@ -222,6 +285,7 @@ export function AdventurePlay({
   }, [step, letter.id]);
 
   function finishLetter() {
+    audioManager.stopSpeaking();
     onLetterMastered(letter.id);
     if (studyOrder === "random") {
       const advanced = advanceLetterDeck(playLetters, currentLetterIndex, letters);
@@ -231,7 +295,7 @@ export function AdventurePlay({
       }
       setPlayLetters(advanced.deck);
       setCurrentLetterIndex(advanced.index);
-      onCurrentLetterChange?.(advanced.deck[advanced.index]?.id);
+      onCurrentLetterChange?.(advanced.deck[advanced.index]?.id, "learn");
       onPlayActivityChange?.("learn");
       setStep("learn");
       setNextReady(false);
@@ -243,13 +307,24 @@ export function AdventurePlay({
       return;
     }
     setCurrentLetterIndex(next);
-    onCurrentLetterChange?.(playLetters[next]?.id);
+    onCurrentLetterChange?.(playLetters[next]?.id, "learn");
     onPlayActivityChange?.("learn");
     setStep("learn");
     setNextReady(false);
   }
 
+  function switchToFlow(next: FlowStep) {
+    const nextActivity = stepToActivity(next);
+    onCurrentLetterChange?.(letter.id, currentActivity);
+    if (nextActivity !== currentActivity && studyOrder !== "pick") {
+      setCurrentLetterIndex(savedIndexForActivity(nextActivity));
+    }
+    onPlayActivityChange?.(nextActivity);
+    setStep(next);
+  }
+
   function goStagePrev() {
+    audioManager.stopSpeaking();
     const flow = toFlowStep(step);
     if (!flow) {
       return;
@@ -258,17 +333,16 @@ export function AdventurePlay({
     if (index <= 0) {
       return;
     }
-    const next = STAGE_FLOW[index - 1];
-    onPlayActivityChange?.(stepToActivity(next));
-    setStep(next);
+    switchToFlow(STAGE_FLOW[index - 1]);
   }
 
   function goLearnSameLetter() {
-    onPlayActivityChange?.("learn");
-    setStep("learn");
+    audioManager.stopSpeaking();
+    switchToFlow("learn");
   }
 
   function goStageNext() {
+    audioManager.stopSpeaking();
     const flow = toFlowStep(step);
     if (!flow) {
       return;
@@ -277,9 +351,7 @@ export function AdventurePlay({
     if (index < 0 || index >= STAGE_FLOW.length - 1) {
       return;
     }
-    const next = STAGE_FLOW[index + 1];
-    onPlayActivityChange?.(stepToActivity(next));
-    setStep(next);
+    switchToFlow(STAGE_FLOW[index + 1]);
   }
 
   const showStagePrev = currentStageIndex > 0 && step !== "complete";
@@ -293,7 +365,11 @@ export function AdventurePlay({
     standaloneLearn && step === "learn" ? undefined : showStageNext ? goStageNext : undefined;
 
   function goToNextLetterInCurrentActivity(wrapAtEnd = true): boolean {
+    audioManager.stopSpeaking();
     if (studyOrder === "pick") {
+      return false;
+    }
+    if (studyOrder === "alpha" && step === "learn" && onAlphabetLetterFinished?.(letter.id)) {
       return false;
     }
     if (studyOrder === "random") {
@@ -341,11 +417,13 @@ export function AdventurePlay({
         awaitNext={!autoNextPracticeLetter}
         stars={progress.stars}
         onCorrect={onCorrect}
+        onAfterSuccess={onAfterSuccess}
         onMistake={onMistake}
         onSpeak={onSpeak}
         onBack={onBack}
         onPrev={onStagePrev}
         onStageNext={onStageNext}
+        onRequestRestart={onRequestRestart}
         onFinished={
           autoNextPracticeLetter
             ? () => goToNextLetterInCurrentActivity(false)
@@ -369,11 +447,13 @@ export function AdventurePlay({
         awaitNext={!autoNextPracticeLetter}
         stars={progress.stars}
         onCorrect={onCorrect}
+        onAfterSuccess={onAfterSuccess}
         onMistake={onMistake}
         onSpeak={onSpeak}
         onBack={onBack}
         onPrev={onStagePrev}
         onStageNext={onStageNext}
+        onRequestRestart={onRequestRestart}
         onFinished={
           autoNextPracticeLetter
             ? () => goToNextLetterInCurrentActivity(false)
@@ -386,6 +466,7 @@ export function AdventurePlay({
   if (step === "findPicture") {
     return (
       <PictureLetterGame
+        key={`picture-${letter.id}`}
         letters={playLetters}
         stats={stats}
         lockTarget={letter}
@@ -395,11 +476,13 @@ export function AdventurePlay({
         awaitNext={!autoNextPracticeLetter}
         stars={progress.stars}
         onCorrect={onCorrect}
+        onAfterSuccess={onAfterSuccess}
         onMistake={onMistake}
         onSpeak={onSpeak}
         onBack={onBack}
         onPrev={onStagePrev}
         onStageNext={onStageNext}
+        onRequestRestart={onRequestRestart}
         onFinished={
           autoNextPracticeLetter
             ? () => goToNextLetterInCurrentActivity(false)
@@ -411,26 +494,28 @@ export function AdventurePlay({
 
   if (step === "listenChoose") {
     return (
-      <ListenAndChooseGame
+      <PictureLetterGame
+        key={`listen-${letter.id}`}
         letters={playLetters}
         stats={stats}
         lockTarget={letter}
         optionCount={optionCount}
-        optionPool={glyphPool}
-        optionCatalog={optionCatalog}
+        pictureBank={pictureBank}
+        pictureExampleHistory={pictureExampleHistoryRef.current}
         awaitNext={!autoNextPracticeLetter}
         stars={progress.stars}
+        voiceMode="listen"
         onCorrect={onCorrect}
+        onAfterSuccess={onAfterSuccess}
         onMistake={onMistake}
         onSpeak={onSpeak}
         onBack={onBack}
         onPrev={onStagePrev}
         onStageNext={goLearnSameLetter}
+        onRequestRestart={onRequestRestart}
         onFinished={
           autoNextPracticeLetter ? () => goToNextLetterInCurrentActivity(false) : undefined
         }
-        showInternalNext={false}
-        showMasteryCelebration={false}
       />
     );
   }
@@ -466,6 +551,7 @@ export function AdventurePlay({
     <LearnLetters
       letter={letter}
       stars={progress.stars}
+      audioEntryKey={audioEntryKey}
       onSpeak={onSpeak}
       onHome={onBack}
       onNext={standaloneLearn ? () => goToNextLetterInCurrentActivity(true) : () => setStep("findHint")}

@@ -1,5 +1,10 @@
 import { PlayerPreference } from "../types";
-import { pickNextReward, REWARD_THRESHOLDS, RewardItem, RewardThreshold } from "../data/rewardCatalog";
+import {
+  REWARD_THRESHOLDS,
+  RewardItem,
+  RewardThreshold
+} from "../data/rewardCatalog";
+import { asRewardItem, pickNextRegularSticker } from "../data/stickerCatalog";
 
 export interface StarReward {
   at: number;
@@ -8,13 +13,23 @@ export interface StarReward {
   hint: string;
 }
 
-/** Threshold slots 5 / 10 / 15 / 20. Catalog items are chosen separately. */
-export const STAR_REWARDS: StarReward[] = [
+const LEGACY_STAR_REWARDS: StarReward[] = [
   { at: 5, id: "gift", title: "Подарок", hint: "Маленький сюрприз" },
   { at: 10, id: "sticker", title: "Наклейка", hint: "Яркий стикер" },
   { at: 15, id: "medal", title: "Медаль", hint: "Медаль чемпиона" },
   { at: 20, id: "fox", title: "Новый танец", hint: "Лисёнок радуется по-новому" }
 ];
+
+/** Reward milestones run every five stars through 100. */
+export const STAR_REWARDS: StarReward[] = REWARD_THRESHOLDS.map((at, index) => {
+  const legacy = LEGACY_STAR_REWARDS[index];
+  return legacy ?? {
+    at,
+    id: "sticker",
+    title: "Наклейка",
+    hint: `Награда за ${at} звёзд`
+  };
+});
 
 export function rewardsUnlockedByStars(stars: number): string[] {
   return STAR_REWARDS.filter((reward) => stars >= reward.at).map((reward) => reward.id);
@@ -33,28 +48,19 @@ export function rewardJustUnlocked(prevStars: number, nextStars: number): StarRe
 }
 
 export function unlockRewardAtThreshold(
-  preference: PlayerPreference | null,
+  _preference: PlayerPreference | null,
   unlockedIds: readonly string[],
+  rewardedThresholds: readonly number[],
   prevStars: number,
   nextStars: number
 ): { item: RewardItem; threshold: RewardThreshold } | null {
   const threshold = crossedRewardThreshold(prevStars, nextStars);
-  if (!threshold) {
+  if (!threshold || rewardedThresholds.includes(threshold)) {
     return null;
   }
-  const item = pickNextReward(preference, unlockedIds);
+  const item = pickNextRegularSticker(unlockedIds);
   if (!item) {
-    return { item: STAR_FALLBACK, threshold };
+    return null;
   }
-  return { item, threshold };
+  return { item: asRewardItem(item), threshold };
 }
-
-const STAR_FALLBACK: RewardItem = {
-  id: "sticker",
-  title: "Яркий стикер",
-  collectionId: "achievements",
-  collectionTitle: "Достижения",
-  preferredAudience: "universal",
-  asset: null,
-  fallbackVisual: "sticker"
-};

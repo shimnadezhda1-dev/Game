@@ -4,10 +4,10 @@ export function letterIntroLines(
   letter: Pick<LetterItem, "upper" | "word" | "needsContent">
 ): [string, string] {
   if (letter.needsContent || !letter.word) {
-    return [`Это буква ${letter.upper}!`, `Запомни букву ${letter.upper}!`];
+    return [`Это буква ${letter.upper}.`, `Запомни букву ${letter.upper}.`];
   }
-  const word = letter.word.toLowerCase();
-  return [`Это буква ${letter.upper}!`, `${letter.upper} — ${word}!`];
+  const word = letter.word.toLocaleLowerCase("ru-RU");
+  return [`Это буква ${letter.upper}.`, `${letter.upper} — ${word}.`];
 }
 
 export function letterIntroText(
@@ -23,11 +23,21 @@ export function letterIntroSpeech(
 }
 
 export function findLetterPrompt(letter: Pick<LetterItem, "upper">): string {
-  return `Найди букву ${letter.upper}!`;
+  return `Найди букву ${letter.upper}.`;
 }
 
 export function letterGlyphSrc(letter: LetterItem): string | undefined {
   return letter.letterImage;
+}
+
+export function learnExampleForLetter(
+  letter: Pick<LetterItem, "word" | "pictureExamples">
+) {
+  const word = letter.word?.trim();
+  if (!word) {
+    return undefined;
+  }
+  return letter.pictureExamples?.find((example) => example.word === word);
 }
 
 export function letterObjectSrc(
@@ -54,6 +64,10 @@ export function letterObjectSrc(
       letter.imagePath ||
       undefined
     );
+  }
+  const learnExample = learnExampleForLetter(letter);
+  if (learnExample) {
+    return learnExample.image;
   }
   return letter.objectImage || letter.imagePath || undefined;
 }

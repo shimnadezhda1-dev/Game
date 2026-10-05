@@ -33,7 +33,7 @@ const GAME_ITEMS: Array<{
   },
   {
     id: "listen",
-    title: "Послушай и выбери",
+    title: "Послушай и выбери картинку",
     className: "hub-listen",
     image: ASSETS.fox.idle
   }
