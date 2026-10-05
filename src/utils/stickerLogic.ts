@@ -1,7 +1,7 @@
 import { ProgressState } from "../types";
 import { PLAY_ACTIVITIES } from "./playSettings";
 import { withActivityLetter } from "./activityProgress";
-import { REWARD_THRESHOLDS } from "../data/rewardCatalog";
+import { crossedStickerMilestone } from "../data/rewardCatalog";
 import { ALPHABET_ACHIEVEMENT_ID, pickNextRegularSticker } from "../data/stickerCatalog";
 
 export const ALPHABET_CYCLE_LETTER_IDS = [
@@ -115,7 +115,7 @@ export function unlockStarSticker(args: {
   prevStars: number;
   nextStars: number;
 }): { stickerId: string; threshold: number } | null {
-  const threshold = REWARD_THRESHOLDS.find((at) => args.prevStars < at && args.nextStars >= at);
+  const threshold = crossedStickerMilestone(args.prevStars, args.nextStars);
   if (!threshold || args.claimedMilestonesThisCycle.includes(threshold)) {
     return null;
   }

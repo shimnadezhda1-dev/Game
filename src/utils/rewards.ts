@@ -1,8 +1,8 @@
 import { PlayerPreference } from "../types";
 import {
-  REWARD_THRESHOLDS,
+  crossedStickerMilestone,
   RewardItem,
-  RewardThreshold
+  stickerMilestonesForDisplay
 } from "../data/rewardCatalog";
 import { asRewardItem, pickNextRegularSticker } from "../data/stickerCatalog";
 
@@ -20,31 +20,44 @@ const LEGACY_STAR_REWARDS: StarReward[] = [
   { at: 20, id: "fox", title: "Новый танец", hint: "Лисёнок радуется по-новому" }
 ];
 
-/** Reward milestones run every five stars through 100. */
-export const STAR_REWARDS: StarReward[] = REWARD_THRESHOLDS.map((at, index) => {
+function starRewardAt(at: number, index: number): StarReward {
   const legacy = LEGACY_STAR_REWARDS[index];
-  return legacy ?? {
+  if (legacy && legacy.at === at) {
+    return legacy;
+  }
+  return {
     at,
     id: "sticker",
     title: "Наклейка",
     hint: `Награда за ${at} звёзд`
   };
-});
-
-export function rewardsUnlockedByStars(stars: number): string[] {
-  return STAR_REWARDS.filter((reward) => stars >= reward.at).map((reward) => reward.id);
 }
 
-export function crossedRewardThreshold(
-  prevStars: number,
-  nextStars: number
-): RewardThreshold | null {
-  return REWARD_THRESHOLDS.find((at) => prevStars < at && nextStars >= at) ?? null;
+export function starRewardsThrough(stars: number): StarReward[] {
+  return stickerMilestonesForDisplay(stars).map((at, index) => starRewardAt(at, index));
+}
+
+/** Chips shown before the player passes 100 stars. Awards keep going after that. */
+export const STAR_REWARDS: StarReward[] = starRewardsThrough(0);
+
+export function rewardsUnlockedByStars(stars: number): string[] {
+  return starRewardsThrough(stars)
+    .filter((reward) => stars >= reward.at)
+    .map((reward) => reward.id);
+}
+
+export function crossedRewardThreshold(prevStars: number, nextStars: number): number | null {
+  return crossedStickerMilestone(prevStars, nextStars);
 }
 
 /** @deprecated Use crossedRewardThreshold + pickNextReward. Kept for existing call sites. */
 export function rewardJustUnlocked(prevStars: number, nextStars: number): StarReward | null {
-  return STAR_REWARDS.find((reward) => prevStars < reward.at && nextStars >= reward.at) ?? null;
+  const at = crossedStickerMilestone(prevStars, nextStars);
+  if (at === null) {
+    return null;
+  }
+  const index = at / 5 - 1;
+  return starRewardAt(at, index);
 }
 
 export function unlockRewardAtThreshold(
@@ -53,7 +66,7 @@ export function unlockRewardAtThreshold(
   rewardedThresholds: readonly number[],
   prevStars: number,
   nextStars: number
-): { item: RewardItem; threshold: RewardThreshold } | null {
+): { item: RewardItem; threshold: number } | null {
   const threshold = crossedRewardThreshold(prevStars, nextStars);
   if (!threshold || rewardedThresholds.includes(threshold)) {
     return null;

@@ -2,7 +2,7 @@ import { Character } from "./Character";
 import { WorldBackground } from "./WorldBackground";
 import { LetterItem, ProgressState } from "../types";
 import { LetterVisual } from "./LetterVisual";
-import { STAR_REWARDS } from "../utils/rewards";
+import { starRewardsThrough } from "../utils/rewards";
 import { getRewardById } from "../data/rewardCatalog";
 import { getStickerById } from "../data/stickerCatalog";
 import { isLetterMastered } from "../utils/selectors";
@@ -38,7 +38,7 @@ export function StarsScreen({ progress, letters, onSpeak }: StarsScreenProps) {
         </div>
       </div>
       <div className="reward-row">
-        {STAR_REWARDS.map((slot, index) => {
+        {starRewardsThrough(progress.stars).map((slot, index) => {
           const earnedId = progress.unlockedRewards[index];
           const earned = earnedId ? getStickerById(earnedId) ?? getRewardById(earnedId) : undefined;
           const open = progress.rewardedThresholds.includes(slot.at);

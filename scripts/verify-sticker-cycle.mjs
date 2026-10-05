@@ -4,7 +4,6 @@ const ALPHABET = [
   "A","B","V","G","D","E","Yo","Zh","Z","I","J","K","L","M","N","O","P","R","S","T","U","F",
   "Kh","Ts","Ch","Sh","Shch","Hard","Yery","Soft","Eh","Yu","Ya"
 ];
-const THRESHOLDS = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100];
 
 function uniqueIds(ids) {
   return [...new Set(ids.filter((id) => typeof id === "string" && id))];
@@ -20,7 +19,11 @@ function shouldCount({ studyOrder, step }) {
 }
 
 function crossed(prev, next) {
-  return THRESHOLDS.find((at) => prev < at && next >= at) ?? null;
+  if (!(next > prev)) {
+    return null;
+  }
+  const first = (Math.floor(prev / 5) + 1) * 5;
+  return first <= next ? first : null;
 }
 
 function unlock({ unlocked, claimed, prevStars, nextStars, pool }) {
@@ -87,5 +90,135 @@ let favorite = "sticker-01";
 favorite = "sticker-02";
 assert.deepEqual(collection, ["sticker-01", "sticker-02"], "changing favorite keeps collection");
 assert.equal(favorite, "sticker-02");
+
+const longPool = Array.from({ length: 40 }, (_, index) => `sticker-${String(index + 1).padStart(2, "0")}`);
+let longUnlocked = [];
+let longClaimed = [];
+let longStars = 0;
+const grants = [];
+
+function addLong(n) {
+  for (let i = 0; i < n; i += 1) {
+    const grant = unlock({
+      unlocked: longUnlocked,
+      claimed: longClaimed,
+      prevStars: longStars,
+      nextStars: longStars + 1,
+      pool: longPool
+    });
+    longStars += 1;
+    if (grant) {
+      longUnlocked = uniqueIds([...longUnlocked, grant.stickerId]);
+      longClaimed = [...longClaimed, grant.threshold];
+      grants.push({ stars: longStars, ...grant });
+    }
+  }
+}
+
+addLong(100);
+const grantAt = (stars) => grants.find((grant) => grant.stars === stars) ?? null;
+for (const stars of [45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]) {
+  const grant = grantAt(stars);
+  assert.ok(grant, `${stars} should award the next sticker`);
+  assert.equal(grant.threshold, stars);
+  assert.equal(grant.stickerId, longPool[stars / 5 - 1]);
+}
+for (const stars of [51, 52, 53, 54, 56, 57, 58, 59]) {
+  assert.equal(grantAt(stars), null, `${stars} must not award`);
+}
+assert.equal(longUnlocked.length, 20, "100 stars → 20 stickers, one per 5 stars");
+assert.equal(new Set(longUnlocked).size, 20, "no duplicate sticker ids");
+assert.deepEqual(longClaimed, grants.map((grant) => grant.threshold));
+
+const jump55 = unlock({
+  unlocked: longPool.slice(0, 10),
+  claimed: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
+  prevStars: 53,
+  nextStars: 57,
+  pool: longPool
+});
+assert.equal(jump55.threshold, 55, "53 → 57 keeps the 55 milestone");
+assert.equal(jump55.stickerId, "sticker-11");
+
+const jump60 = unlock({
+  unlocked: longPool.slice(0, 11),
+  claimed: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55],
+  prevStars: 58,
+  nextStars: 61,
+  pool: longPool
+});
+assert.equal(jump60.threshold, 60, "58 → 61 awards 60");
+assert.equal(jump60.stickerId, "sticker-12");
+
+const reload55 = unlock({
+  unlocked: [...longPool.slice(0, 10), jump55.stickerId],
+  claimed: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55],
+  prevStars: 54,
+  nextStars: 55,
+  pool: longPool
+});
+assert.equal(reload55, null, "reload at 55 does not repeat the milestone");
+
+const after50Claimed = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
+assert.equal(after50Claimed.includes(55), false, "claiming 50 does not claim 55");
+const past100 = unlock({
+  unlocked: longPool.slice(0, 20),
+  claimed: after50Claimed.concat([55, 60, 65, 70, 75, 80, 85, 90, 95, 100]),
+  prevStars: 100,
+  nextStars: 105,
+  pool: longPool
+});
+assert.equal(past100.threshold, 105, "awards continue after 100");
+assert.equal(past100.stickerId, "sticker-21");
+
+const tinyPool = ["sticker-01", "sticker-02", "sticker-03", "sticker-04"];
+let tinyUnlocked = [];
+let tinyClaimed = [];
+let tinyStars = 0;
+function addTiny() {
+  const grant = unlock({
+    unlocked: tinyUnlocked,
+    claimed: tinyClaimed,
+    prevStars: tinyStars,
+    nextStars: tinyStars + 1,
+    pool: tinyPool
+  });
+  tinyStars += 1;
+  if (grant) {
+    tinyUnlocked = uniqueIds([...tinyUnlocked, grant.stickerId]);
+    tinyClaimed = [...tinyClaimed, grant.threshold];
+  }
+  return grant;
+}
+let lastTiny = null;
+while (tinyStars < 20) {
+  lastTiny = addTiny();
+}
+assert.equal(lastTiny.threshold, 20);
+assert.deepEqual(tinyUnlocked, tinyPool);
+assert.equal(addTiny(), null, "empty pool at 25 does not invent a sticker");
+while (tinyStars < 55) {
+  assert.equal(addTiny(), null);
+}
+assert.equal(tinyStars, 55);
+assert.deepEqual(tinyUnlocked, tinyPool, "exhausted pool does not duplicate ids");
+
+const cycleClaimed = [];
+const cycleGrant = unlock({
+  unlocked: tinyPool,
+  claimed: cycleClaimed,
+  prevStars: 4,
+  nextStars: 5,
+  pool: tinyPool
+});
+assert.equal(cycleGrant, null, "new cycle does not duplicate when the pool is empty");
+const cycleNext = unlock({
+  unlocked: ["sticker-01"],
+  claimed: [],
+  prevStars: 49,
+  nextStars: 50,
+  pool: tinyPool
+});
+assert.equal(cycleNext.stickerId, "sticker-02", "new cycle still awards the next free sticker at 50");
 
 console.log("verify-sticker-cycle: ok");

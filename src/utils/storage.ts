@@ -1,6 +1,6 @@
 import { GameId, LetterStats, OptionCount, PlayerPreference, ProgressState } from "../types";
 import { LETTER_GROUPS } from "../data/letters";
-import { REWARD_THRESHOLDS } from "../data/rewardCatalog";
+import { isStickerRewardMilestone, stickerMilestonesUpTo } from "../data/rewardCatalog";
 import { rewardsUnlockedByStars } from "./rewards";
 import {
   validLetterCategory,
@@ -98,10 +98,9 @@ export function loadProgress(): ProgressState {
     const rewardedThresholds = Array.isArray(parsed.rewardedThresholds)
       ? parsed.rewardedThresholds.filter(
           (threshold): threshold is number =>
-            typeof threshold === "number" &&
-            REWARD_THRESHOLDS.some((rewardThreshold) => rewardThreshold === threshold)
+            typeof threshold === "number" && isStickerRewardMilestone(threshold)
         )
-      : REWARD_THRESHOLDS.filter((threshold) => threshold <= stars);
+      : stickerMilestonesUpTo(stars);
     const learned = Array.isArray(parsed.learnedLetterIds) ? parsed.learnedLetterIds : [];
     const inferredGroup = LETTER_GROUPS[0].every((id) => learned.includes(id)) ? 1 : 0;
     const {
@@ -127,7 +126,7 @@ export function loadProgress(): ProgressState {
       Array.isArray(parsed.claimedMilestonesThisCycle)
         ? parsed.claimedMilestonesThisCycle
         : rewardedThresholds
-    );
+    ).filter((threshold) => isStickerRewardMilestone(threshold));
     const favoriteRaw =
       typeof parsed.favoriteStickerId === "string" ? parsed.favoriteStickerId : null;
     const favoriteStickerId =

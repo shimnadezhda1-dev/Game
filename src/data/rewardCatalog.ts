@@ -14,12 +14,39 @@ export interface RewardItem {
   fallbackVisual: RewardFallbackVisual;
 }
 
-export const REWARD_THRESHOLDS = [
-  5, 10, 15, 20, 25, 30, 35, 40, 45, 50,
-  55, 60, 65, 70, 75, 80, 85, 90, 95, 100
-] as const;
+/** A new sticker is offered on every multiple of this many stars. There is no last milestone. */
+export const STICKER_REWARD_EVERY = 5;
 
-export type RewardThreshold = (typeof REWARD_THRESHOLDS)[number];
+export function isStickerRewardMilestone(value: number): boolean {
+  return Number.isInteger(value) && value >= STICKER_REWARD_EVERY && value % STICKER_REWARD_EVERY === 0;
+}
+
+/** Earliest milestone crossed while stars move from prevStars to nextStars. */
+export function crossedStickerMilestone(prevStars: number, nextStars: number): number | null {
+  if (!Number.isFinite(prevStars) || !Number.isFinite(nextStars) || nextStars <= prevStars) {
+    return null;
+  }
+  const first = (Math.floor(prevStars / STICKER_REWARD_EVERY) + 1) * STICKER_REWARD_EVERY;
+  return first <= nextStars ? first : null;
+}
+
+export function stickerMilestonesUpTo(stars: number): number[] {
+  if (!Number.isFinite(stars) || stars < STICKER_REWARD_EVERY) {
+    return [];
+  }
+  const end = Math.floor(stars / STICKER_REWARD_EVERY) * STICKER_REWARD_EVERY;
+  const milestones: number[] = [];
+  for (let at = STICKER_REWARD_EVERY; at <= end; at += STICKER_REWARD_EVERY) {
+    milestones.push(at);
+  }
+  return milestones;
+}
+
+/** Stars-page chips. Award checks do not stop at this display range. */
+export function stickerMilestonesForDisplay(stars: number): number[] {
+  const covered = Math.max(100, Number.isFinite(stars) ? stars : 0);
+  return stickerMilestonesUpTo(covered);
+}
 
 /** Legacy slot IDs kept so already earned stickers stay in the child's album. */
 export const LEGACY_REWARD_IDS = ["gift", "sticker", "medal", "fox"] as const;
