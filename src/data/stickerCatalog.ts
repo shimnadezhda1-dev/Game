@@ -220,7 +220,10 @@ export function awardableRegularStickers(): StickerItem[] {
 
 export function pickNextRegularSticker(unlockedIds: readonly string[]): StickerItem | null {
   const unlocked = new Set(unlockedIds);
-  return awardableRegularStickers().find((item) => !unlocked.has(item.id)) ?? null;
+  const remaining = awardableRegularStickers()
+    .filter((item) => !unlocked.has(item.id))
+    .sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
+  return remaining[0] ?? null;
 }
 
 export function albumCollections(): StickerCollection[] {

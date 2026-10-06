@@ -594,14 +594,6 @@ function App() {
 
   const backToHub = () => go("modeSelect");
   const backHome = () => go("home");
-  const favoriteItem = progress.favoriteStickerId
-    ? getStickerById(progress.favoriteStickerId)
-    : undefined;
-  const favoriteResolved = favoriteItem ? resolvedSticker(favoriteItem) : undefined;
-  const favoriteStickerSrc =
-    favoriteResolved && stickerAssetExists(favoriteResolved.asset)
-      ? assetUrl(favoriteResolved.asset ?? "")
-      : null;
   const meadowFriends = useMemo(() => {
     const ids = meadowFavoriteIds(progress.favoriteStickerIds, activeReward?.item.id ?? null);
     return ids.flatMap((id) => {
@@ -647,7 +639,6 @@ function App() {
             onSelectedLetterChange={setSelectedLetter}
             foxCelebrate={progress.stars >= 20}
             playerPreference={progress.playerPreference}
-            favoriteStickerSrc={favoriteStickerSrc}
             onOpenPlayerChooser={() => setPlayerChooserOpen(true)}
           />
         );
@@ -803,7 +794,6 @@ function App() {
             pickableLetters={pickableLetters}
             onSelectedLetterChange={setSelectedLetter}
             playerPreference={progress.playerPreference}
-            favoriteStickerSrc={favoriteStickerSrc}
             onOpenPlayerChooser={() => setPlayerChooserOpen(true)}
           />
         );

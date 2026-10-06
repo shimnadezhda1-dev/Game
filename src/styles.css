@@ -3822,13 +3822,13 @@ html:has(.home-immersive) #root {
 .home-cluster {
   position: absolute;
   z-index: 30;
-  left: 34%;
+  left: 50%;
   top: 54%;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: clamp(8px, 1.6vw, 28px);
+  width: max-content;
   transform: translate(-50%, -12%);
 }
 
@@ -3874,11 +3874,14 @@ html:has(.home-immersive) #root {
 }
 
 .home-fox-art {
-  position: relative;
+  position: absolute;
   z-index: 30;
+  right: calc(100% + clamp(12px, 1.8vw, 36px));
+  top: 58%;
   display: block;
   width: auto;
   height: clamp(190px, 40vh, 340px);
+  transform: translateY(-50%);
   object-fit: contain;
   background: none;
   border: none;
@@ -4536,10 +4539,6 @@ html:has(.home-immersive) #root {
 }
 
 @media (max-width: 980px) {
-  .home-cluster {
-    left: 30%;
-  }
-
   .home-panels {
     width: min(380px, 46vw);
   }
@@ -4561,8 +4560,10 @@ html:has(.home-immersive) #root {
     position: relative;
     left: auto;
     top: auto;
+    width: min(100%, 520px);
     margin: clamp(168px, 24vh, 196px) auto 12px;
     flex-direction: column;
+    align-items: center;
     transform: none;
   }
 
@@ -4576,7 +4577,11 @@ html:has(.home-immersive) #root {
   }
 
   .home-fox-art {
+    position: relative;
+    right: auto;
+    top: auto;
     height: clamp(120px, 24vh, 180px);
+    transform: none;
   }
 
   .home-brand {
@@ -7027,9 +7032,14 @@ html:has(.listen-screen) #root {
   color: #5b3d14;
 }
 
+.sticker-preview__heart {
+  color: #e1062c;
+  margin-right: 0.28em;
+}
+
 .sticker-preview__favorite.is-favorite {
-  background: #ff4d7a;
-  color: #fff;
+  background: #ffe566;
+  color: #5b3d14;
 }
 
 .sticker-preview__close {

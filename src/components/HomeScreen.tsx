@@ -42,7 +42,6 @@ interface HomeScreenProps {
   onSelectedLetterChange: (id: string) => void;
   foxCelebrate?: boolean;
   playerPreference: PlayerPreference | null;
-  favoriteStickerSrc?: string | null;
   onOpenPlayerChooser: () => void;
 }
 
@@ -67,7 +66,6 @@ export function HomeScreen({
   pickableLetters,
   onSelectedLetterChange,
   playerPreference,
-  favoriteStickerSrc,
   onOpenPlayerChooser
 }: HomeScreenProps) {
   const [pulsePlay, setPulsePlay] = useState(false);
@@ -139,6 +137,31 @@ export function HomeScreen({
           card.style.minHeight = value;
         });
       }
+      const title = document.querySelector<HTMLElement>(".home-game-title");
+      if (!title) {
+        return;
+      }
+      if (window.innerWidth <= 820) {
+        title.style.removeProperty("margin-top");
+        document.querySelector<HTMLElement>(".home-cluster")?.style.removeProperty("top");
+        document.querySelector<HTMLElement>(".home-cluster")?.style.removeProperty("transform");
+        return;
+      }
+      const firDrop = 96;
+      title.style.marginTop = "0px";
+      const natural = title.getBoundingClientRect();
+      const room = Math.floor(grid.getBoundingClientRect().top - natural.bottom - 10);
+      const drop = Math.max(0, Math.min(firDrop, room));
+      title.style.marginTop = `${drop}px`;
+      title.dataset.titleDrop = String(drop);
+      const cluster = document.querySelector<HTMLElement>(".home-cluster");
+      if (!cluster) {
+        return;
+      }
+      const gap = 102;
+      const belowTitle = Math.round(title.getBoundingClientRect().bottom + gap);
+      cluster.style.top = `${belowTitle}px`;
+      cluster.style.transform = "translateX(-50%)";
     };
 
     const schedule = () => {
@@ -307,11 +330,9 @@ export function HomeScreen({
         aria-label={playerPreferenceAriaLabel(playerPreference)}
         onClick={onOpenPlayerChooser}
       >
-        {favoriteStickerSrc ? (
-          <img className="home-ui-profile__sticker" src={favoriteStickerSrc} alt="" draggable={false} />
-        ) : (
-          <span aria-hidden="true">{playerPreferenceIcon(playerPreference)}</span>
-        )}
+        <span className="home-ui-profile__face" aria-hidden="true">
+          {playerPreferenceIcon(playerPreference)}
+        </span>
       </button>
     </div>
   );

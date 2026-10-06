@@ -119,8 +119,9 @@ assert.match(app, /meadowFavoriteIds\(progress\.favoriteStickerIds/);
 assert.match(app, /toggleFavoriteStickerId/);
 
 const album = read("src/components/StickersAlbumScreen.tsx");
-assert.match(album, /♡ В любимые/);
-assert.match(album, /♥ Убрать из любимых/);
+assert.match(album, /sticker-preview__heart/);
+assert.match(album, /В любимые/);
+assert.match(album, /Убрать из любимых/);
 assert.match(album, /sticker-slot__heart/);
 
 const world = read("src/components/WorldBackground.tsx");

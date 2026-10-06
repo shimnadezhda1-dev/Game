@@ -228,13 +228,31 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const catalogSource = fs.readFileSync(path.join(root, "src/data/stickerCatalog.ts"), "utf8");
 assert.match(
   catalogSource,
-  /return awardableRegularStickers\(\)\.find\(\(item\) => !unlocked\.has\(item\.id\)\)/,
-  "pickNextRegularSticker must choose only a sticker id that is not unlocked"
+  /!unlocked\.has\(item\.id\)/,
+  "pickNextRegularSticker must skip sticker ids that are already unlocked"
+);
+assert.match(
+  catalogSource,
+  /\.sort\(\(a, b\) => a\.order - b\.order/,
+  "pickNextRegularSticker must follow display order"
+);
+assert.doesNotMatch(
+  catalogSource.slice(catalogSource.indexOf("function pickNextRegularSticker")),
+  /Math\.random/,
+  "pickNextRegularSticker must not pick at random"
 );
 const finalArt = fs.readFileSync(path.join(root, "src/data/finalStickerArt.ts"), "utf8");
 const finalIds = [...finalArt.matchAll(/id: "(sticker-\d+)"/g)].map((match) => match[1]);
 const fullCatalog = ["sticker-01", "sticker-02", "sticker-03", "sticker-04", ...finalIds];
 assert.equal(new Set(fullCatalog).size, fullCatalog.length, "catalog ids must be unique");
+const gapGrant = unlock({
+  unlocked: ["sticker-01", "sticker-02", "sticker-03", "sticker-05"],
+  claimed: [],
+  prevStars: 20,
+  nextStars: 25,
+  pool: fullCatalog
+});
+assert.equal(gapGrant.stickerId, "sticker-04", "a gap in the sequence is filled before later stickers");
 let owned = [];
 let ownedClaimed = [];
 let ownedStars = 0;

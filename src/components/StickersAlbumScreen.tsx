@@ -87,7 +87,10 @@ export function StickersAlbumScreen({ progress, onSetFavorite }: StickersAlbumSc
               aria-pressed={progress.favoriteStickerIds.includes(preview.id)}
               onClick={() => onSetFavorite(preview.id)}
             >
-              {progress.favoriteStickerIds.includes(preview.id) ? "♥ Убрать из любимых" : "♡ В любимые"}
+              <span className="sticker-preview__heart" aria-hidden="true">
+                ♥
+              </span>
+              {progress.favoriteStickerIds.includes(preview.id) ? "Убрать из любимых" : "В любимые"}
             </button>
             <button type="button" className="sticker-preview__close" onClick={() => setPreview(null)}>
               Закрыть
