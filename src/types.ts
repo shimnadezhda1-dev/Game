@@ -142,6 +142,7 @@ export interface ProgressState {
   unlockedStickerIds: string[];
   claimedMilestonesThisCycle: number[];
   favoriteStickerId: string | null;
+  favoriteStickerIds: string[];
   completedLettersThisCycle: string[];
   completedAlphabetCycles: number;
   alphabetCycleCompleted: boolean;

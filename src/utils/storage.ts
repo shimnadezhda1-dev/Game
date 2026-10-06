@@ -10,6 +10,7 @@ import {
 import { clampLearnAdvanceSeconds, LEARN_ADVANCE_DEFAULT } from "./learnAdvance";
 import { emptyActivityProgress, migrateActivityProgress } from "./activityProgress";
 import { uniqueIds, uniqueNumbers } from "./stickerLogic";
+import { migrateFavoriteStickerIds } from "./favoriteStickers";
 
 const STORAGE_KEY = "happy-alphabet-progress-v1";
 
@@ -29,6 +30,7 @@ export const defaultProgress: ProgressState = {
   unlockedStickerIds: [],
   claimedMilestonesThisCycle: [],
   favoriteStickerId: null,
+  favoriteStickerIds: [],
   completedLettersThisCycle: [],
   completedAlphabetCycles: 0,
   alphabetCycleCompleted: false,
@@ -127,10 +129,11 @@ export function loadProgress(): ProgressState {
         ? parsed.claimedMilestonesThisCycle
         : rewardedThresholds
     ).filter((threshold) => isStickerRewardMilestone(threshold));
-    const favoriteRaw =
-      typeof parsed.favoriteStickerId === "string" ? parsed.favoriteStickerId : null;
-    const favoriteStickerId =
-      favoriteRaw && unlockedFromSave.includes(favoriteRaw) ? favoriteRaw : null;
+    const favorites = migrateFavoriteStickerIds({
+      favoriteStickerId: parsed.favoriteStickerId,
+      favoriteStickerIds: parsed.favoriteStickerIds,
+      unlockedStickerIds: unlockedFromSave
+    });
     const completedLettersThisCycle = uniqueIds(
       Array.isArray(parsed.completedLettersThisCycle) ? parsed.completedLettersThisCycle : []
     );
@@ -156,7 +159,8 @@ export function loadProgress(): ProgressState {
       rewardedThresholds: claimedMilestonesThisCycle,
       unlockedStickerIds: unlockedFromSave,
       claimedMilestonesThisCycle,
-      favoriteStickerId,
+      favoriteStickerId: favorites.favoriteStickerId,
+      favoriteStickerIds: favorites.favoriteStickerIds,
       completedLettersThisCycle,
       completedAlphabetCycles,
       alphabetCycleCompleted,

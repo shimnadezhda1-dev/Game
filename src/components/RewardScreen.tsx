@@ -13,6 +13,8 @@ interface RewardScreenProps {
   title?: string;
   reward: RewardItem;
   onClose: () => void;
+  onOpenAlbum: () => void;
+  meadowFriends?: { id: string; src: string }[];
 }
 
 const REWARD_STICKER_PATH = "/assets/audio/ru/common/reward-new-sticker.mp3";
@@ -23,7 +25,9 @@ export function RewardScreen({
   threshold,
   title = "Ура! Новая наклейка!",
   reward,
-  onClose
+  onClose,
+  onOpenAlbum,
+  meadowFriends = []
 }: RewardScreenProps) {
   const closingRef = useRef(false);
   const pauseTimerRef = useRef<number | null>(null);
@@ -66,7 +70,12 @@ export function RewardScreen({
 
   return (
     <div className="screen reward-screen reward-overlay" role="dialog" aria-modal="true">
-      <WorldBackground variant="play" sunSrc={assetUrl("/assets/stickers-page/sun.png")} />
+      <WorldBackground
+        variant="play"
+        lively
+        sunSrc={assetUrl("/assets/stickers-page/sun.png")}
+        meadowFriends={meadowFriends}
+      />
       <div className="confetti-layer reward-confetti" aria-hidden>
         {Array.from({ length: 8 }).map((_, index) => (
           <span key={index} className={`confetti-bit bit-${index % 6}`} />
@@ -75,9 +84,11 @@ export function RewardScreen({
       <Character mood="celebrate" size="hero" />
       <section className="reward-card">
         <h1 className="reward-title">{title}</h1>
-        <div
-          className={`reward-showcase reward-${reward.fallbackVisual}`}
-          aria-hidden="true"
+        <button
+          type="button"
+          className={`reward-showcase reward-showcase-open reward-${reward.fallbackVisual}`}
+          aria-label={`Открыть альбом, наклейка ${reward.title}`}
+          onClick={onOpenAlbum}
         >
           {reward.asset ? (
             <img
@@ -89,7 +100,7 @@ export function RewardScreen({
           ) : (
             <span className="reward-showcase-star">★</span>
           )}
-        </div>
+        </button>
         <p className="reward-name">{reward.title}</p>
         <div className="reward-achievement" aria-label={`${threshold} звёзд`}>
           <GoldStar size="tiny" />

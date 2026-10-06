@@ -22,6 +22,7 @@ interface StickersAlbumScreenProps {
 export function StickersAlbumScreen({ progress, onBack, onSetFavorite }: StickersAlbumScreenProps) {
   const [preview, setPreview] = useState<StickerItem | null>(null);
   const unlocked = useMemo(() => new Set(progress.unlockedStickerIds), [progress.unlockedStickerIds]);
+  const favorites = useMemo(() => new Set(progress.favoriteStickerIds), [progress.favoriteStickerIds]);
   const collections = albumCollections();
   const allRegular = collections.flatMap((collection) => stickersInCollection(collection.id));
   const unlockedRegular = allRegular.filter((item) => unlocked.has(item.id)).length;
@@ -57,11 +58,12 @@ export function StickersAlbumScreen({ progress, onBack, onSetFavorite }: Sticker
                 {items.map((item) => {
                   const resolved = resolvedSticker(item);
                   const isOpen = unlocked.has(item.id);
+                  const isFavorite = isOpen && favorites.has(item.id);
                   return (
                     <button
                       key={item.id}
                       type="button"
-                      className={`sticker-slot ${isOpen ? "is-open" : "is-locked"}`}
+                      className={`sticker-slot ${isOpen ? "is-open" : "is-locked"}${isFavorite ? " is-favorite" : ""}`}
                       onClick={() => (isOpen ? setPreview(resolved) : undefined)}
                       aria-label={isOpen ? resolved.title : "Ещё не получена"}
                     >
@@ -76,6 +78,11 @@ export function StickersAlbumScreen({ progress, onBack, onSetFavorite }: Sticker
                           🔒
                         </span>
                       )}
+                      {isFavorite ? (
+                        <span className="sticker-slot__heart" aria-hidden="true">
+                          ♥
+                        </span>
+                      ) : null}
                     </button>
                   );
                 })}
@@ -91,7 +98,9 @@ export function StickersAlbumScreen({ progress, onBack, onSetFavorite }: Sticker
           <div className="sticker-collection__grid sticker-collection__grid--single">
             <button
               type="button"
-              className={`sticker-slot ${achievementUnlocked ? "is-open" : "is-locked"}`}
+              className={`sticker-slot ${achievementUnlocked ? "is-open" : "is-locked"}${
+                achievementUnlocked && favorites.has(achievement.id) ? " is-favorite" : ""
+              }`}
               onClick={() => (achievementUnlocked ? setPreview(achievement) : undefined)}
               aria-label={achievementUnlocked ? achievement.title : "Ещё не получена"}
             >
@@ -102,6 +111,11 @@ export function StickersAlbumScreen({ progress, onBack, onSetFavorite }: Sticker
                   🔒
                 </span>
               )}
+              {achievementUnlocked && favorites.has(achievement.id) ? (
+                <span className="sticker-slot__heart" aria-hidden="true">
+                  ♥
+                </span>
+              ) : null}
             </button>
           </div>
         </section>
@@ -118,10 +132,13 @@ export function StickersAlbumScreen({ progress, onBack, onSetFavorite }: Sticker
             <h3>{preview.title}</h3>
             <button
               type="button"
-              className="sticker-preview__favorite"
+              className={`sticker-preview__favorite${
+                progress.favoriteStickerIds.includes(preview.id) ? " is-favorite" : ""
+              }`}
+              aria-pressed={progress.favoriteStickerIds.includes(preview.id)}
               onClick={() => onSetFavorite(preview.id)}
             >
-              {progress.favoriteStickerId === preview.id ? "Любимая" : "Сделать любимой"}
+              {progress.favoriteStickerIds.includes(preview.id) ? "♥ Убрать из любимых" : "♡ В любимые"}
             </button>
             <button type="button" className="sticker-preview__close" onClick={() => setPreview(null)}>
               Закрыть

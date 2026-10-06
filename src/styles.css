@@ -1495,6 +1495,18 @@ body {
   transform: rotate(-4deg);
 }
 
+button.reward-showcase {
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+button.reward-showcase:active {
+  transform: rotate(-4deg) scale(0.94);
+}
+
 .reward-showcase::before,
 .reward-showcase::after {
   content: "";
@@ -3432,6 +3444,219 @@ body {
   background: linear-gradient(180deg, transparent, #62c84a 70%);
 }
 
+.meadow-life {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.meadow-path {
+  position: absolute;
+  left: -4%;
+  right: -4%;
+  bottom: 3.2vh;
+  height: 16px;
+  border-radius: 999px;
+  background: #f3e2a0;
+  opacity: 0.9;
+  transform: rotate(-1.5deg);
+  box-shadow: 0 5px 0 #e2c56a;
+}
+
+.meadow-bush {
+  position: absolute;
+  bottom: 5vh;
+  width: 54px;
+  height: 28px;
+  border-radius: 28px 28px 16px 16px;
+  background: radial-gradient(circle at 30% 40%, #b6f28b, #3cba45 70%);
+  box-shadow:
+    18px 4px 0 #49c44c,
+    -16px 6px 0 #2fa83a;
+}
+
+.meadow-bush-a {
+  left: 3%;
+}
+
+.meadow-bush-b {
+  right: 4%;
+  transform: scale(0.86);
+}
+
+.meadow-bush-c {
+  left: 16%;
+  bottom: 2.4vh;
+  transform: scale(0.62);
+}
+
+.meadow-mushroom {
+  position: absolute;
+  left: 24%;
+  bottom: 2vh;
+  width: 22px;
+  height: 16px;
+  border-radius: 12px 12px 6px 6px;
+  background: #ff6b7a;
+  box-shadow: inset -6px 0 0 #e24b5c;
+}
+
+.meadow-mushroom::after {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 12px;
+  width: 8px;
+  height: 12px;
+  border-radius: 3px;
+  background: #fff6e4;
+}
+
+.meadow-pebble {
+  position: absolute;
+  right: 18%;
+  bottom: 2.2vh;
+  width: 22px;
+  height: 12px;
+  border-radius: 12px;
+  background: #d7dde6;
+  box-shadow:
+    14px 2px 0 #c5ced8,
+    -16px 3px 0 #e7edf4;
+}
+
+.meadow-bloom {
+  position: absolute;
+  bottom: 2.6vh;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ffe566;
+  box-shadow:
+    8px 0 0 currentColor,
+    -8px 0 0 currentColor,
+    0 8px 0 currentColor,
+    0 -8px 0 currentColor;
+}
+
+.meadow-bloom-a {
+  left: 1.5%;
+  color: #ff6b7a;
+}
+
+.meadow-bloom-b {
+  left: 11%;
+  bottom: 7vh;
+  color: #7c4dff;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-20deg);
+}
+
+.meadow-bloom-c {
+  right: 2%;
+  color: #ff9f1c;
+}
+
+.meadow-bloom-d {
+  right: 12%;
+  bottom: 6.5vh;
+  color: #ff6b7a;
+  border-radius: 40% 60% 50% 50%;
+}
+
+.meadow-bloom-e {
+  left: 31%;
+  bottom: 1.4vh;
+  color: #2ec4b6;
+  transform: scale(0.8);
+}
+
+.meadow-wing {
+  position: absolute;
+  width: 16px;
+  height: 12px;
+  border-radius: 16px 16px 16px 4px;
+  background: #ff8fab;
+  box-shadow: 14px 0 0 #7ecbff;
+  animation: meadow-flutter 3.6s ease-in-out infinite;
+}
+
+.meadow-wing-a {
+  left: 7%;
+  bottom: 20vh;
+}
+
+.meadow-wing-b {
+  right: 8%;
+  bottom: 24vh;
+  animation-delay: -1.4s;
+  background: #ffe566;
+  box-shadow: 14px 0 0 #c9a6ff;
+}
+
+@keyframes meadow-flutter {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-8deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(8deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meadow-wing,
+  .meadow-friend {
+    animation: none;
+  }
+}
+
+.meadow-friend {
+  position: absolute;
+  z-index: 3;
+  width: var(--friend-size);
+  height: var(--friend-size);
+  bottom: var(--friend-bottom);
+  animation: meadow-friend-float 3.8s ease-in-out infinite;
+  animation-delay: var(--friend-delay);
+  transform: rotate(var(--friend-tilt));
+}
+
+.meadow-friend-left {
+  left: var(--friend-inset);
+}
+
+.meadow-friend-right {
+  right: var(--friend-inset);
+}
+
+.meadow-friend img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 0 rgb(90 60 20 / 16%));
+  pointer-events: none;
+}
+
+@keyframes meadow-friend-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--friend-tilt));
+  }
+  50% {
+    transform: translateY(-7px) rotate(var(--friend-tilt));
+  }
+}
+
+@media (max-width: 820px) {
+  .meadow-friend {
+    width: calc(var(--friend-size) * 0.58);
+    height: calc(var(--friend-size) * 0.58);
+    bottom: calc(var(--friend-bottom) * 0.62);
+  }
+}
+
 .flower.f-e {
   left: 44%;
   color: #ff6b7a;
@@ -3733,9 +3958,56 @@ html:has(.home-immersive) #root {
   left: max(2.4%, env(safe-area-inset-left, 0px));
 }
 
-.home-ui-stickers {
-  left: calc(max(2.4%, env(safe-area-inset-left, 0px)) + clamp(70px, 5vw, 92px) + 12px);
-  font-size: clamp(26px, 2.2vw, 34px);
+.home-stickers-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: min(236px, 72vw);
+  max-width: 248px;
+  min-height: 64px;
+  white-space: nowrap;
+  margin-top: 2px;
+  padding: 8px 18px 8px 12px;
+  border: 4px solid #fff;
+  border-radius: 28px;
+  background: linear-gradient(180deg, #9aefff 0%, #3ec8f0 52%, #1496d4 100%);
+  box-shadow:
+    0 7px 0 #0d6ea0,
+    inset 0 5px 0 rgb(255 255 255 / 40%);
+  color: #fff;
+  font-size: clamp(15px, 2vh, 20px);
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  text-shadow: 0 2px 0 rgb(10 90 130 / 35%);
+  cursor: pointer;
+}
+
+.home-stickers-btn__icon {
+  flex: 0 0 auto;
+  width: 46px;
+  height: 46px;
+  filter: drop-shadow(0 3px 0 rgb(12 90 130 / 28%));
+}
+
+.home-stickers-btn__icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.home-stickers-btn__label {
+  line-height: 1;
+}
+
+.home-stickers-btn:hover,
+.home-stickers-btn:focus-visible {
+  transform: translateY(-2px);
+}
+
+.home-stickers-btn:active {
+  transform: translateY(3px) scale(0.98);
+  box-shadow: 0 3px 0 #0d6ea0;
 }
 
 .home-ui-sound {
@@ -5854,9 +6126,17 @@ html:has(.listen-screen) #root {
     height: 64px;
   }
 
-  .home-ui-stickers {
-    left: calc(max(2.4%, env(safe-area-inset-left, 0px)) + 64px + 8px);
-    font-size: 24px;
+  .home-stickers-btn {
+    min-height: 56px;
+    min-width: min(236px, 84vw);
+    max-width: min(280px, 88vw);
+    font-size: clamp(16px, 4.2vw, 20px);
+    padding: 6px 14px 6px 8px;
+  }
+
+  .home-stickers-btn__icon {
+    width: 36px;
+    height: 36px;
   }
 
   .home-ui-profile {
@@ -6671,6 +6951,7 @@ html:has(.listen-screen) #root {
 }
 
 .sticker-slot {
+  position: relative;
   aspect-ratio: 1;
   border: 3px solid #fff6d6;
   border-radius: 18px;
@@ -6679,6 +6960,26 @@ html:has(.listen-screen) #root {
   cursor: pointer;
   display: grid;
   place-items: center;
+}
+
+.sticker-slot__heart {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 2;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  color: #ff2f6a;
+  font-size: 13px;
+  line-height: 1;
+  box-shadow:
+    0 2px 0 #ff8eab,
+    0 0 0 2px #fff;
+  pointer-events: none;
 }
 
 .sticker-slot img {
@@ -6747,6 +7048,11 @@ html:has(.listen-screen) #root {
 .sticker-preview__favorite {
   background: #ffe566;
   color: #5b3d14;
+}
+
+.sticker-preview__favorite.is-favorite {
+  background: #ff4d7a;
+  color: #fff;
 }
 
 .sticker-preview__close {

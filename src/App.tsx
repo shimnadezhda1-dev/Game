@@ -48,6 +48,7 @@ import {
   uniqueNumbers
 } from "./utils/stickerLogic";
 import { StickersAlbumScreen } from "./components/StickersAlbumScreen";
+import { meadowFavoriteIds, toggleFavoriteStickerId } from "./utils/favoriteStickers";
 import { AlphabetCompleteScreen } from "./components/AlphabetCompleteScreen";
 import { playLetterPool, letterAllowsActivity, filterLettersByCategory, validPlayActivity, PLAY_ACTIVITIES } from "./utils/playSettings";
 import {
@@ -573,10 +574,16 @@ function App() {
 
   function setFavoriteSticker(id: string) {
     setProgress((prev) => {
-      if (!prev.unlockedStickerIds.includes(id)) {
-        return prev;
-      }
-      return { ...prev, favoriteStickerId: id };
+      const favoriteStickerIds = toggleFavoriteStickerId(
+        prev.favoriteStickerIds,
+        id,
+        prev.unlockedStickerIds
+      );
+      return {
+        ...prev,
+        favoriteStickerIds,
+        favoriteStickerId: favoriteStickerIds[0] ?? null
+      };
     });
   }
 
@@ -595,6 +602,20 @@ function App() {
     favoriteResolved && stickerAssetExists(favoriteResolved.asset)
       ? assetUrl(favoriteResolved.asset ?? "")
       : null;
+  const meadowFriends = useMemo(() => {
+    const ids = meadowFavoriteIds(progress.favoriteStickerIds, activeReward?.item.id ?? null);
+    return ids.flatMap((id) => {
+      const item = getStickerById(id);
+      if (!item) {
+        return [];
+      }
+      const resolved = resolvedSticker(item);
+      if (!stickerAssetExists(resolved.asset)) {
+        return [];
+      }
+      return [{ id, src: assetUrl(resolved.asset ?? "") }];
+    });
+  }, [progress.favoriteStickerIds, activeReward]);
 
   function renderScreen() {
     switch (screen) {
@@ -851,6 +872,8 @@ function App() {
           title="Ура! Новая наклейка!"
           reward={activeReward.item}
           onClose={closeRewardOverlay}
+          onOpenAlbum={() => go("stickers")}
+          meadowFriends={meadowFriends}
         />
       ) : null}
       {progress.alphabetCycleCompleted && !preview ? (
