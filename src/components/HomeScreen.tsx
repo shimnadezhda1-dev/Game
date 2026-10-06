@@ -176,16 +176,17 @@ export function HomeScreen({
         />
       </div>
 
-      <img
-        className="home-sun"
-        src={assetUrl("/assets/home/sun-smiling.webp")}
-        fetchPriority="high"
-        decoding="async"
-        alt=""
-        draggable={false}
-      />
-
-      <GameTitle />
+      <div className="home-brand">
+        <img
+          className="home-sun"
+          src={assetUrl("/assets/home/sun-smiling.webp")}
+          fetchPriority="high"
+          decoding="async"
+          alt=""
+          draggable={false}
+        />
+        <GameTitle />
+      </div>
 
       <div className="home-cluster">
         <img
@@ -217,30 +218,12 @@ export function HomeScreen({
             />
           </button>
           <button type="button" className="home-stickers-btn" onClick={onOpenStickers}>
-            <span className="home-stickers-btn__icon" aria-hidden="true">
-              <svg viewBox="0 0 64 64">
-                <ellipse cx="32" cy="56" rx="16" ry="3.5" fill="#0b6f9e" opacity="0.28" />
-                <path d="M8 16c8-3 14-1.5 20 2.5V50c-7-3.2-13-4.2-20-2.2V16z" fill="#ff8ac4" />
-                <path d="M56 16c-8-3-14-1.5-20 2.5V50c7-3.2 13-4.2 20-2.2V16z" fill="#ff4f93" />
-                <path d="M12 18.5c6.5-2 12-0.8 16 2.2V47c-5.5-2.4-10.5-3.2-16-1.6V18.5z" fill="#fff" />
-                <path d="M52 18.5c-6.5-2-12-0.8-16 2.2V47c5.5-2.4 10.5-3.2 16-1.6V18.5z" fill="#f3fbff" />
-                <path d="M30 20h4v26h-4z" fill="#5ec8f5" />
-                <path d="M30 20c1.2 2 2.8 2 4 0" fill="none" stroke="#fff" strokeWidth="1.4" />
-                <path
-                  d="M44.2 24.2l1.7 3.4 3.8.5-2.8 2.6.7 3.7-3.4-1.8-3.4 1.8.7-3.7-2.8-2.6 3.8-.5z"
-                  fill="#ffe566"
-                  stroke="#ffb703"
-                  strokeWidth="0.8"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M20.2 30.2c0-2.3 1.9-3.8 3.5-2.4 1.7-1.4 3.6.1 3.6 2.4 0 2.8-3.5 5.4-3.5 5.4s-3.6-2.6-3.6-5.4z"
-                  fill="#ff2f6a"
-                  stroke="#fff"
-                  strokeWidth="1"
-                />
-              </svg>
-            </span>
+            <img
+              className="home-stickers-btn__icon"
+              src={assetUrl("/assets/ui/stickers-album-icon.png")}
+              alt=""
+              draggable={false}
+            />
             <span className="home-stickers-btn__label">МОИ НАКЛЕЙКИ</span>
           </button>
         </div>

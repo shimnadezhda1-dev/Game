@@ -3,7 +3,6 @@ import { ProgressState } from "../types";
 import {
   albumCollections,
   ALPHABET_ACHIEVEMENT_STICKER,
-  collectionCounts,
   getStickerById,
   resolvedSticker,
   stickersInCollection,
@@ -11,7 +10,6 @@ import {
 } from "../data/stickerCatalog";
 import { stickerAssetExists } from "../data/stickerAssets";
 import { assetUrl } from "../utils/assets";
-import { HomeButton } from "./HomeButton";
 
 interface StickersAlbumScreenProps {
   progress: ProgressState;
@@ -19,106 +17,57 @@ interface StickersAlbumScreenProps {
   onSetFavorite: (id: string) => void;
 }
 
-export function StickersAlbumScreen({ progress, onBack, onSetFavorite }: StickersAlbumScreenProps) {
+export function StickersAlbumScreen({ progress, onSetFavorite }: StickersAlbumScreenProps) {
   const [preview, setPreview] = useState<StickerItem | null>(null);
   const unlocked = useMemo(() => new Set(progress.unlockedStickerIds), [progress.unlockedStickerIds]);
   const favorites = useMemo(() => new Set(progress.favoriteStickerIds), [progress.favoriteStickerIds]);
-  const collections = albumCollections();
-  const allRegular = collections.flatMap((collection) => stickersInCollection(collection.id));
-  const unlockedRegular = allRegular.filter((item) => unlocked.has(item.id)).length;
-  const achievement = resolvedSticker(ALPHABET_ACHIEVEMENT_STICKER);
-  const achievementUnlocked = unlocked.has(achievement.id);
+  const albumStickers = useMemo(() => {
+    const regular = albumCollections().flatMap((collection) => stickersInCollection(collection.id));
+    return [...regular, ALPHABET_ACHIEVEMENT_STICKER].map((item) => resolvedSticker(item));
+  }, []);
+  const collected = albumStickers.filter((item) => unlocked.has(item.id)).length;
 
   return (
     <div className="screen stickers-album">
-      <img
-        className="stickers-album__sun"
-        src={assetUrl("/assets/stickers-page/sun.png")}
-        alt=""
-        draggable={false}
-      />
-      <HomeButton onClick={onBack} />
       <h1 className="stickers-album__title">Мои наклейки</h1>
       <p className="stickers-album__total">
-        Собрано: {unlockedRegular} из {allRegular.length}
+        Собрано: {collected} из {albumStickers.length}
       </p>
       <div className="stickers-album__collections">
-        {collections.map((collection) => {
-          const counts = collectionCounts(collection.id, progress.unlockedStickerIds);
-          const items = stickersInCollection(collection.id);
-          return (
-            <section key={collection.id} className="sticker-collection">
-              <header className="sticker-collection__head">
-                <h2>{collection.title}</h2>
-                <span>
-                  {counts.unlocked} / {counts.total}
-                </span>
-              </header>
-              <div className="sticker-collection__grid">
-                {items.map((item) => {
-                  const resolved = resolvedSticker(item);
-                  const isOpen = unlocked.has(item.id);
-                  const isFavorite = isOpen && favorites.has(item.id);
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      className={`sticker-slot ${isOpen ? "is-open" : "is-locked"}${isFavorite ? " is-favorite" : ""}`}
-                      onClick={() => (isOpen ? setPreview(resolved) : undefined)}
-                      aria-label={isOpen ? resolved.title : "Ещё не получена"}
-                    >
-                      {isOpen && stickerAssetExists(resolved.asset) ? (
-                        <img src={assetUrl(resolved.asset ?? "")} alt="" draggable={false} />
-                      ) : isOpen ? (
-                        <span className="sticker-slot__fallback" aria-hidden="true">
-                          ★
-                        </span>
-                      ) : (
-                        <span className="sticker-slot__lock" aria-hidden="true">
-                          🔒
-                        </span>
-                      )}
-                      {isFavorite ? (
-                        <span className="sticker-slot__heart" aria-hidden="true">
-                          ♥
-                        </span>
-                      ) : null}
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
-          );
-        })}
-        <section className="sticker-collection">
-          <header className="sticker-collection__head">
-            <h2>{achievement.collectionTitle}</h2>
-            <span>{achievementUnlocked ? 1 : 0} / 1</span>
-          </header>
-          <div className="sticker-collection__grid sticker-collection__grid--single">
-            <button
-              type="button"
-              className={`sticker-slot ${achievementUnlocked ? "is-open" : "is-locked"}${
-                achievementUnlocked && favorites.has(achievement.id) ? " is-favorite" : ""
-              }`}
-              onClick={() => (achievementUnlocked ? setPreview(achievement) : undefined)}
-              aria-label={achievementUnlocked ? achievement.title : "Ещё не получена"}
-            >
-              {achievementUnlocked && stickerAssetExists(achievement.asset) ? (
-                <img src={assetUrl(achievement.asset ?? "")} alt="" draggable={false} />
-              ) : (
-                <span className="sticker-slot__lock" aria-hidden="true">
-                  🔒
-                </span>
-              )}
-              {achievementUnlocked && favorites.has(achievement.id) ? (
-                <span className="sticker-slot__heart" aria-hidden="true">
-                  ♥
-                </span>
-              ) : null}
-            </button>
-          </div>
-        </section>
+        <div className="sticker-collection__grid">
+          {albumStickers.map((item) => {
+            const isOpen = unlocked.has(item.id);
+            const isFavorite = isOpen && favorites.has(item.id);
+            const hasArt = stickerAssetExists(item.asset);
+            return (
+              <button
+                key={item.id}
+                type="button"
+                className={`sticker-slot ${isOpen ? "is-open" : "is-locked"}${isFavorite ? " is-favorite" : ""}`}
+                onClick={() => (isOpen ? setPreview(item) : undefined)}
+                aria-label={isOpen ? item.title : "Ещё не получена"}
+              >
+                {hasArt ? (
+                  <img src={assetUrl(item.asset ?? "")} alt="" draggable={false} />
+                ) : (
+                  <span className="sticker-slot__fallback" aria-hidden="true">
+                    ★
+                  </span>
+                )}
+                {isOpen ? null : (
+                  <span className="sticker-slot__lock" aria-hidden="true">
+                    🔒
+                  </span>
+                )}
+                {isFavorite ? (
+                  <span className="sticker-slot__heart" aria-hidden="true">
+                    ♥
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
       </div>
       {preview ? (
         <div className="sticker-preview" role="dialog" aria-modal="true" aria-label={preview.title}>
