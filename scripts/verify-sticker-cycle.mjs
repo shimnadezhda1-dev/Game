@@ -221,4 +221,78 @@ const cycleNext = unlock({
 });
 assert.equal(cycleNext.stickerId, "sticker-02", "new cycle still awards the next free sticker at 50");
 
+const fullCatalog = Array.from({ length: 107 }, (_, index) => `sticker-${String(index + 1).padStart(2, "0")}`);
+let owned = [];
+let ownedClaimed = [];
+let ownedStars = 0;
+const grantedIds = [];
+while (owned.length < fullCatalog.length) {
+  const grant = unlock({
+    unlocked: owned,
+    claimed: ownedClaimed,
+    prevStars: ownedStars,
+    nextStars: ownedStars + 1,
+    pool: fullCatalog
+  });
+  ownedStars += 1;
+  if (!grant) {
+    continue;
+  }
+  assert.equal(owned.includes(grant.stickerId), false, `repeat grant ${grant.stickerId}`);
+  grantedIds.push(grant.stickerId);
+  owned = uniqueIds([...owned, grant.stickerId]);
+  ownedClaimed = [...ownedClaimed, grant.threshold];
+}
+assert.equal(grantedIds.length, 107);
+assert.equal(new Set(grantedIds).size, 107, "each sticker id is granted once");
+assert.deepEqual(owned, fullCatalog);
+assert.equal(
+  unlock({
+    unlocked: owned,
+    claimed: [],
+    prevStars: ownedStars,
+    nextStars: ownedStars + 5,
+    pool: fullCatalog
+  }),
+  null,
+  "a full collection does not open another new sticker"
+);
+
+const alreadyOwned = fullCatalog.slice(0, 40);
+const nextFree = unlock({
+  unlocked: alreadyOwned,
+  claimed: [],
+  prevStars: 49,
+  nextStars: 50,
+  pool: fullCatalog
+});
+assert.equal(alreadyOwned.includes(nextFree.stickerId), false, "next reward stays outside unlocked ids");
+assert.equal(nextFree.stickerId, "sticker-41");
+
+const milestoneIds = [];
+let milestoneOwned = [];
+for (const at of [50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110]) {
+  const grant = unlock({
+    unlocked: milestoneOwned,
+    claimed: [],
+    prevStars: at - 1,
+    nextStars: at,
+    pool: fullCatalog
+  });
+  assert.ok(grant, `missing reward at ${at}`);
+  assert.equal(grant.threshold, at);
+  assert.equal(milestoneOwned.includes(grant.stickerId), false, `repeat at ${at}`);
+  milestoneIds.push(grant.stickerId);
+  milestoneOwned = [...milestoneOwned, grant.stickerId];
+}
+assert.equal(new Set(milestoneIds).size, milestoneIds.length, "milestones 50–110 award distinct stickers");
+const repeatAfterReload = unlock({
+  unlocked: milestoneOwned,
+  claimed: [110],
+  prevStars: 109,
+  nextStars: 110,
+  pool: fullCatalog
+});
+assert.equal(repeatAfterReload, null, "reload does not grant the sticker from milestone 110 again");
+
 console.log("verify-sticker-cycle: ok");

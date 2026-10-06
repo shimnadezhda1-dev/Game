@@ -51,11 +51,41 @@ assert.equal(new Set(explicitIds).size, explicitIds.length, `duplicate catalog i
 assert.ok(catalog.includes('ALPHABET_ACHIEVEMENT_ID = "alphabet-expert"'));
 assert.match(catalog, /sticker-\$\{String\(order\)\.padStart\(2, "0"\)\}/);
 const meadowNames = [...catalog.match(/const MEADOW_NAMES = \[([\s\S]*?)\];/)[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]);
-const skyNames = [...catalog.match(/const SKY_NAMES = \[([\s\S]*?)\];/)[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]);
-const toyNames = [...catalog.match(/const TOY_NAMES = \[([\s\S]*?)\];/)[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]);
 assert.equal(meadowNames.length, 20);
-assert.equal(skyNames.length, 20);
-assert.equal(toyNames.length, 20);
+
+const finalArt = fs.readFileSync(path.join(root, "src/data/finalStickerArt.ts"), "utf8");
+const finalRows = [...finalArt.matchAll(/id: "(sticker-\d+)", title: "([^"]+)", asset: "([^"]+)"/g)].map((match) => ({
+  id: match[1],
+  title: match[2],
+  asset: match[3]
+}));
+assert.equal(new Set(finalRows.map((row) => row.id)).size, finalRows.length, "duplicate final sticker ids");
+assert.equal(new Set(finalRows.map((row) => row.asset)).size, finalRows.length, "duplicate final sticker files");
+const keptIds = new Set(["sticker-01", "sticker-02", "sticker-03", "sticker-04"]);
+for (const row of finalRows) {
+  assert.equal(keptIds.has(row.id), false, `${row.id} must stay on the original sticker`);
+  assert.ok(row.title.trim().length > 0, `empty title ${row.id}`);
+  const file = path.join(root, "public", row.asset.replace(/^\//, "").replaceAll("/", path.sep));
+  assert.equal(fs.existsSync(file), true, `missing file ${file}`);
+}
+const expectedGirls = {
+  "fairy-girl.png": "Фея",
+  "ballerina-kitten.png": "Котёнок-балерина",
+  "princess-pony.png": null,
+  "princess-crown.png": "Корона",
+  "princess-carriage.png": "Карета",
+  "crystal-slipper.png": "Хрустальная туфелька",
+  "princess-mirror.png": "Зеркальце"
+};
+for (const [file, title] of Object.entries(expectedGirls)) {
+  const row = finalRows.find((item) => item.asset.endsWith(`/${file}`));
+  if (title === null) {
+    assert.equal(row, undefined, `${file} is not in the collection`);
+    continue;
+  }
+  assert.ok(row, `missing catalog row for ${file}`);
+  assert.equal(row.title, title, `${file} title`);
+}
 
 const titles = [...catalog.matchAll(/\btitle: "([^"]*)"/g)].map((match) => match[1]);
 assert.ok(titles.length > 0 && titles.every((title) => title.trim().length > 0), "empty title");
@@ -63,4 +93,26 @@ assert.ok(titles.length > 0 && titles.every((title) => title.trim().length > 0),
 const bunnyStillOnChest = /sticker-04[\s\S]{0,220}Зайчик/.test(artBlock);
 assert.equal(bunnyStillOnChest, false, "sticker-04 must not be titled Зайчик");
 
-console.log("verify-sticker-labels: ok");
+const finalRoot = path.join(root, "public", "assets", "stickers", "final");
+const onDisk = [];
+const counts = {};
+for (const folder of ["boys", "girls", "universal"]) {
+  const names = fs.readdirSync(path.join(finalRoot, folder)).filter((name) => name.toLowerCase().endsWith(".png"));
+  counts[folder] = names.length;
+  for (const name of names) {
+    onDisk.push(`${folder}/${name}`);
+  }
+}
+const catalogPaths = finalRows.map((row) => row.asset.replace("/assets/stickers/final/", ""));
+const catalogPathSet = new Set(catalogPaths);
+const diskSet = new Set(onDisk);
+const unconnected = onDisk.filter((item) => !catalogPathSet.has(item));
+const missing = catalogPaths.filter((item) => !diskSet.has(item));
+assert.deepEqual(unconnected, [], `final PNG without a sticker record: ${unconnected.join(", ")}`);
+assert.deepEqual(missing, [], `catalog asset missing on disk: ${missing.join(", ")}`);
+assert.equal(onDisk.length, finalRows.length, "final PNG count must match catalog rows");
+assert.equal(counts.boys + counts.girls + counts.universal, onDisk.length);
+
+console.log(
+  `verify-sticker-labels: ok boys=${counts.boys} girls=${counts.girls} universal=${counts.universal} total=${onDisk.length}`
+);

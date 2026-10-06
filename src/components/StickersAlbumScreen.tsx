@@ -116,7 +116,6 @@ export function StickersAlbumScreen({ progress, onBack, onSetFavorite }: Sticker
               <span className="sticker-slot__fallback">★</span>
             )}
             <h3>{preview.title}</h3>
-            <p>{preview.collectionTitle}</p>
             <button
               type="button"
               className="sticker-preview__favorite"

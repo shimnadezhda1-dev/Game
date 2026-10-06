@@ -91,9 +91,6 @@ export function RewardScreen({
           )}
         </div>
         <p className="reward-name">{reward.title}</p>
-        {reward.collectionTitle ? (
-          <p className="reward-collection">{reward.collectionTitle}</p>
-        ) : null}
         <div className="reward-achievement" aria-label={`${threshold} звёзд`}>
           <GoldStar size="tiny" />
           <span>{threshold}</span>

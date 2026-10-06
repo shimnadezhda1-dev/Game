@@ -1,3 +1,4 @@
+import { FINAL_STICKER_ART } from "./finalStickerArt";
 import { RewardAudience, RewardFallbackVisual, RewardItem } from "./rewardCatalog";
 import { resolveStickerAsset, stickerAssetExists } from "./stickerAssets";
 
@@ -46,52 +47,6 @@ const MEADOW_NAMES = [
   "Мышонок",
   "Пчёлка",
   "Жучок"
-];
-
-const SKY_NAMES = [
-  "Звёздочка",
-  "Луна",
-  "Облачко",
-  "Радуга",
-  "Сердечко",
-  "Воздушный шар",
-  "Фейерверк",
-  "Подарок",
-  "Конфетка",
-  "Тортик",
-  "Флажок",
-  "Колокольчик",
-  "Снежинка",
-  "Ёлочка",
-  "Комета",
-  "Планета",
-  "Ракета",
-  "Корона",
-  "Медалька",
-  "Смайлик"
-];
-
-const TOY_NAMES = [
-  "Кубик",
-  "Мячик",
-  "Машинка",
-  "Паровозик",
-  "Кораблик",
-  "Самолёт",
-  "Робот",
-  "Динозаврик",
-  "Единорог",
-  "Фея",
-  "Пирамидка",
-  "Барабан",
-  "Книжка",
-  "Карандаш",
-  "Пузыри",
-  "Волчок",
-  "Пазл",
-  "Клоун",
-  "Цирк",
-  "Волшебная палочка"
 ];
 
 function regularSticker(
@@ -157,13 +112,26 @@ function withVisibleArtwork(item: StickerItem): StickerItem {
   };
 }
 
+function finalSticker(art: (typeof FINAL_STICKER_ART)[number]): StickerItem {
+  const order = Number(art.id.replace("sticker-", ""));
+  return {
+    id: art.id,
+    title: art.title,
+    collectionId: art.collectionId,
+    collectionTitle: COLLECTION_TITLES[art.collectionId] ?? art.collectionId,
+    preferredAudience: art.preferredAudience,
+    asset: art.asset,
+    fallbackVisual: "sticker",
+    kind: "regular",
+    order
+  };
+}
+
 function makeRegularStickers(): StickerItem[] {
-  const meadow = MEADOW_NAMES.map((title, index) =>
+  const kept = MEADOW_NAMES.slice(0, 4).map((title, index) =>
     regularSticker(index + 1, "meadow-friends", title)
   );
-  const sky = SKY_NAMES.map((title, index) => regularSticker(index + 21, "sky-party", title));
-  const toys = TOY_NAMES.map((title, index) => regularSticker(index + 41, "toy-magic", title));
-  return [...meadow, ...sky, ...toys].map(withVisibleArtwork);
+  return [...kept, ...FINAL_STICKER_ART.map(finalSticker)].map(withVisibleArtwork);
 }
 
 export const LEGACY_STICKERS: readonly StickerItem[] = [
