@@ -88,7 +88,6 @@ export const FINAL_STICKER_ART: readonly FinalStickerArt[] = [
   { id: "sticker-80", title: "Супергерой", asset: "/assets/stickers/final/boys/superhero.png", collectionId: "toy-magic", preferredAudience: "boy" },
   { id: "sticker-81", title: "Трактор", asset: "/assets/stickers/final/boys/tractor.png", collectionId: "toy-magic", preferredAudience: "boy" },
   { id: "sticker-82", title: "Поезд", asset: "/assets/stickers/final/boys/train.png", collectionId: "toy-magic", preferredAudience: "boy" },
-  { id: "sticker-83", title: "Сундук с сокровищами", asset: "/assets/stickers/final/boys/treasure-chest.png", collectionId: "toy-magic", preferredAudience: "boy" },
   { id: "sticker-84", title: "Волшебник", asset: "/assets/stickers/final/boys/wizard.png", collectionId: "toy-magic", preferredAudience: "boy" },
   { id: "sticker-85", title: "Котёнок-балерина", asset: "/assets/stickers/final/girls/ballerina-kitten.png", collectionId: "sky-party", preferredAudience: "girl" },
   { id: "sticker-86", title: "Балерина", asset: "/assets/stickers/final/girls/ballerina.png", collectionId: "sky-party", preferredAudience: "girl" },
@@ -113,6 +112,5 @@ export const FINAL_STICKER_ART: readonly FinalStickerArt[] = [
   { id: "sticker-105", title: "Принцесса", asset: "/assets/stickers/final/girls/princess.png", collectionId: "sky-party", preferredAudience: "girl" },
   { id: "sticker-106", title: "Радужное облако", asset: "/assets/stickers/final/girls/rainbow-cloud.png", collectionId: "sky-party", preferredAudience: "girl" },
   { id: "sticker-107", title: "Радуга", asset: "/assets/stickers/final/girls/rainbow.png", collectionId: "sky-party", preferredAudience: "girl" },
-  { id: "sticker-108", title: "Звезда", asset: "/assets/stickers/final/girls/star.png", collectionId: "sky-party", preferredAudience: "girl" },
   { id: "sticker-109", title: "Единорог", asset: "/assets/stickers/final/girls/unicorn.png", collectionId: "sky-party", preferredAudience: "girl" },
 ];

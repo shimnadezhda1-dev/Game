@@ -88,12 +88,12 @@ export const VISIBLE_STICKER_ART: Record<
   },
   "sticker-03": {
     title: "Звёздочка",
-    asset: "/assets/ui/stars.webp",
+    asset: "/assets/stickers/final/girls/star.png",
     collectionId: "sky-party"
   },
   "sticker-04": {
     title: "Сундучок",
-    asset: "/assets/ui/rewards-chest.webp",
+    asset: "/assets/stickers/final/boys/treasure-chest.png",
     collectionId: "sky-party"
   }
 };

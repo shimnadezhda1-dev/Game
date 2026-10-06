@@ -1483,8 +1483,8 @@ body {
   position: relative;
   display: grid;
   place-items: center;
-  width: clamp(108px, 19vh, 156px);
-  height: clamp(108px, 19vh, 156px);
+  width: 176px;
+  height: 176px;
   margin: 0 auto;
   border: 7px solid #fff;
   border-radius: 48% 52% 46% 54% / 52% 45% 55% 48%;
@@ -1680,17 +1680,19 @@ body {
     padding: 10px 14px 12px;
   }
 
-  .reward-showcase {
-    width: clamp(94px, 17vh, 126px);
-    height: clamp(94px, 17vh, 126px);
-  }
-
   .reward-overlay > .reward-continue {
     margin-top: 10px;
     min-width: min(94vw, 320px);
     min-height: 64px;
     padding: 10px 20px;
     font-size: clamp(20px, 5.2vw, 26px);
+  }
+}
+
+@media (max-width: 480px) {
+  .reward-showcase {
+    width: min(168px, 46vw);
+    height: min(168px, 46vw);
   }
 }
 

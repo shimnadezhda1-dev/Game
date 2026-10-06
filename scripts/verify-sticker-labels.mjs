@@ -20,12 +20,12 @@ const visible = {
   },
   "sticker-03": {
     title: "Звёздочка",
-    asset: "/assets/ui/stars.webp",
+    asset: "/assets/stickers/final/girls/star.png",
     collectionId: "sky-party"
   },
   "sticker-04": {
     title: "Сундучок",
-    asset: "/assets/ui/rewards-chest.webp",
+    asset: "/assets/stickers/final/boys/treasure-chest.png",
     collectionId: "sky-party"
   }
 };
@@ -103,14 +103,21 @@ for (const folder of ["boys", "girls", "universal"]) {
     onDisk.push(`${folder}/${name}`);
   }
 }
+const visibleFinal = Object.values(visible)
+  .map((row) => row.asset)
+  .filter((asset) => asset.startsWith("/assets/stickers/final/"))
+  .map((asset) => asset.replace("/assets/stickers/final/", ""));
 const catalogPaths = finalRows.map((row) => row.asset.replace("/assets/stickers/final/", ""));
-const catalogPathSet = new Set(catalogPaths);
+const catalogPathSet = new Set([...catalogPaths, ...visibleFinal]);
 const diskSet = new Set(onDisk);
 const unconnected = onDisk.filter((item) => !catalogPathSet.has(item));
-const missing = catalogPaths.filter((item) => !diskSet.has(item));
+const missing = [...catalogPathSet].filter((item) => !diskSet.has(item));
 assert.deepEqual(unconnected, [], `final PNG without a sticker record: ${unconnected.join(", ")}`);
 assert.deepEqual(missing, [], `catalog asset missing on disk: ${missing.join(", ")}`);
-assert.equal(onDisk.length, finalRows.length, "final PNG count must match catalog rows");
+assert.equal(onDisk.length, finalRows.length + visibleFinal.length, "final PNG count must match catalog rows");
+for (const asset of visibleFinal) {
+  assert.equal(catalogPaths.includes(asset), false, `final file is both an early sticker and a later sticker: ${asset}`);
+}
 assert.equal(counts.boys + counts.girls + counts.universal, onDisk.length);
 
 console.log(

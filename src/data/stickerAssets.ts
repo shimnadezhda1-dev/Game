@@ -27,8 +27,8 @@ const EXTRA_EXISTING_ASSETS = new Set([
 const PREVIEW_FALLBACK_BY_ID: Record<string, string> = {
   "sticker-01": "/assets/stickers/sun-new.png",
   "sticker-02": "/assets/home/rainbow-clean.png",
-  "sticker-03": "/assets/ui/stars.webp",
-  "sticker-04": "/assets/ui/rewards-chest.webp"
+  "sticker-03": "/assets/stickers/final/girls/star.png",
+  "sticker-04": "/assets/stickers/final/boys/treasure-chest.png"
 };
 
 export function stickerAssetExists(path: string | null | undefined): boolean {

@@ -1,4 +1,7 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const ALPHABET = [
   "A","B","V","G","D","E","Yo","Zh","Z","I","J","K","L","M","N","O","P","R","S","T","U","F",
@@ -221,7 +224,17 @@ const cycleNext = unlock({
 });
 assert.equal(cycleNext.stickerId, "sticker-02", "new cycle still awards the next free sticker at 50");
 
-const fullCatalog = Array.from({ length: 107 }, (_, index) => `sticker-${String(index + 1).padStart(2, "0")}`);
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const catalogSource = fs.readFileSync(path.join(root, "src/data/stickerCatalog.ts"), "utf8");
+assert.match(
+  catalogSource,
+  /return awardableRegularStickers\(\)\.find\(\(item\) => !unlocked\.has\(item\.id\)\)/,
+  "pickNextRegularSticker must choose only a sticker id that is not unlocked"
+);
+const finalArt = fs.readFileSync(path.join(root, "src/data/finalStickerArt.ts"), "utf8");
+const finalIds = [...finalArt.matchAll(/id: "(sticker-\d+)"/g)].map((match) => match[1]);
+const fullCatalog = ["sticker-01", "sticker-02", "sticker-03", "sticker-04", ...finalIds];
+assert.equal(new Set(fullCatalog).size, fullCatalog.length, "catalog ids must be unique");
 let owned = [];
 let ownedClaimed = [];
 let ownedStars = 0;
@@ -243,8 +256,13 @@ while (owned.length < fullCatalog.length) {
   owned = uniqueIds([...owned, grant.stickerId]);
   ownedClaimed = [...ownedClaimed, grant.threshold];
 }
-assert.equal(grantedIds.length, 107);
-assert.equal(new Set(grantedIds).size, 107, "each sticker id is granted once");
+const duplicateGrantCount = grantedIds.length - new Set(grantedIds).size;
+assert.equal(grantedIds.length, fullCatalog.length, "one grant for every catalog sticker");
+assert.equal(new Set(grantedIds).size, fullCatalog.length, "each sticker id is granted once");
+assert.equal(duplicateGrantCount, 0, "duplicate sticker.id count");
+console.log(
+  `unique-grant: issued=${grantedIds.length} unique=${new Set(grantedIds).size} duplicates=${duplicateGrantCount}`
+);
 assert.deepEqual(owned, fullCatalog);
 assert.equal(
   unlock({
@@ -294,5 +312,49 @@ const repeatAfterReload = unlock({
   pool: fullCatalog
 });
 assert.equal(repeatAfterReload, null, "reload does not grant the sticker from milestone 110 again");
+
+const savedState = JSON.parse(
+  JSON.stringify({
+    unlockedStickerIds: fullCatalog.slice(0, 8),
+    claimedMilestonesThisCycle: [5, 10, 15, 20, 25, 30, 35, 40]
+  })
+);
+const loadedState = JSON.parse(JSON.stringify(savedState));
+let persistedOwned = loadedState.unlockedStickerIds;
+let persistedClaimed = [];
+let persistedStars = 49;
+const continuedIds = [];
+for (let step = 0; step < fullCatalog.length * 5; step += 1) {
+  const grant = unlock({
+    unlocked: persistedOwned,
+    claimed: persistedClaimed,
+    prevStars: persistedStars,
+    nextStars: persistedStars + 1,
+    pool: fullCatalog
+  });
+  persistedStars += 1;
+  if (!grant) {
+    continue;
+  }
+  assert.equal(
+    savedState.unlockedStickerIds.includes(grant.stickerId),
+    false,
+    `reload awarded an already saved sticker ${grant.stickerId}`
+  );
+  continuedIds.push(grant.stickerId);
+  persistedOwned = uniqueIds([...persistedOwned, grant.stickerId]);
+  persistedClaimed = [...persistedClaimed, grant.threshold];
+}
+const persistedDuplicates = continuedIds.length - new Set(continuedIds).size;
+assert.equal(persistedOwned.length, fullCatalog.length, "reload continuation finishes the collection");
+assert.equal(persistedDuplicates, 0, "reload continuation has duplicate ids");
+assert.equal(
+  continuedIds.some((id) => savedState.unlockedStickerIds.includes(id)),
+  false,
+  "a saved sticker id was granted again"
+);
+console.log(
+  `reload-persistence: saved=${savedState.unlockedStickerIds.length} continued=${continuedIds.length} duplicates=${persistedDuplicates}`
+);
 
 console.log("verify-sticker-cycle: ok");
