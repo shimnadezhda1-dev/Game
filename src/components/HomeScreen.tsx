@@ -331,7 +331,14 @@ export function HomeScreen({
         onClick={onOpenPlayerChooser}
       >
         <span className="home-ui-profile__face" aria-hidden="true">
-          {playerPreferenceIcon(playerPreference)}
+          {playerPreference === null ? (
+            <>
+              <span className="home-ui-profile__child">👦</span>
+              <span className="home-ui-profile__child">👧</span>
+            </>
+          ) : (
+            playerPreferenceIcon(playerPreference)
+          )}
         </span>
       </button>
     </div>

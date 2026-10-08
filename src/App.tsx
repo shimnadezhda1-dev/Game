@@ -594,6 +594,7 @@ function App() {
 
   const backToHub = () => go("modeSelect");
   const backHome = () => go("home");
+  const shownPlayerPreference = playerChooserOpen ? null : progress.playerPreference;
   const meadowFriends = useMemo(() => {
     const ids = meadowFavoriteIds(progress.favoriteStickerIds, activeReward?.item.id ?? null);
     return ids.flatMap((id) => {
@@ -638,7 +639,7 @@ function App() {
             pickableLetters={pickableLetters}
             onSelectedLetterChange={setSelectedLetter}
             foxCelebrate={progress.stars >= 20}
-            playerPreference={progress.playerPreference}
+            playerPreference={shownPlayerPreference}
             onOpenPlayerChooser={() => setPlayerChooserOpen(true)}
           />
         );
@@ -793,7 +794,7 @@ function App() {
             selectedLetterId={progress.selectedLetterId}
             pickableLetters={pickableLetters}
             onSelectedLetterChange={setSelectedLetter}
-            playerPreference={progress.playerPreference}
+            playerPreference={shownPlayerPreference}
             onOpenPlayerChooser={() => setPlayerChooserOpen(true)}
           />
         );
