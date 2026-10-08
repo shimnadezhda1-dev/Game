@@ -24,7 +24,7 @@ interface ListenAndChooseGameProps {
   stars?: number;
   onCorrect: (letterId: string, origin?: Point) => void;
   onMistake: (letterId: string) => void;
-  onSpeak: (text: string, options?: { key?: string; onEnd?: () => void }) => void;
+  onSpeak: (text: string, options?: { key?: string; path?: string; onEnd?: () => void }) => void;
   onBack: () => void;
   onPrev?: () => void;
   onStageNext?: () => void;

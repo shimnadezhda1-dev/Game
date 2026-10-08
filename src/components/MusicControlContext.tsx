@@ -1,8 +1,20 @@
 import { createContext, useContext, ReactNode } from "react";
+import type { MusicMode } from "../audio/musicSettings";
 
 interface MusicControlValue {
   musicOn: boolean;
+  musicMode: MusicMode;
+  musicVolume: number;
+  customFileName: string | null;
+  persistWarning: string | null;
+  formatError: string | null;
+  settingsOpen: boolean;
+  openMusicSettings: () => void;
+  closeMusicSettings: () => void;
   onToggleMusic: () => void;
+  setMusicMode: (mode: MusicMode) => void;
+  setMusicVolume: (volume: number) => void;
+  pickCustomMusic: (file: File) => Promise<void> | void;
 }
 
 const MusicControlContext = createContext<MusicControlValue | null>(null);

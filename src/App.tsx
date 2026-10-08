@@ -14,6 +14,7 @@ import { audioManager, speakRussian, type SpeakOptions } from "./audio/AudioMana
 import { bumpPlayFlow, flowLog } from "./audio/playFlow";
 import { resetListenInstruction } from "./audio/listenSession";
 import { backgroundMusic } from "./audio/BackgroundMusicManager";
+import type { MusicMode } from "./audio/musicSettings";
 import {
   LetterCategory,
   OptionCount,
@@ -61,6 +62,7 @@ import { clampLearnAdvanceSeconds } from "./utils/learnAdvance";
 import { PlayerChooser } from "./components/PlayerChooser";
 import { RestartActivityConfirm } from "./components/RestartActivityConfirm";
 import { MusicControlProvider } from "./components/MusicControlContext";
+import { MusicSettingsPanel } from "./components/MusicSettingsPanel";
 
 function VoiceDebugLine() {
   const [path, setPath] = useState("");
@@ -121,6 +123,12 @@ function App() {
   } | null>(null);
   const [isCelebrating, setIsCelebrating] = useState(false);
   const [musicOn, setMusicOn] = useState(() => backgroundMusic.isEnabled());
+  const [musicMode, setMusicModeState] = useState<MusicMode>(() => backgroundMusic.getMode());
+  const [musicVolume, setMusicVolumeState] = useState(() => backgroundMusic.getVolume());
+  const [customFileName, setCustomFileName] = useState<string | null>(() => backgroundMusic.getCustomName());
+  const [persistWarning, setPersistWarning] = useState<string | null>(null);
+  const [formatError, setFormatError] = useState<string | null>(null);
+  const [musicSettingsOpen, setMusicSettingsOpen] = useState(false);
   const [flight, setFlight] = useState<Flight | null>(null);
   const [bankPulse, setBankPulse] = useState(false);
   const [playEpoch, setPlayEpoch] = useState(0);
@@ -138,11 +146,20 @@ function App() {
   progressRef.current = progress;
 
   useEffect(() => {
-    return backgroundMusic.subscribe(() => setMusicOn(backgroundMusic.isEnabled()));
+    return backgroundMusic.subscribe(() => {
+      setMusicOn(backgroundMusic.isEnabled());
+      setMusicModeState(backgroundMusic.getMode());
+      setMusicVolumeState(backgroundMusic.getVolume());
+      setCustomFileName(backgroundMusic.getCustomName());
+      setPersistWarning(backgroundMusic.getPersistWarning());
+      setFormatError(backgroundMusic.getFormatError());
+    });
   }, []);
 
   useEffect(() => {
-    const unlock = () => backgroundMusic.startFromGesture();
+    const unlock = () => {
+      backgroundMusic.startFromGesture();
+    };
     window.addEventListener("pointerdown", unlock);
     window.addEventListener("keydown", unlock);
     return () => {
@@ -456,6 +473,22 @@ function App() {
       return;
     }
     backgroundMusic.setEnabled(false);
+  }
+
+  function setMusicMode(mode: MusicMode) {
+    backgroundMusic.setMode(mode);
+    if (mode !== "off") {
+      backgroundMusic.startFromGesture();
+    }
+  }
+
+  function setMusicVolume(volume: number) {
+    backgroundMusic.setVolume(volume);
+  }
+
+  async function pickCustomMusic(file: File) {
+    await backgroundMusic.setCustomFile(file);
+    backgroundMusic.startFromGesture();
   }
 
   function setPlayerPreference(playerPreference: PlayerPreference) {
@@ -802,7 +835,23 @@ function App() {
   }
 
   return (
-    <MusicControlProvider value={{ musicOn, onToggleMusic: toggleMusic }}>
+    <MusicControlProvider
+      value={{
+        musicOn,
+        musicMode,
+        musicVolume,
+        customFileName,
+        persistWarning,
+        formatError,
+        settingsOpen: musicSettingsOpen,
+        openMusicSettings: () => setMusicSettingsOpen(true),
+        closeMusicSettings: () => setMusicSettingsOpen(false),
+        onToggleMusic: toggleMusic,
+        setMusicMode,
+        setMusicVolume,
+        pickCustomMusic
+      }}
+    >
     <div
       className={`app-shell ${
         screen === "stars" || screen === "stickers" ? "" : "home-fit"
@@ -830,6 +879,7 @@ function App() {
           onNo={() => setRestartConfirm(false)}
         />
       ) : null}
+      <MusicSettingsPanel />
       {playerChooserOpen && !preview ? (
         <PlayerChooser
           value={progress.playerPreference}

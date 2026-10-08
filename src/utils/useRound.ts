@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LetterItem, LetterStats, OptionCount, RoundPhase } from "../types";
 import { audioManager } from "../audio/AudioManager";
+import {
+  noteCorrectAnswer,
+  noteWrongAnswer,
+  takePraiseLine,
+  takeRetryLine
+} from "../audio/phraseBag";
 import { flowLog, isPlayFlowCurrent, playFlowGeneration } from "../audio/playFlow";
 import { pointFromEvent, type Point } from "./point";
 import { buildRoundOptions, weightedLetterPick } from "./selectors";
@@ -252,8 +258,10 @@ export function useRound({
       setSelected(id);
       setPhase("feedback");
       onCorrect(target.id, pointFromEvent(event));
-      audioManager.speak(praiseRef.current(target, correctOptionId), {
-        key: praiseKeyRef.current?.(target),
+      noteCorrectAnswer(wrongCount > 0);
+      const praiseLine = takePraiseLine();
+      audioManager.speak(praiseLine.text, {
+        path: praiseLine.path,
         onEnd: () => {
           void (async () => {
             if (!isPlayFlowCurrent(startedAt)) {
@@ -290,13 +298,9 @@ export function useRound({
       audioManager.playTryAgain();
     }
     onMistake(target.id);
-    if (nextWrong === 1) {
-      onSpeakRef.current(tryAgainTextRef.current, { key: "try-again" });
-    } else if (nextWrong === CORRECT_HINT_AFTER_MISTAKES) {
-      onSpeakRef.current("Давай, немного помогу.", { key: "hint" });
-    } else {
-      onSpeakRef.current("Почти получилось!", { key: "almost" });
-    }
+    noteWrongAnswer();
+    const retryLine = takeRetryLine();
+    onSpeakRef.current(retryLine.text, { path: retryLine.path });
   }
 
   const continueRound = useCallback(() => {

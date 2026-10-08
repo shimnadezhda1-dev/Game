@@ -55,6 +55,8 @@ class AudioManager {
   private startedTts = -1;
   private voicesReady: Promise<void> = Promise.resolve();
   private lastVoicePath = "";
+  private voiceHold = 0;
+  private unduckTimer: number | null = null;
 
   constructor() {
     if ("speechSynthesis" in window) {
@@ -105,14 +107,45 @@ class AudioManager {
     });
   }
 
+  private acquireVoice(): void {
+    if (this.unduckTimer !== null) {
+      window.clearTimeout(this.unduckTimer);
+      this.unduckTimer = null;
+    }
+    this.voiceHold += 1;
+    if (this.voiceHold === 1) {
+      backgroundMusic.duck();
+    }
+  }
+
+  private releaseVoice(): void {
+    this.voiceHold = Math.max(0, this.voiceHold - 1);
+    if (this.voiceHold !== 0) {
+      return;
+    }
+    if (this.unduckTimer !== null) {
+      window.clearTimeout(this.unduckTimer);
+    }
+    this.unduckTimer = window.setTimeout(() => {
+      this.unduckTimer = null;
+      if (this.voiceHold === 0) {
+        backgroundMusic.unduck();
+      }
+    }, 90);
+  }
+
   speak(text: string, options: SpeakOptions = {}): void {
     if (!this.enabled) {
       options.onEnd?.();
       return;
     }
-    this.stopSpeaking();
+    const replacing = this.voiceBusy;
+    this.stopSpeaking({ preserveDuck: true });
     const token = ++this.token;
-    backgroundMusic.duck();
+    this.voiceBusy = true;
+    if (!replacing) {
+      this.acquireVoice();
+    }
     const resolved = resolveRuVoicePath(options.key, options.path);
     const fallbackListed = options.key ? VOICE_FILES[options.key as VoiceKey] : undefined;
     const path = resolved ?? fallbackListed;
@@ -294,7 +327,8 @@ class AudioManager {
       window.clearTimeout(this.chunkTimer);
       this.chunkTimer = null;
     }
-    backgroundMusic.unduck();
+    this.voiceBusy = false;
+    this.releaseVoice();
     onEnd?.();
   }
 
@@ -333,8 +367,9 @@ class AudioManager {
     }
   }
 
-  stopSpeaking(): void {
+  stopSpeaking(options?: { preserveDuck?: boolean }): void {
     this.token += 1;
+    const wasBusy = this.voiceBusy;
     this.voiceBusy = false;
     voiceLog("VOICE STOP");
     if (this.endTimer !== null) {
@@ -349,7 +384,9 @@ class AudioManager {
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
-    backgroundMusic.unduck();
+    if (!options?.preserveDuck && wasBusy) {
+      this.releaseVoice();
+    }
   }
 }
 
