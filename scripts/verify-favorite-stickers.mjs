@@ -110,23 +110,57 @@ assert.equal(meadowFavoriteIds(many, null).length, 20);
 const storage = read("src/utils/storage.ts");
 assert.match(storage, /migrateFavoriteStickerIds/);
 assert.match(storage, /favoriteStickerIds: favorites\.favoriteStickerIds/);
+assert.match(storage, /favoriteStickerPositions/);
+assert.match(storage, /migrateFavoriteStickerLayouts/);
+assert.match(storage, /favoriteStickerLayouts/);
 assert.match(storage, /unlockedStickerIds: unlockedFromSave/);
 assert.match(storage, /claimedMilestonesThisCycle,/);
 assert.match(storage, /stars,/);
 
 const app = read("src/App.tsx");
-assert.match(app, /meadowFavoriteIds\(progress\.favoriteStickerIds/);
+assert.match(app, /progress\.favoriteStickerIds/);
 assert.match(app, /toggleFavoriteStickerId/);
+assert.match(app, /MyMeadowScreen/);
+assert.match(app, /favoriteStickerLayouts/);
 
 const album = read("src/components/StickersAlbumScreen.tsx");
 assert.match(album, /sticker-preview__heart/);
 assert.match(album, /В любимые/);
 assert.match(album, /Убрать из любимых/);
 assert.match(album, /sticker-slot__heart/);
+assert.match(album, /МОЯ ПОЛЯНКА/);
+assert.match(album, /onOpenMeadow/);
 
 const world = read("src/components/WorldBackground.tsx");
-assert.match(world, /data-meadow-friend/);
-assert.match(world, /layoutMeadowFriends/);
+assert.match(world, /meadow-life/);
+assert.doesNotMatch(world, /data-meadow-friend/);
+
+const meadowLayer = read("src/components/MeadowStickerLayer.tsx");
+assert.match(meadowLayer, /data-meadow-friend/);
+assert.match(meadowLayer, /layoutMeadowFriends/);
+assert.match(meadowLayer, /onPointerDown/);
+assert.match(meadowLayer, /setPointerCapture/);
+assert.match(read("src/styles.css"), /touch-action:\s*none/);
+
+const reward = read("src/components/RewardScreen.tsx");
+assert.doesNotMatch(reward, /MeadowStickerLayer/);
+assert.doesNotMatch(reward, /Расставить заново/);
+
+const meadowScreen = read("src/components/MyMeadowScreen.tsx");
+assert.doesNotMatch(meadowScreen, /Моя полянка/);
+assert.doesNotMatch(meadowScreen, /Расставить заново/);
+assert.match(read("src/utils/favoriteStickers.ts"), /MEADOW_HIDDEN_STICKER_IDS = new Set<string>\(\)/);
+assert.match(read("src/data/stickerCatalog.ts"), /"sticker-01": \{[\s\S]*?title: "Белочка"/);
+
+const layout = read("src/utils/favoriteStickers.ts");
+assert.match(layout, /FAVORITE_STICKER_BASE_SIZE = 122/);
+assert.match(layout, /DESKTOP_AUTO_LAYOUT_BANDS/);
+assert.match(layout, /MOBILE_AUTO_LAYOUT_BANDS/);
+assert.match(layout, /bottom: 8/);
+assert.match(layout, /bottom: 48/);
+assert.match(layout, /bottom: 22/);
+assert.match(layout, /bottom: 66/);
+assert.match(layout, /bottom: 44/);
 
 const adventure = read("src/utils/stickerLogic.ts");
 assert.doesNotMatch(adventure, /favoriteStickerIds:\s*\[\]/);

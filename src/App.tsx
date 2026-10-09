@@ -5,6 +5,7 @@ import { FindLetterGame } from "./components/FindLetterGame";
 import { PictureLetterGame } from "./components/PictureLetterGame";
 import { Progress } from "./components/Progress";
 import { RewardScreen } from "./components/RewardScreen";
+import { MyMeadowScreen } from "./components/MyMeadowScreen";
 import { FlyingStar } from "./components/FlyingStar";
 import { StarsScreen } from "./components/StarsScreen";
 import { AdventurePlay } from "./components/AdventurePlay";
@@ -16,7 +17,10 @@ import { resetListenInstruction } from "./audio/listenSession";
 import { backgroundMusic } from "./audio/BackgroundMusicManager";
 import type { MusicMode } from "./audio/musicSettings";
 import {
+  FavoriteStickerPosition,
   LetterCategory,
+  MeadowLayoutKind,
+  MeadowTheme,
   OptionCount,
   PlayActivity,
   PlayerPreference,
@@ -49,7 +53,13 @@ import {
   uniqueNumbers
 } from "./utils/stickerLogic";
 import { StickersAlbumScreen } from "./components/StickersAlbumScreen";
-import { meadowFavoriteIds, toggleFavoriteStickerId } from "./utils/favoriteStickers";
+import { setPraisePlayerPreference } from "./audio/phraseBag";
+import {
+  emptyFavoriteStickerLayouts,
+  MEADOW_HIDDEN_STICKER_IDS,
+  parseMeadowTheme,
+  toggleFavoriteStickerId
+} from "./utils/favoriteStickers";
 import { AlphabetCompleteScreen } from "./components/AlphabetCompleteScreen";
 import { playLetterPool, letterAllowsActivity, filterLettersByCategory, validPlayActivity, PLAY_ACTIVITIES } from "./utils/playSettings";
 import {
@@ -144,6 +154,10 @@ function App() {
   const progressRef = useRef(progress);
   const starTimerRef = useRef<number | null>(null);
   progressRef.current = progress;
+
+  useEffect(() => {
+    setPraisePlayerPreference(progress.playerPreference);
+  }, [progress.playerPreference]);
 
   useEffect(() => {
     return backgroundMusic.subscribe(() => {
@@ -492,6 +506,7 @@ function App() {
   }
 
   function setPlayerPreference(playerPreference: PlayerPreference) {
+    setPraisePlayerPreference(playerPreference);
     setProgress((prev) => ({ ...prev, playerPreference }));
   }
 
@@ -620,6 +635,61 @@ function App() {
     });
   }
 
+  function setMeadowTheme(theme: MeadowTheme) {
+    setProgress((prev) => ({
+      ...prev,
+      meadowTheme: parseMeadowTheme(theme)
+    }));
+  }
+
+  function markMeadowSunHintHeard() {
+    setProgress((prev) =>
+      prev.meadowDayNightSunHintHeard ? prev : { ...prev, meadowDayNightSunHintHeard: true }
+    );
+  }
+
+  function markMeadowNightUnlocked() {
+    setProgress((prev) =>
+      prev.meadowDayNightNightUnlocked
+        ? prev
+        : { ...prev, meadowDayNightNightUnlocked: true }
+    );
+  }
+
+  function markMeadowTutorialSeen() {
+    setProgress((prev) =>
+      prev.meadowDayNightTutorialSeen
+        ? prev
+        : {
+            ...prev,
+            meadowDayNightTutorialSeen: true,
+            meadowDayNightNightUnlocked: true,
+            meadowDayNightSunHintHeard: true
+          }
+    );
+  }
+
+  function commitFavoriteStickerPosition(
+    id: string,
+    position: FavoriteStickerPosition,
+    kind: MeadowLayoutKind
+  ) {
+    setProgress((prev) => {
+      const layouts = prev.favoriteStickerLayouts ?? emptyFavoriteStickerLayouts();
+      return {
+        ...prev,
+        favoriteStickerLayouts: {
+          desktop: { ...layouts.desktop },
+          mobile: { ...layouts.mobile },
+          [kind]: {
+            ...layouts[kind],
+            [id]: position
+          }
+        }
+      };
+    });
+  }
+
   function startNewAdventureFromComplete() {
     setProgress((prev) => startNewAlphabetAdventure(prev));
     go("home");
@@ -629,8 +699,10 @@ function App() {
   const backHome = () => go("home");
   const shownPlayerPreference = playerChooserOpen ? null : progress.playerPreference;
   const meadowFriends = useMemo(() => {
-    const ids = meadowFavoriteIds(progress.favoriteStickerIds, activeReward?.item.id ?? null);
-    return ids.flatMap((id) => {
+    return progress.favoriteStickerIds.flatMap((id) => {
+      if (MEADOW_HIDDEN_STICKER_IDS.has(id)) {
+        return [];
+      }
       const item = getStickerById(id);
       if (!item) {
         return [];
@@ -641,7 +713,7 @@ function App() {
       }
       return [{ id, src: assetUrl(resolved.asset ?? "") }];
     });
-  }, [progress.favoriteStickerIds, activeReward]);
+  }, [progress.favoriteStickerIds]);
 
   function renderScreen() {
     switch (screen) {
@@ -656,6 +728,7 @@ function App() {
             onPlayGames={startAdventure}
             onOpenStars={() => go("stars")}
             onOpenStickers={() => go("stickers")}
+            onOpenMeadow={() => go("meadow")}
             onSpeak={speak}
             onToggleMusic={toggleMusic}
             musicOn={musicOn}
@@ -799,6 +872,26 @@ function App() {
             progress={progress}
             onBack={backHome}
             onSetFavorite={setFavoriteSticker}
+            onOpenMeadow={() => go("meadow")}
+          />
+        );
+      case "meadow":
+        return (
+          <MyMeadowScreen
+            friends={meadowFriends}
+            layouts={progress.favoriteStickerLayouts ?? emptyFavoriteStickerLayouts()}
+            theme={parseMeadowTheme(progress.meadowTheme)}
+            tutorialSeen={progress.meadowDayNightTutorialSeen === true}
+            nightUnlocked={progress.meadowDayNightNightUnlocked === true}
+            sunHintHeard={progress.meadowDayNightSunHintHeard === true}
+            onToggleTheme={() =>
+              setMeadowTheme(parseMeadowTheme(progress.meadowTheme) === "night" ? "day" : "night")
+            }
+            onMarkSunHintHeard={markMeadowSunHintHeard}
+            onMarkNightUnlocked={markMeadowNightUnlocked}
+            onMarkTutorialSeen={markMeadowTutorialSeen}
+            onCommitPosition={commitFavoriteStickerPosition}
+            onOpenAlbum={() => go("stickers")}
           />
         );
       default:
@@ -812,6 +905,7 @@ function App() {
             onPlayGames={startAdventure}
             onOpenStars={() => go("stars")}
             onOpenStickers={() => go("stickers")}
+            onOpenMeadow={() => go("meadow")}
             onSpeak={speak}
             onToggleMusic={toggleMusic}
             musicOn={musicOn}
@@ -856,6 +950,8 @@ function App() {
       className={`app-shell ${
         screen === "stars" || screen === "stickers" ? "" : "home-fit"
       } ${screen === "home" ? "home-immersive" : ""} ${
+        screen === "meadow" ? "meadow-open" : ""
+      } ${
         ["modeSelect", "adventure", "learn", "find", "picture", "listen"].includes(screen)
           ? "play-hud"
           : ""
@@ -914,7 +1010,6 @@ function App() {
           reward={activeReward.item}
           onClose={closeRewardOverlay}
           onOpenAlbum={() => go("stickers")}
-          meadowFriends={meadowFriends}
         />
       ) : null}
       {progress.alphabetCycleCompleted && !preview ? (

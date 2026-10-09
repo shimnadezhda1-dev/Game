@@ -3591,15 +3591,55 @@ button.reward-showcase:active {
   }
 }
 
+.meadow-sticker-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
 .meadow-friend {
   position: absolute;
   z-index: 3;
-  width: var(--friend-size);
-  height: var(--friend-size);
+  width: clamp(86px, 12.5vw, 158px);
+  height: clamp(86px, 12.5vw, 158px);
   bottom: var(--friend-bottom);
   animation: meadow-friend-float 3.8s ease-in-out infinite;
   animation-delay: var(--friend-delay);
   transform: rotate(var(--friend-tilt));
+}
+
+.meadow-friend-drag {
+  pointer-events: auto;
+  touch-action: none;
+  cursor: grab;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.meadow-friend-drag.is-placed {
+  right: auto;
+  bottom: auto;
+  transform: translate(-50%, -50%) rotate(var(--friend-tilt));
+  animation: none;
+}
+
+.meadow-friend-drag.is-dragging {
+  right: auto;
+  bottom: auto;
+  cursor: grabbing;
+  animation: none;
+  transform: scale(1.05);
+  filter: drop-shadow(0 10px 8px rgb(90 60 20 / 28%));
+}
+
+.meadow-friend-drag.is-dragging img {
+  filter: drop-shadow(0 8px 6px rgb(90 60 20 / 28%));
 }
 
 .meadow-friend-left {
@@ -3614,6 +3654,7 @@ button.reward-showcase:active {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  object-position: center bottom;
   filter: drop-shadow(0 6px 0 rgb(90 60 20 / 16%));
   pointer-events: none;
 }
@@ -3630,9 +3671,463 @@ button.reward-showcase:active {
 
 @media (max-width: 820px) {
   .meadow-friend {
-    width: calc(var(--friend-size) * 0.58);
-    height: calc(var(--friend-size) * 0.58);
-    bottom: calc(var(--friend-bottom) * 0.62);
+    width: clamp(50px, 20vmin, 100px);
+    height: clamp(50px, 20vmin, 100px);
+  }
+}
+
+.my-meadow-screen {
+  position: relative;
+  overflow: hidden;
+  padding: 0;
+  width: 100%;
+  min-height: 0;
+  border-radius: 0;
+  touch-action: none;
+  overscroll-behavior: none;
+  background: transparent;
+}
+
+.my-meadow-screen .meadow-sticker-layer {
+  z-index: 3;
+  touch-action: none;
+}
+
+.my-meadow-screen .meadow-friend {
+  width: var(--friend-size, clamp(70px, 8.2vw, 118px));
+  height: var(--friend-size, clamp(70px, 8.2vw, 118px));
+}
+
+.my-meadow-lawn {
+  display: none;
+}
+
+.my-meadow-screen .toy-sun,
+.my-meadow-screen .world-sky,
+.my-meadow-screen .hills,
+.my-meadow-screen .cloud,
+.my-meadow-screen .grass-line,
+.my-meadow-screen .meadow-life,
+.my-meadow-screen .flowers,
+.my-meadow-screen .tree,
+.my-meadow-lawn {
+  transition: opacity 0.65s ease, filter 0.65s ease, background 0.65s ease;
+}
+
+.my-meadow-night-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  border-radius: 0;
+  background: linear-gradient(
+    180deg,
+    rgb(8 22 64 / 38%) 0%,
+    rgb(18 40 90 / 24%) 42%,
+    rgb(20 50 48 / 20%) 100%
+  );
+  transition: opacity 0.65s ease;
+}
+
+.my-meadow-stars {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.65s ease;
+}
+
+.my-meadow-star {
+  position: absolute;
+  border-radius: 50%;
+  background: #fff8dc;
+  box-shadow: 0 0 5px rgb(255 252 220 / 80%);
+  transform: translate(-50%, -50%);
+}
+
+.my-meadow-star.is-twinkle {
+  animation: meadow-star-twinkle 3.8s ease-in-out infinite;
+}
+
+@keyframes meadow-star-twinkle {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: translate(-50%, -50%) scale(0.92);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+}
+
+.my-meadow-celestial {
+  position: absolute;
+  top: clamp(8px, 2vh, 18px);
+  left: 50%;
+  right: auto;
+  z-index: 7;
+  display: grid;
+  place-items: center;
+  width: clamp(58px, 10vh, 92px);
+  height: clamp(58px, 10vh, 92px);
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  transform: translateX(-50%);
+}
+
+.my-meadow-celestial__sun,
+.my-meadow-celestial__moon {
+  grid-area: 1 / 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  transition: opacity 0.65s ease;
+}
+
+.my-meadow-celestial__moon {
+  width: 118%;
+  height: 118%;
+  opacity: 0;
+}
+
+.my-meadow-celestial__sparks {
+  grid-area: 1 / 1;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.my-meadow-celestial__sparks i {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fff8c8;
+  box-shadow: 0 0 6px rgb(255 248 180 / 90%);
+  opacity: 0.85;
+}
+
+.my-meadow-celestial__sparks i:nth-child(1) {
+  left: 8%;
+  top: 18%;
+}
+
+.my-meadow-celestial__sparks i:nth-child(2) {
+  right: 6%;
+  top: 28%;
+}
+
+.my-meadow-celestial__sparks i:nth-child(3) {
+  left: 18%;
+  bottom: 12%;
+}
+
+.my-meadow-celestial__sparks i:nth-child(4) {
+  right: 14%;
+  bottom: 22%;
+}
+
+.my-meadow-celestial.is-tutorial-hint {
+  filter: drop-shadow(0 0 10px rgb(255 236 140 / 70%));
+  animation: meadow-celestial-pulse 1.6s ease-in-out infinite;
+}
+
+.my-meadow-celestial.is-tutorial-hint .my-meadow-celestial__sparks i {
+  animation: meadow-sparkle 1.4s ease-in-out infinite;
+}
+
+.my-meadow-celestial.is-tutorial-hint .my-meadow-celestial__sparks i:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.my-meadow-celestial.is-tutorial-hint .my-meadow-celestial__sparks i:nth-child(3) {
+  animation-delay: 0.45s;
+}
+
+.my-meadow-celestial.is-tutorial-hint .my-meadow-celestial__sparks i:nth-child(4) {
+  animation-delay: 0.7s;
+}
+
+@keyframes meadow-celestial-pulse {
+  0%,
+  100% {
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    transform: translateX(-50%) scale(1.06);
+  }
+}
+
+@keyframes meadow-sparkle {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+.my-meadow-screen--night .my-meadow-celestial {
+  mix-blend-mode: screen;
+}
+
+.my-meadow-screen .toy-sun {
+  opacity: 0;
+}
+
+.my-meadow-screen--night .my-meadow-night-veil,
+.my-meadow-screen--night .my-meadow-stars,
+.my-meadow-screen--night .my-meadow-celestial__moon {
+  opacity: 1;
+}
+
+.my-meadow-screen--night .my-meadow-celestial__sun {
+  opacity: 0;
+}
+
+.my-meadow-screen--night .world {
+  background: #081433;
+}
+
+.my-meadow-screen--night .world-sky {
+  background: linear-gradient(180deg, #081433 0%, #122a5c 28%, #1a3f68 54%, #1c4a46 78%, #163628 100%);
+}
+
+.my-meadow-screen--night .cloud {
+  filter: brightness(0.84) saturate(0.78) hue-rotate(8deg);
+}
+
+.my-meadow-screen--night .hills,
+.my-meadow-screen--night .grass-line,
+.my-meadow-screen--night .meadow-life,
+.my-meadow-screen--night .flowers,
+.my-meadow-screen--night .tree {
+  filter: brightness(0.68) saturate(0.82);
+}
+
+.my-meadow-screen .meadow-friend img {
+  transition: filter 0.65s ease;
+}
+
+.my-meadow-screen--night .meadow-friend img {
+  filter:
+    drop-shadow(0 0 6px rgb(255 250 214 / 82%))
+    drop-shadow(0 0 14px rgb(168 214 255 / 42%));
+}
+
+.my-meadow-screen--night .meadow-friend-drag.is-dragging img {
+  filter:
+    drop-shadow(0 0 8px rgb(255 252 230 / 95%))
+    drop-shadow(0 0 18px rgb(186 224 255 / 58%));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .my-meadow-star.is-twinkle {
+    animation: none;
+  }
+
+  .my-meadow-celestial.is-tutorial-hint {
+    animation: none;
+    transform: translateX(-50%);
+    filter: drop-shadow(0 0 8px rgb(255 236 140 / 55%));
+  }
+
+  .my-meadow-celestial.is-tutorial-hint .my-meadow-celestial__sparks i {
+    animation: none;
+    opacity: 0.7;
+  }
+
+  .my-meadow-night-veil,
+  .my-meadow-stars,
+  .my-meadow-celestial__moon,
+  .my-meadow-screen .toy-sun,
+  .my-meadow-screen .meadow-friend img {
+    transition: none;
+  }
+}
+
+/* Desktop meadow: keep clouds clear of the centered sun/moon. */
+.my-meadow-screen:not(.my-meadow-screen--mobile) .cloud-a {
+  top: 88px;
+  left: 10%;
+}
+
+.my-meadow-screen:not(.my-meadow-screen--mobile) .cloud-b {
+  top: 100px;
+  right: 10%;
+}
+
+.my-meadow-screen:not(.my-meadow-screen--mobile) .cloud-c {
+  top: 34%;
+  left: 58%;
+}
+
+.app-shell.meadow-open {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+.app-shell.meadow-open .top-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 20;
+  padding: max(6px, env(safe-area-inset-top, 0px)) max(10px, env(safe-area-inset-right, 0px)) 0
+    max(10px, env(safe-area-inset-left, 0px));
+  pointer-events: none;
+}
+
+.app-shell.meadow-open .top-bar button,
+.app-shell.meadow-open .top-bar .icon-round {
+  pointer-events: auto;
+}
+
+.app-shell.meadow-open .my-meadow-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: auto;
+  max-width: none;
+  height: auto;
+  min-height: 0;
+  border-radius: 0;
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+.app-shell.meadow-open .star-bank,
+.app-shell.meadow-open .sound-btn {
+  display: none;
+}
+
+.my-meadow-empty {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  z-index: 4;
+  display: grid;
+  gap: 8px;
+  width: min(420px, 86vw);
+  padding: 18px 20px;
+  border: 4px solid #fff;
+  border-radius: 24px;
+  background: #fffdf0e8;
+  box-shadow: 0 8px 0 rgb(0 0 0 / 10%);
+  color: #5b3d14;
+  text-align: center;
+  transform: translate(-50%, -50%);
+}
+
+.my-meadow-empty p {
+  margin: 0;
+  font-weight: 800;
+}
+
+.my-meadow-empty-btn {
+  justify-self: center;
+  margin-top: 8px;
+  padding: 10px 18px;
+  border: 3px solid #fff;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #9aefff 0%, #3ec8f0 100%);
+  color: #fff;
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+@media (max-width: 820px) {
+  .my-meadow-screen--mobile .my-meadow-lawn {
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+    height: 52%;
+    background: linear-gradient(180deg, rgb(158 232 106 / 0%) 0%, #8ee15a 22%, #6bcb3c 100%);
+    pointer-events: none;
+  }
+
+  .my-meadow-screen .meadow-friend {
+    width: var(--friend-size, clamp(54px, 15vmin, 88px));
+    height: var(--friend-size, clamp(54px, 15vmin, 88px));
+  }
+
+  .my-meadow-screen--mobile .my-meadow-celestial {
+    top: max(10px, calc(env(safe-area-inset-top, 0px) + 8px));
+    left: 50%;
+    right: auto;
+    width: 56px;
+    height: 56px;
+    min-width: 44px;
+    min-height: 44px;
+    transform: translateX(-50%);
+  }
+
+  .my-meadow-screen--mobile .my-meadow-celestial.is-tutorial-hint {
+    animation: meadow-celestial-pulse-centered 1.6s ease-in-out infinite;
+  }
+
+  @keyframes meadow-celestial-pulse-centered {
+    0%,
+    100% {
+      transform: translateX(-50%) scale(1);
+    }
+    50% {
+      transform: translateX(-50%) scale(1.06);
+    }
+  }
+
+  .my-meadow-screen--mobile .cloud-a {
+    top: 92px;
+    left: 16%;
+  }
+
+  .my-meadow-screen--mobile .cloud-b {
+    top: 104px;
+    right: 14%;
+  }
+
+  .my-meadow-screen--mobile .cloud-c {
+    top: 38%;
+    left: 46%;
+  }
+
+  .my-meadow-screen--night.my-meadow-screen--mobile .my-meadow-lawn {
+    background: linear-gradient(180deg, rgb(30 70 40 / 0%) 0%, #2a5c38 28%, #1c3f28 100%);
+  }
+}
+
+@media (max-width: 820px) and (prefers-reduced-motion: reduce) {
+  .my-meadow-screen--mobile .my-meadow-celestial.is-tutorial-hint {
+    animation: none;
+    transform: translateX(-50%);
   }
 }
 
@@ -4000,6 +4495,56 @@ html:has(.home-immersive) #root {
 .home-stickers-btn:active {
   transform: translateY(3px) scale(0.98);
   box-shadow: 0 3px 0 #0d6ea0;
+}
+
+.home-meadow-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: min(236px, 72vw);
+  max-width: 248px;
+  min-height: 52px;
+  margin-top: 0;
+  padding: 8px 18px;
+  border: 4px solid #fff;
+  border-radius: 26px;
+  background: linear-gradient(180deg, #b6f56c 0%, #7ed957 52%, #4caf38 100%);
+  box-shadow:
+    0 6px 0 #2e7d22,
+    inset 0 4px 0 rgb(255 255 255 / 38%);
+  color: #244214;
+  font-size: clamp(14px, 1.9vh, 18px);
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+}
+
+.home-meadow-btn__icon {
+  display: block;
+  flex: 0 0 auto;
+  width: clamp(28px, 3.2vh, 34px);
+  height: clamp(28px, 3.2vh, 34px);
+  object-fit: contain;
+  object-position: center;
+  aspect-ratio: 1;
+  background: none;
+  pointer-events: none;
+}
+
+.home-meadow-btn__label {
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.home-meadow-btn:hover,
+.home-meadow-btn:focus-visible {
+  transform: translateY(-2px);
+}
+
+.home-meadow-btn:active {
+  transform: translateY(3px) scale(0.98);
+  box-shadow: 0 3px 0 #2e7d22;
 }
 
 .home-ui-sound {
@@ -6138,6 +6683,20 @@ html:has(.listen-screen) #root {
     height: 40px;
   }
 
+  .home-meadow-btn {
+    min-height: 46px;
+    min-width: min(236px, 84vw);
+    max-width: min(280px, 88vw);
+    font-size: clamp(15px, 4vw, 18px);
+    padding: 6px 14px;
+    gap: 7px;
+  }
+
+  .home-meadow-btn__icon {
+    width: clamp(24px, 7vw, 30px);
+    height: clamp(24px, 7vw, 30px);
+  }
+
   .home-ui-profile {
     width: 56px;
     height: 56px;
@@ -6896,7 +7455,7 @@ html:has(.listen-screen) #root {
 .stickers-album {
   overflow-y: auto;
   align-items: stretch;
-  padding-top: 84px;
+  padding-top: 62px;
 }
 
 .stickers-album__title {
@@ -6911,6 +7470,49 @@ html:has(.listen-screen) #root {
   text-align: center;
   font-weight: 800;
   color: #7c4dff;
+}
+
+.stickers-album__meadow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  gap: 8px;
+  margin: 0 auto 14px;
+  padding: 10px 22px;
+  border: 4px solid #fff;
+  border-radius: 24px;
+  background: linear-gradient(180deg, #b6f56c 0%, #7ed957 52%, #4caf38 100%);
+  box-shadow:
+    0 5px 0 #2e7d22,
+    inset 0 4px 0 rgb(255 255 255 / 38%);
+  color: #244214;
+  font: inherit;
+  font-size: clamp(16px, 2.2vh, 20px);
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+}
+
+.stickers-album__meadow-icon {
+  display: block;
+  flex: 0 0 auto;
+  width: clamp(26px, 3vh, 32px);
+  height: clamp(26px, 3vh, 32px);
+  object-fit: contain;
+  object-position: center;
+  aspect-ratio: 1;
+  background: none;
+  pointer-events: none;
+}
+
+.stickers-album__meadow:hover,
+.stickers-album__meadow:focus-visible {
+  transform: translateY(-2px);
+}
+
+.stickers-album__meadow:active {
+  transform: translateY(2px);
 }
 
 .stickers-album__collections {
@@ -7118,6 +7720,10 @@ html:has(.listen-screen) #root {
 }
 
 @media (max-width: 820px) {
+  .stickers-album {
+    padding-top: 42px;
+  }
+
   .sticker-collection__grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
@@ -7176,6 +7782,7 @@ html:has(.listen-screen) #root {
   }
 
   .home-sun {
+    top: -12px;
     width: 46px;
   }
 
@@ -7228,6 +7835,22 @@ html:has(.listen-screen) #root {
   .home-stickers-btn__icon {
     width: 34px;
     height: 28px;
+  }
+
+  .home-meadow-btn {
+    min-height: 34px;
+    min-width: min(196px, 62vw);
+    max-width: min(220px, 70vw);
+    padding: 3px 10px;
+    border-width: 3px;
+    border-radius: 16px;
+    font-size: 13px;
+    gap: 6px;
+  }
+
+  .home-meadow-btn__icon {
+    width: 24px;
+    height: 24px;
   }
 
   .home-panels,

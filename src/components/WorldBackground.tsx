@@ -1,26 +1,14 @@
-import { layoutMeadowFriends } from "../utils/favoriteStickers";
-import type { CSSProperties } from "react";
-
-interface MeadowFriendArt {
-  id: string;
-  src: string;
-}
-
 interface WorldBackgroundProps {
   variant?: "cover" | "play";
   sunSrc?: string;
   lively?: boolean;
-  meadowFriends?: MeadowFriendArt[];
 }
 
 export function WorldBackground({
   variant = "play",
   sunSrc,
-  lively = false,
-  meadowFriends = []
+  lively = false
 }: WorldBackgroundProps) {
-  const friends = lively ? layoutMeadowFriends(meadowFriends.map((friend) => friend.id)) : [];
-  const friendArt = new Map(meadowFriends.map((friend) => [friend.id, friend.src]));
   return (
     <div className={`world world-${variant}`} aria-hidden>
       <div className="world-sky" />
@@ -70,24 +58,6 @@ export function WorldBackground({
           <span className="meadow-bloom meadow-bloom-e" />
           <span className="meadow-wing meadow-wing-a" />
           <span className="meadow-wing meadow-wing-b" />
-          {friends.map((friend) => (
-            <span
-              key={friend.id}
-              className={`meadow-friend meadow-friend-${friend.side}`}
-              data-meadow-friend={friend.id}
-              style={
-                {
-                  "--friend-inset": `${friend.inset}%`,
-                  "--friend-bottom": `${friend.bottom}vh`,
-                  "--friend-size": `${friend.size}px`,
-                  "--friend-delay": `${friend.delay}s`,
-                  "--friend-tilt": `${friend.tilt}deg`
-                } as CSSProperties
-              }
-            >
-              <img src={friendArt.get(friend.id) ?? ""} alt="" draggable={false} />
-            </span>
-          ))}
         </div>
       ) : null}
       <div className="flowers">

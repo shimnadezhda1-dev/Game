@@ -9,13 +9,13 @@ const assets = fs.readFileSync(path.join(root, "src/data/stickerAssets.ts"), "ut
 
 const visible = {
   "sticker-01": {
-    title: "Солнышко",
-    asset: "/assets/stickers/sun-new.png",
+    title: "Белочка",
+    asset: "/assets/stickers/final/universal/squirrel-acorn.png",
     collectionId: "meadow-friends"
   },
   "sticker-02": {
-    title: "Радуга",
-    asset: "/assets/home/rainbow-clean.png",
+    title: "Колибри",
+    asset: "/assets/stickers/final/universal/hummingbird.png",
     collectionId: "sky-party"
   },
   "sticker-03": {
@@ -108,15 +108,33 @@ const visibleFinal = Object.values(visible)
   .filter((asset) => asset.startsWith("/assets/stickers/final/"))
   .map((asset) => asset.replace("/assets/stickers/final/", ""));
 const catalogPaths = finalRows.map((row) => row.asset.replace("/assets/stickers/final/", ""));
-const catalogPathSet = new Set([...catalogPaths, ...visibleFinal]);
+const alphabetMatch = catalog.match(
+  /ALPHABET_ACHIEVEMENT_STICKER[\s\S]*?title: "([^"]+)"[\s\S]*?asset: "([^"]+)"/
+);
+assert.ok(alphabetMatch, "ALPHABET_ACHIEVEMENT_STICKER block missing");
+assert.equal(alphabetMatch[1], "Оленёнок");
+assert.equal(alphabetMatch[2], "/assets/stickers/final/universal/fawn-flowers.png");
+const alphabetAsset = alphabetMatch[2];
+const alphabetFinal = alphabetAsset.startsWith("/assets/stickers/final/")
+  ? [alphabetAsset.replace("/assets/stickers/final/", "")]
+  : [];
+const catalogPathSet = new Set([...catalogPaths, ...visibleFinal, ...alphabetFinal]);
 const diskSet = new Set(onDisk);
 const unconnected = onDisk.filter((item) => !catalogPathSet.has(item));
 const missing = [...catalogPathSet].filter((item) => !diskSet.has(item));
 assert.deepEqual(unconnected, [], `final PNG without a sticker record: ${unconnected.join(", ")}`);
 assert.deepEqual(missing, [], `catalog asset missing on disk: ${missing.join(", ")}`);
-assert.equal(onDisk.length, finalRows.length + visibleFinal.length, "final PNG count must match catalog rows");
+assert.equal(
+  onDisk.length,
+  finalRows.length + visibleFinal.length + alphabetFinal.length,
+  "final PNG count must match catalog rows"
+);
 for (const asset of visibleFinal) {
   assert.equal(catalogPaths.includes(asset), false, `final file is both an early sticker and a later sticker: ${asset}`);
+}
+for (const asset of alphabetFinal) {
+  assert.equal(catalogPaths.includes(asset), false, `achievement file must not duplicate a final sticker row: ${asset}`);
+  assert.equal(visibleFinal.includes(asset), false, `achievement file must not duplicate an early sticker: ${asset}`);
 }
 assert.equal(counts.boys + counts.girls + counts.universal, onDisk.length);
 

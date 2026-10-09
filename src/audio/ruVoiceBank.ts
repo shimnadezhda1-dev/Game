@@ -28,7 +28,11 @@ const COMMON_FILES: Record<string, string> = {
   "reward-new-sticker": "common/reward-new-sticker.mp3",
   "reward-continue": "common/reward-continue.mp3",
   "listen-instruction": "common/listen-instruction.mp3",
-  "listen-prompt": "common/listen-instruction.mp3"
+  "listen-prompt": "common/listen-instruction.mp3",
+  "meadow-night-hint": "common/meadow-night-hint.mp3",
+  "meadow-night-wow": "common/meadow-night-wow.mp3",
+  "meadow-day-hint": "common/meadow-day-hint.mp3",
+  "meadow-night-reminder": "common/meadow-night-reminder.mp3"
 };
 
 export function letterLearnPath(letterId: string): string | undefined {

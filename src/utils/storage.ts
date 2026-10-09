@@ -10,7 +10,12 @@ import {
 import { clampLearnAdvanceSeconds, LEARN_ADVANCE_DEFAULT } from "./learnAdvance";
 import { emptyActivityProgress, migrateActivityProgress } from "./activityProgress";
 import { uniqueIds, uniqueNumbers } from "./stickerLogic";
-import { migrateFavoriteStickerIds } from "./favoriteStickers";
+import {
+  emptyFavoriteStickerLayouts,
+  migrateFavoriteStickerIds,
+  migrateFavoriteStickerLayouts,
+  parseMeadowTheme
+} from "./favoriteStickers";
 
 const STORAGE_KEY = "happy-alphabet-progress-v1";
 
@@ -31,6 +36,12 @@ export const defaultProgress: ProgressState = {
   claimedMilestonesThisCycle: [],
   favoriteStickerId: null,
   favoriteStickerIds: [],
+  favoriteStickerPositions: {},
+  favoriteStickerLayouts: emptyFavoriteStickerLayouts(),
+  meadowTheme: "day",
+  meadowDayNightTutorialSeen: false,
+  meadowDayNightNightUnlocked: false,
+  meadowDayNightSunHintHeard: false,
   completedLettersThisCycle: [],
   completedAlphabetCycles: 0,
   alphabetCycleCompleted: false,
@@ -134,6 +145,11 @@ export function loadProgress(): ProgressState {
       favoriteStickerIds: parsed.favoriteStickerIds,
       unlockedStickerIds: unlockedFromSave
     });
+    const favoriteStickerLayouts = migrateFavoriteStickerLayouts(
+      parsed.favoriteStickerLayouts,
+      parsed.favoriteStickerPositions
+    );
+    const favoriteStickerPositions = favoriteStickerLayouts.desktop;
     const completedLettersThisCycle = uniqueIds(
       Array.isArray(parsed.completedLettersThisCycle) ? parsed.completedLettersThisCycle : []
     );
@@ -161,6 +177,12 @@ export function loadProgress(): ProgressState {
       claimedMilestonesThisCycle,
       favoriteStickerId: favorites.favoriteStickerId,
       favoriteStickerIds: favorites.favoriteStickerIds,
+      favoriteStickerPositions,
+      favoriteStickerLayouts,
+      meadowTheme: parseMeadowTheme(parsed.meadowTheme),
+      meadowDayNightTutorialSeen: parsed.meadowDayNightTutorialSeen === true,
+      meadowDayNightNightUnlocked: parsed.meadowDayNightNightUnlocked === true,
+      meadowDayNightSunHintHeard: parsed.meadowDayNightSunHintHeard === true,
       completedLettersThisCycle,
       completedAlphabetCycles,
       alphabetCycleCompleted,

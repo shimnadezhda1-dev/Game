@@ -14,7 +14,6 @@ interface RewardScreenProps {
   reward: RewardItem;
   onClose: () => void;
   onOpenAlbum: () => void;
-  meadowFriends?: { id: string; src: string }[];
 }
 
 const REWARD_STICKER_PATH = "/assets/audio/ru/common/reward-new-sticker.mp3";
@@ -26,8 +25,7 @@ export function RewardScreen({
   title = "Ура! Новая наклейка!",
   reward,
   onClose,
-  onOpenAlbum,
-  meadowFriends = []
+  onOpenAlbum
 }: RewardScreenProps) {
   const closingRef = useRef(false);
   const pauseTimerRef = useRef<number | null>(null);
@@ -74,7 +72,6 @@ export function RewardScreen({
         variant="play"
         lively
         sunSrc={assetUrl("/assets/stickers-page/sun.png")}
-        meadowFriends={meadowFriends}
       />
       <div className="confetti-layer reward-confetti" aria-hidden>
         {Array.from({ length: 8 }).map((_, index) => (

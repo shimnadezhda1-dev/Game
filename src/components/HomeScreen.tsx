@@ -25,6 +25,7 @@ interface HomeScreenProps {
   onPlayGames: () => void;
   onOpenStars: () => void;
   onOpenStickers: () => void;
+  onOpenMeadow: () => void;
   onSpeak: (text: string, options?: { key?: string; onEnd?: () => void }) => void;
   onToggleMusic: () => void;
   musicOn: boolean;
@@ -51,6 +52,7 @@ export function HomeScreen({
   onGoLearn,
   onPlayGames,
   onOpenStickers,
+  onOpenMeadow,
   onToggleMusic,
   musicOn,
   optionCount,
@@ -248,6 +250,15 @@ export function HomeScreen({
               draggable={false}
             />
             <span className="home-stickers-btn__label">МОИ НАКЛЕЙКИ</span>
+          </button>
+          <button type="button" className="home-meadow-btn" onClick={onOpenMeadow}>
+            <img
+              className="home-meadow-btn__icon"
+              src={assetUrl("/assets/home/meadow-flower.png")}
+              alt=""
+              draggable={false}
+            />
+            <span className="home-meadow-btn__label">МОЯ ПОЛЯНКА</span>
           </button>
         </div>
       </div>

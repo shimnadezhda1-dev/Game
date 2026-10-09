@@ -27,7 +27,7 @@ const COLLECTION_TITLES: Record<string, string> = Object.fromEntries(
 );
 
 const MEADOW_NAMES = [
-  "Солнышко",
+  "Белочка",
   "Ромашка",
   "Божья коровка",
   "Зайчик",
@@ -77,13 +77,13 @@ export const VISIBLE_STICKER_ART: Record<
   { title: string; asset: string; collectionId: string }
 > = {
   "sticker-01": {
-    title: "Солнышко",
-    asset: "/assets/stickers/sun-new.png",
+    title: "Белочка",
+    asset: "/assets/stickers/final/universal/squirrel-acorn.png",
     collectionId: "meadow-friends"
   },
   "sticker-02": {
-    title: "Радуга",
-    asset: "/assets/home/rainbow-clean.png",
+    title: "Колибри",
+    asset: "/assets/stickers/final/universal/hummingbird.png",
     collectionId: "sky-party"
   },
   "sticker-03": {
@@ -185,11 +185,11 @@ export const ALPHABET_ACHIEVEMENT_ID = "alphabet-expert";
 
 export const ALPHABET_ACHIEVEMENT_STICKER: StickerItem = {
   id: ALPHABET_ACHIEVEMENT_ID,
-  title: "Знаток алфавита",
+  title: "Оленёнок",
   collectionId: "achievements",
   collectionTitle: COLLECTION_TITLES.achievements,
   preferredAudience: "universal",
-  asset: "/assets/character/fox-celebrate.webp",
+  asset: "/assets/stickers/final/universal/fawn-flowers.png",
   fallbackVisual: "fox",
   kind: "achievement",
   order: 2000

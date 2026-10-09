@@ -18,15 +18,14 @@ const EXTRA_EXISTING_ASSETS = new Set([
   "/assets/ui/rewards-chest.webp",
   "/assets/ui/stars.webp",
   "/assets/home/sun-smiling.webp",
-  "/assets/home/rainbow-clean.png",
   "/assets/character/fox-happy.webp",
   "/assets/stickers/sun-new.png"
 ]);
 
 /** Backup paths, kept in sync with VISIBLE_STICKER_ART titles in stickerCatalog.ts. */
 const PREVIEW_FALLBACK_BY_ID: Record<string, string> = {
-  "sticker-01": "/assets/stickers/sun-new.png",
-  "sticker-02": "/assets/home/rainbow-clean.png",
+  "sticker-01": "/assets/stickers/final/universal/squirrel-acorn.png",
+  "sticker-02": "/assets/stickers/final/universal/hummingbird.png",
   "sticker-03": "/assets/stickers/final/girls/star.png",
   "sticker-04": "/assets/stickers/final/boys/treasure-chest.png"
 };

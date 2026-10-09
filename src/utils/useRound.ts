@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LetterItem, LetterStats, OptionCount, RoundPhase } from "../types";
 import { audioManager } from "../audio/AudioManager";
 import {
-  noteCorrectAnswer,
+  noteNewQuestion,
   noteWrongAnswer,
   takePraiseLine,
   takeRetryLine
@@ -156,6 +156,7 @@ export function useRound({
       }
       lockedRef.current = false;
       settledRef.current = false;
+      noteNewQuestion();
       clearTimer();
       setTarget(lockTarget);
       setPhase("question");
@@ -234,6 +235,7 @@ export function useRound({
     }
     lockedRef.current = false;
     settledRef.current = false;
+    noteNewQuestion();
     flowLog("INPUT UNLOCK");
     setSelected(null);
     setWrongCount(0);
@@ -258,8 +260,7 @@ export function useRound({
       setSelected(id);
       setPhase("feedback");
       onCorrect(target.id, pointFromEvent(event));
-      noteCorrectAnswer(wrongCount > 0);
-      const praiseLine = takePraiseLine();
+      const praiseLine = takePraiseLine(wrongCount > 0);
       audioManager.speak(praiseLine.text, {
         path: praiseLine.path,
         onEnd: () => {

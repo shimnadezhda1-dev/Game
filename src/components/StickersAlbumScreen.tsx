@@ -15,9 +15,14 @@ interface StickersAlbumScreenProps {
   progress: ProgressState;
   onBack: () => void;
   onSetFavorite: (id: string) => void;
+  onOpenMeadow: () => void;
 }
 
-export function StickersAlbumScreen({ progress, onSetFavorite }: StickersAlbumScreenProps) {
+export function StickersAlbumScreen({
+  progress,
+  onSetFavorite,
+  onOpenMeadow
+}: StickersAlbumScreenProps) {
   const [preview, setPreview] = useState<StickerItem | null>(null);
   const unlocked = useMemo(() => new Set(progress.unlockedStickerIds), [progress.unlockedStickerIds]);
   const favorites = useMemo(() => new Set(progress.favoriteStickerIds), [progress.favoriteStickerIds]);
@@ -33,6 +38,15 @@ export function StickersAlbumScreen({ progress, onSetFavorite }: StickersAlbumSc
       <p className="stickers-album__total">
         Собрано: {collected} из {albumStickers.length}
       </p>
+      <button type="button" className="stickers-album__meadow" onClick={onOpenMeadow}>
+        <img
+          className="stickers-album__meadow-icon"
+          src={assetUrl("/assets/home/meadow-flower.png")}
+          alt=""
+          draggable={false}
+        />
+        <span>МОЯ ПОЛЯНКА</span>
+      </button>
       <div className="stickers-album__collections">
         <div className="sticker-collection__grid">
           {albumStickers.map((item) => {

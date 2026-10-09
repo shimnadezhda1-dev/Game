@@ -103,7 +103,7 @@ export const FINAL_STICKER_ART: readonly FinalStickerArt[] = [
   { id: "sticker-96", title: "Волшебный фонарик", asset: "/assets/stickers/final/girls/magic-lantern.png", collectionId: "sky-party", preferredAudience: "girl" },
   { id: "sticker-97", title: "Русалочка", asset: "/assets/stickers/final/girls/mermaid-b.png", collectionId: "sky-party", preferredAudience: "girl" },
   { id: "sticker-98", title: "Лунный зайчик", asset: "/assets/stickers/final/girls/moon-bunny.png", collectionId: "sky-party", preferredAudience: "girl" },
-  { id: "sticker-99", title: "Луна", asset: "/assets/stickers/final/girls/moon.png", collectionId: "sky-party", preferredAudience: "girl" },
+  { id: "sticker-99", title: "Горилла", asset: "/assets/stickers/final/universal/gorilla.png", collectionId: "sky-party", preferredAudience: "universal" },
   { id: "sticker-100", title: "Пегас", asset: "/assets/stickers/final/girls/pegasus.png", collectionId: "sky-party", preferredAudience: "girl" },
   { id: "sticker-101", title: "Розовый замок", asset: "/assets/stickers/final/girls/pink-castle.png", collectionId: "sky-party", preferredAudience: "girl" },
   { id: "sticker-102", title: "Карета", asset: "/assets/stickers/final/girls/princess-carriage.png", collectionId: "sky-party", preferredAudience: "girl" },

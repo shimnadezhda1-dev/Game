@@ -18,6 +18,7 @@ export type Screen =
   | "listen"
   | "stars"
   | "stickers"
+  | "meadow"
   | "reward";
 
 export type RoundPhase = "question" | "feedback";
@@ -128,6 +129,27 @@ export interface LetterStats {
   lastPracticed: number;
 }
 
+export type MeadowLayoutKind = "desktop" | "mobile";
+
+export type MeadowTheme = "day" | "night";
+
+export interface FavoriteStickerPosition {
+  /** Center X in the sticker playground, 0 = left, 1 = right. */
+  x: number;
+  /** Center Y in the sticker playground, 0 = top, 1 = bottom. */
+  y: number;
+  z: number;
+  /** Missing or "meadow" = legacy lower meadow coords; "scene" = full playground. */
+  space?: "meadow" | "scene";
+  /** Missing or "manual" = child-placed, never auto-reflowed. */
+  source?: "auto" | "manual";
+}
+
+export interface FavoriteStickerLayouts {
+  desktop: Record<string, FavoriteStickerPosition>;
+  mobile: Record<string, FavoriteStickerPosition>;
+}
+
 export interface ProgressState {
   learnedLetterIds: string[];
   currentLearnIndex: number;
@@ -143,6 +165,15 @@ export interface ProgressState {
   claimedMilestonesThisCycle: number[];
   favoriteStickerId: string | null;
   favoriteStickerIds: string[];
+  favoriteStickerPositions: Record<string, FavoriteStickerPosition>;
+  favoriteStickerLayouts: FavoriteStickerLayouts;
+  meadowTheme: MeadowTheme;
+  /** Full day/night meadow tutorial finished (sun → night → moon → day). */
+  meadowDayNightTutorialSeen: boolean;
+  /** Child already reached night during the tutorial (wow + moon hint). */
+  meadowDayNightNightUnlocked: boolean;
+  /** First sun hint already played at least once (use short reminder next time). */
+  meadowDayNightSunHintHeard: boolean;
   completedLettersThisCycle: string[];
   completedAlphabetCycles: number;
   alphabetCycleCompleted: boolean;
