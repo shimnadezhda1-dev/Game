@@ -31,6 +31,8 @@ class BackgroundMusicManager {
   private formatError: string | null = null;
   private listeners = new Set<() => void>();
   private ready: Promise<void>;
+  private backgroundPaused = false;
+  private resumeAfterBackgroundWanted = false;
 
   constructor() {
     this.ready = this.restoreCustom();
@@ -183,13 +185,13 @@ class BackgroundMusicManager {
 
   startFromGesture(): void {
     this.started = true;
-    if (this.settings.mode === "off") {
+    if (this.settings.mode === "off" || this.backgroundPaused) {
       return;
     }
     void this.ready.then(() => {
       this.applySource();
       const audio = this.audio;
-      if (!audio || this.settings.mode === "off") {
+      if (!audio || this.settings.mode === "off" || this.backgroundPaused) {
         return;
       }
       if (!this.currentSrc()) {
@@ -307,6 +309,34 @@ class BackgroundMusicManager {
 
   pause(): void {
     this.audio?.pause();
+  }
+
+  pauseForBackground(): void {
+    if (this.backgroundPaused) {
+      return;
+    }
+    this.backgroundPaused = true;
+    const audio = this.audio;
+    this.resumeAfterBackgroundWanted = Boolean(audio && !audio.paused && !audio.ended);
+    if (this.fadeTimer !== null) {
+      window.clearInterval(this.fadeTimer);
+      this.fadeTimer = null;
+    }
+    audio?.pause();
+  }
+
+  /** Plays again only if the melody was actually playing and is still switched on. */
+  resumeAfterBackground(): void {
+    if (!this.backgroundPaused) {
+      return;
+    }
+    this.backgroundPaused = false;
+    const wanted = this.resumeAfterBackgroundWanted;
+    this.resumeAfterBackgroundWanted = false;
+    if (!wanted || !this.started || this.settings.mode === "off") {
+      return;
+    }
+    this.startFromGesture();
   }
 }
 

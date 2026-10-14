@@ -120,6 +120,29 @@ export function buildRoundOptions(
   return { ok: true, options: shuffle([targetId, ...picked]) };
 }
 
+/**
+ * Moves the correct option off the slot it held last round (swap with a random
+ * other slot), so it never sits in the same place twice in a row.
+ */
+export function avoidRepeatedCorrectPosition(
+  options: readonly string[],
+  correctOptionId: string,
+  previousIndex: number | undefined,
+  random: () => number = Math.random
+): string[] {
+  const index = options.indexOf(correctOptionId);
+  if (options.length < 2 || index < 0 || index !== previousIndex) {
+    return [...options];
+  }
+  let swapWith = Math.floor(random() * (options.length - 1));
+  if (swapWith >= index) {
+    swapWith += 1;
+  }
+  const next = [...options];
+  [next[index], next[swapWith]] = [next[swapWith], next[index]];
+  return next;
+}
+
 export function glyphOptionPool(
   letters: readonly LetterItem[],
   optionCount: OptionCount

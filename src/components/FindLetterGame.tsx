@@ -79,6 +79,12 @@ export function FindLetterGame({
     speakKey: (item) => letterVoiceKey("find", item.id),
     praise: (item) => `Молодец! Это буква ${item.upper}!`,
     praiseKey: (letter) => letterVoiceKey("correct", letter.id),
+    positionKey: "find",
+    playQuestion: () => playFindLetterPromptForCurrent(),
+    stopQuestion: () => {
+      findGenRef.current += 1;
+      clearFindPause();
+    },
     playWrongSound: false,
     autoSpeak: false
   });
@@ -163,7 +169,7 @@ export function FindLetterGame({
         <GameHudRight stars={stars}>
           <button
             className="learn-sound"
-            onClick={playFindLetterPromptForCurrent}
+            onClick={round.replay}
             disabled={round.phase === "feedback"}
             aria-label="Прослушать"
           >
@@ -256,7 +262,7 @@ export function FindLetterGame({
     <GameStage
       foxMood={round.phase === "feedback" ? "celebrate" : "tip"}
       bubble={bubble}
-      onReplay={playFindLetterPromptForCurrent}
+      onReplay={round.replay}
       replayKey={round.target.id}
       replayDisabled={round.phase === "feedback"}
       onBack={onBack}

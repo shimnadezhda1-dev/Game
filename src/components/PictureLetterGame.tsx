@@ -140,12 +140,20 @@ export function PictureLetterGame({
     },
     praiseKey: (letter) => letterVoiceKey("correct", letter.id),
     tryAgainText: "Попробуй ещё раз!",
+    positionKey: voiceMode,
+    playQuestion: voiceMode === "listen" ? () => void playListenRound() : undefined,
+    stopQuestion:
+      voiceMode === "listen"
+        ? () => {
+            listenGenRef.current += 1;
+            clearListenPause();
+            setInstructionBusy(false);
+          }
+        : undefined,
     playWrongSound: false,
     autoSpeak: voiceMode !== "listen"
   });
 
-  const replayRef = useRef(round.replay);
-  replayRef.current = round.replay;
   const targetRef = useRef(round.target);
   targetRef.current = round.target;
   const correctOptionIdRef = useRef(round.correctOptionId);
@@ -195,16 +203,6 @@ export function PictureLetterGame({
       return;
     }
     audioManager.playVoice(path);
-  }
-
-  function playListenVoice() {
-    if (phaseRef.current !== "question") {
-      return;
-    }
-    clearListenPause();
-    audioManager.stopSpeaking();
-    const generation = ++listenGenRef.current;
-    void playListenTargetAudio(generation);
   }
 
   async function playListenRound() {
@@ -309,11 +307,7 @@ export function PictureLetterGame({
         <button
           className="learn-sound"
           onClick={() => {
-            if (isListen) {
-              if (instructionBusy) {
-                return;
-              }
-              playListenVoice();
+            if (isListen && instructionBusy) {
               return;
             }
             round.replay();

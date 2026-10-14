@@ -41,6 +41,13 @@ function pickVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null 
   return russian.find((voice) => voice.default) ?? null;
 }
 
+export const RESUME_AFTER_BACKGROUND_DELAY_MS = 500;
+
+/** What to do with the voice line that background paused. */
+type BackgroundVoiceDebt =
+  | { kind: "interrupted"; onEnd?: () => void }
+  | { kind: "requested"; text: string; options: SpeakOptions };
+
 class AudioManager {
   private enabled = true;
   private voice: SpeechSynthesisVoice | null = null;
@@ -57,6 +64,10 @@ class AudioManager {
   private lastVoicePath = "";
   private voiceHold = 0;
   private unduckTimer: number | null = null;
+  private activeOnEnd: (() => void) | undefined;
+  private backgroundPaused = false;
+  private backgroundDebt: BackgroundVoiceDebt | null = null;
+  private resumeTimer: number | null = null;
 
   constructor() {
     if ("speechSynthesis" in window) {
@@ -134,7 +145,81 @@ class AudioManager {
     }, 90);
   }
 
+  isBackgroundPaused(): boolean {
+    return this.backgroundPaused;
+  }
+
+  /**
+   * Hidden page / locked phone: cut the current line and park its continuation.
+   * Nothing is spoken until resumeAfterBackground().
+   */
+  pauseForBackground(): void {
+    if (this.backgroundPaused) {
+      return;
+    }
+    const interrupted = this.voiceBusy ? this.activeOnEnd : undefined;
+    const hadVoice = this.voiceBusy;
+    this.stopSpeaking();
+    this.backgroundPaused = true;
+    this.backgroundDebt = hadVoice ? { kind: "interrupted", onEnd: interrupted } : null;
+    voiceLog("VOICE BACKGROUND PAUSE");
+    if (this.audioContext && this.audioContext.state === "running") {
+      void this.audioContext.suspend().catch(() => undefined);
+    }
+  }
+
+  /**
+   * Interrupted lines are never resumed from the middle: their continuation runs
+   * after a short delay, and lines requested while hidden play from the start.
+   * Screens that replay their own question call discardBackgroundDebt() first.
+   */
+  resumeAfterBackground(): void {
+    if (!this.backgroundPaused) {
+      return;
+    }
+    this.backgroundPaused = false;
+    voiceLog("VOICE BACKGROUND RESUME");
+    if (this.audioContext && this.audioContext.state === "suspended") {
+      void this.audioContext.resume().catch(() => undefined);
+    }
+    if (!this.backgroundDebt) {
+      return;
+    }
+    this.clearResumeTimer();
+    this.resumeTimer = window.setTimeout(() => {
+      this.resumeTimer = null;
+      const debt = this.backgroundDebt;
+      this.backgroundDebt = null;
+      if (!debt || this.backgroundPaused) {
+        return;
+      }
+      if (debt.kind === "requested") {
+        this.speak(debt.text, debt.options);
+        return;
+      }
+      debt.onEnd?.();
+    }, RESUME_AFTER_BACKGROUND_DELAY_MS);
+  }
+
+  discardBackgroundDebt(): void {
+    this.clearResumeTimer();
+    this.backgroundDebt = null;
+  }
+
+  private clearResumeTimer(): void {
+    if (this.resumeTimer !== null) {
+      window.clearTimeout(this.resumeTimer);
+      this.resumeTimer = null;
+    }
+  }
+
   speak(text: string, options: SpeakOptions = {}): void {
+    if (this.backgroundPaused) {
+      voiceLog("VOICE DEFERRED (background)", options.key ?? options.path);
+      this.backgroundDebt = { kind: "requested", text, options };
+      return;
+    }
+    this.discardBackgroundDebt();
     if (!this.enabled) {
       options.onEnd?.();
       return;
@@ -143,6 +228,7 @@ class AudioManager {
     this.stopSpeaking({ preserveDuck: true });
     const token = ++this.token;
     this.voiceBusy = true;
+    this.activeOnEnd = options.onEnd;
     if (!replacing) {
       this.acquireVoice();
     }
@@ -319,6 +405,7 @@ class AudioManager {
       return;
     }
     this.finishedToken = this.token;
+    this.activeOnEnd = undefined;
     if (this.endTimer !== null) {
       window.clearTimeout(this.endTimer);
       this.endTimer = null;
@@ -341,7 +428,7 @@ class AudioManager {
   }
 
   private playChime(freqs: number[], duration: number): void {
-    if (!this.enabled) {
+    if (!this.enabled || this.backgroundPaused) {
       return;
     }
     try {
@@ -371,6 +458,8 @@ class AudioManager {
     this.token += 1;
     const wasBusy = this.voiceBusy;
     this.voiceBusy = false;
+    this.activeOnEnd = undefined;
+    this.discardBackgroundDebt();
     voiceLog("VOICE STOP");
     if (this.endTimer !== null) {
       window.clearTimeout(this.endTimer);

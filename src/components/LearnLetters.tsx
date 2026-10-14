@@ -5,7 +5,8 @@ import { NextArrowIcon } from "./ToyIcons";
 import { StageNav } from "./StageNav";
 import { letterIntroSpeech } from "../utils/letterCopy";
 import { letterVoiceKey } from "../audio/voiceCatalog";
-import { audioManager } from "../audio/AudioManager";
+import { audioManager, RESUME_AFTER_BACKGROUND_DELAY_MS } from "../audio/AudioManager";
+import { isAppInBackground, subscribeAppLifecycle } from "../utils/appLifecycle";
 import { assetUrl, ASSETS } from "../utils/assets";
 import { HomeButton } from "./HomeButton";
 import { GameHudRight } from "./GameHudRight";
@@ -132,6 +133,40 @@ export function LearnLetters({
       audioManager.stopSpeaking();
     };
   }, [letter.id, audioEntryKey]);
+
+  const speakLetterRef = useRef(speakLetter);
+  speakLetterRef.current = speakLetter;
+
+  useEffect(() => {
+    let resumeTimer: number | null = null;
+    const clearResumeTimer = () => {
+      if (resumeTimer !== null) {
+        window.clearTimeout(resumeTimer);
+        resumeTimer = null;
+      }
+    };
+    const unsubscribe = subscribeAppLifecycle((state) => {
+      clearResumeTimer();
+      speakGenRef.current += 1;
+      clearWaitTimer();
+      if (state === "background") {
+        return;
+      }
+      audioManager.discardBackgroundDebt();
+      const generation = speakGenRef.current;
+      resumeTimer = window.setTimeout(() => {
+        resumeTimer = null;
+        if (generation !== speakGenRef.current || isAppInBackground()) {
+          return;
+        }
+        speakLetterRef.current(false);
+      }, RESUME_AFTER_BACKGROUND_DELAY_MS);
+    });
+    return () => {
+      clearResumeTimer();
+      unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     if (autoAdvance) {
