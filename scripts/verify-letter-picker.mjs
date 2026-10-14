@@ -13,10 +13,8 @@ const uppers = [...raw.matchAll(/\n    upper: "([^"]+)"/g)].map((match) => match
 const ids = [...raw.matchAll(/\n    id: "([^"]+)"/g)].map((match) => match[1]);
 
 const appSrc = readFileSync(join(root, "src/App.tsx"), "utf8");
-const pickerUsesCanonical = appSrc.includes(
-  "filterLettersByCategory(LETTERS, progress.letterCategory)"
-);
-const pickableStillFiltersActivity = /const pickableLetters = useMemo\(\s*\(\) =>\s*filterLettersByCategory\(LETTERS, progress\.letterCategory\),\s*\[progress\.letterCategory\]/.test(
+const pickerUsesCanonical = /filterLettersByCategory\(LETTERS, (progress\.)?letterCategory\)/.test(appSrc);
+const pickableStillFiltersActivity = /const pickableLetters = useMemo\(\s*\(\) =>\s*filterLettersByCategory\(LETTERS, (progress\.)?letterCategory\),\s*\[(progress\.)?letterCategory\]/.test(
   appSrc
 ) === false;
 

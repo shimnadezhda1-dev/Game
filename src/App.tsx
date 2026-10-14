@@ -73,6 +73,25 @@ import { PlayerChooser } from "./components/PlayerChooser";
 import { RestartActivityConfirm } from "./components/RestartActivityConfirm";
 import { MusicControlProvider } from "./components/MusicControlContext";
 import { MusicSettingsPanel } from "./components/MusicSettingsPanel";
+import { TrialCompleteScreen } from "./components/TrialCompleteScreen";
+import { ParentGate } from "./components/ParentGate";
+import { ParentScreen } from "./components/ParentScreen";
+import { LockedFeatureNotice } from "./components/LockedFeatureNotice";
+import { speakLockedFeatureHint } from "./audio/trialVoice";
+import {
+  LOCKED_FEATURE_MESSAGES,
+  allowedLettersFor,
+  canUseLetterCategory,
+  canUseOptionCount,
+  canUseStudyOrder,
+  effectivePlaySettings,
+  nextTrialActivity,
+  onParentFlowRequest,
+  requestParentFlow,
+  trackEvent,
+  useEntitlement,
+  type ParentFlowSource
+} from "./entitlement";
 
 function VoiceDebugLine() {
   const [path, setPath] = useState("");
@@ -145,6 +164,15 @@ function App() {
   const [resumeMode, setResumeMode] = useState<"fresh" | "continue">("continue");
   const [restartConfirm, setRestartConfirm] = useState(false);
   const [playerChooserOpen, setPlayerChooserOpen] = useState(() => !preview);
+  const entitlement = useEntitlement();
+  const isTrial = entitlement === "trial";
+  const [trialCompleteActivity, setTrialCompleteActivity] = useState<PlayActivity | null>(null);
+  const [lockedFeature, setLockedFeature] = useState<keyof typeof LOCKED_FEATURE_MESSAGES | null>(
+    null
+  );
+  const [parentFlow, setParentFlow] = useState<{ step: "gate" | "screen"; source: ParentFlowSource } | null>(
+    null
+  );
   const pendingRewardRef = useRef<{
     item: RewardItem;
     threshold: number;
@@ -182,33 +210,45 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    return onParentFlowRequest((source) => setParentFlow({ step: "gate", source }));
+  }, []);
+
+  const allowedLetters = useMemo(() => allowedLettersFor(LETTERS, entitlement), [entitlement]);
+  const { optionCount, studyOrder, letterCategory } = effectivePlaySettings(entitlement, progress);
   const playLetters = useMemo(
-    () => unlockedLetters(progress, LETTERS),
-    [progress]
+    () => unlockedLetters(progress, allowedLetters),
+    [progress, allowedLetters]
   );
   const adventureLetters = useMemo(
     () =>
-      playLetterPool(contentReadyLetters(LETTERS), progress.letterCategory).filter((letter) =>
+      playLetterPool(contentReadyLetters(allowedLetters), letterCategory).filter((letter) =>
         letterAllowsActivity(letter, progress.playActivity)
       ),
-    [progress.letterCategory, progress.playActivity]
+    [allowedLetters, letterCategory, progress.playActivity]
   );
-  const supportedOptionCounts = useMemo(() => availableOptionCounts(LETTERS), []);
+  const selectedLetterId = allowedLetters.some((letter) => letter.id === progress.selectedLetterId)
+    ? progress.selectedLetterId
+    : allowedLetters[0]?.id ?? progress.selectedLetterId;
+  const supportedOptionCounts = useMemo(
+    () => availableOptionCounts(allowedLetters),
+    [allowedLetters]
+  );
   const pickableLetters = useMemo(
-    () => filterLettersByCategory(LETTERS, progress.letterCategory),
-    [progress.letterCategory]
+    () => filterLettersByCategory(LETTERS, letterCategory),
+    [letterCategory]
   );
   const currentPlayLetter =
     adventureLetters.find(
       (letter) => letter.id === activityLetterId(progress, progress.playActivity)
     ) ??
-    adventureLetters.find((letter) => letter.id === progress.selectedLetterId) ??
+    adventureLetters.find((letter) => letter.id === selectedLetterId) ??
     adventureLetters[0];
   const glyphOptions = useMemo(
-    () => glyphOptionPool(LETTERS, progress.optionCount),
-    [progress.optionCount]
+    () => glyphOptionPool(allowedLetters, optionCount),
+    [allowedLetters, optionCount]
   );
-  const pictureExamples = useMemo(() => pictureContentBank(LETTERS), []);
+  const pictureExamples = useMemo(() => pictureContentBank(allowedLetters), [allowedLetters]);
   const learnCursorId = activityLetterId(progress, "learn");
   const learnLetter =
     playLetters.find((letter) => letter.id === learnCursorId) ??
@@ -300,7 +340,7 @@ function App() {
     if (progress.playerPreference === null) {
       return;
     }
-    if (!supportedOptionCounts.includes(progress.optionCount)) {
+    if (!supportedOptionCounts.includes(optionCount)) {
       return;
     }
     setResumeMode("continue");
@@ -313,13 +353,13 @@ function App() {
       setRestartConfirm(false);
       return;
     }
-    const pool = playLetterPool(contentReadyLetters(LETTERS), progress.letterCategory).filter(
+    const pool = playLetterPool(contentReadyLetters(allowedLetters), letterCategory).filter(
       (letter) => letterAllowsActivity(letter, activity)
     );
     const startId = startLetterIdForActivity({
-      studyOrder: progress.studyOrder,
+      studyOrder,
       pool,
-      pickLetterId: progress.selectedLetterId
+      pickLetterId: selectedLetterId
     });
     setProgress((prev) => resetActivityLetter(prev, activity, startId));
     setResumeMode("fresh");
@@ -332,7 +372,54 @@ function App() {
     flowLog("NAV", next);
     setPlayerChooserOpen(false);
     setRestartConfirm(false);
+    setTrialCompleteActivity(null);
+    setLockedFeature(null);
     setScreen(next);
+  }
+
+  function onTrialPoolFinished(activity: PlayActivity) {
+    const next = nextTrialActivity(activity);
+    trackEvent(next ? "trial_activity_completed" : "trial_completed", { activity });
+    setTrialCompleteActivity(activity);
+  }
+
+  function startTrialActivity(activity: PlayActivity) {
+    const pool = playLetterPool(contentReadyLetters(allowedLetters), letterCategory).filter(
+      (letter) => letterAllowsActivity(letter, activity)
+    );
+    setProgress((prev) => ({
+      ...resetActivityLetter(prev, activity, pool[0]?.id ?? "A"),
+      playActivity: activity
+    }));
+    setResumeMode("fresh");
+    enterAdventure();
+  }
+
+  function repeatTrial() {
+    startTrialActivity(trialCompleteActivity ?? progress.playActivity);
+  }
+
+  function nextTrialActivityFromComplete() {
+    const next = trialCompleteActivity ? nextTrialActivity(trialCompleteActivity) : null;
+    if (next) {
+      startTrialActivity(next);
+    }
+  }
+
+  const onLetterCompleted = useCallback(
+    (letterId: string, activity: PlayActivity) => {
+      if (isTrial) {
+        trackEvent("trial_letter_completed", { letterId, activity });
+      }
+    },
+    [isTrial]
+  );
+
+  function closeParentFlow() {
+    setParentFlow(null);
+    if (trialCompleteActivity && entitlement === "full") {
+      go("home");
+    }
   }
 
   function addStar(letterId: string) {
@@ -442,7 +529,7 @@ function App() {
 
   function nextLearnLetter() {
     setProgress((prev) => {
-      const pool = unlockedLetters(prev);
+      const pool = unlockedLetters(prev, allowedLetters);
       const currentId = activityLetterId(prev, "learn");
       const currentIndex = Math.max(
         0,
@@ -460,7 +547,7 @@ function App() {
 
   function selectLearnLetter(id: string) {
     setProgress((prev) => {
-      const pool = unlockedLetters(prev);
+      const pool = unlockedLetters(prev, allowedLetters);
       const index = pool.findIndex((item) => item.id === id);
       const nextIndex = index >= 0 ? index : prev.currentLearnIndex;
       const nextId = pool[nextIndex]?.id ?? id;
@@ -510,7 +597,17 @@ function App() {
     setProgress((prev) => ({ ...prev, playerPreference }));
   }
 
+  function showLockedFeature(feature: keyof typeof LOCKED_FEATURE_MESSAGES) {
+    trackEvent("locked_feature_clicked", { feature });
+    setLockedFeature(feature);
+    speakLockedFeatureHint();
+  }
+
   function setOptionCount(optionCount: OptionCount) {
+    if (!canUseOptionCount(entitlement, optionCount)) {
+      showLockedFeature("hardLevel");
+      return;
+    }
     if (!supportedOptionCounts.includes(optionCount)) {
       return;
     }
@@ -537,6 +634,10 @@ function App() {
   }
 
   function setStudyOrder(studyOrder: StudyOrder) {
+    if (!canUseStudyOrder(entitlement, studyOrder)) {
+      showLockedFeature("randomOrder");
+      return;
+    }
     setProgress((prev) => {
       if (prev.studyOrder === studyOrder) {
         return prev;
@@ -544,8 +645,9 @@ function App() {
       const next = { ...prev, studyOrder };
       if (studyOrder === "alpha") {
         let updated = next;
+        const category = effectivePlaySettings(entitlement, prev).letterCategory;
         for (const activity of PLAY_ACTIVITIES) {
-          const pool = playLetterPool(contentReadyLetters(LETTERS), prev.letterCategory).filter((item) =>
+          const pool = playLetterPool(contentReadyLetters(allowedLetters), category).filter((item) =>
             letterAllowsActivity(item, activity)
           );
           updated = withActivityLetter(updated, activity, pool[0]?.id ?? "A");
@@ -557,8 +659,12 @@ function App() {
   }
 
   function setLetterCategory(letterCategory: LetterCategory) {
+    if (!canUseLetterCategory(entitlement, letterCategory)) {
+      showLockedFeature("letterCategory");
+      return;
+    }
     setProgress((prev) => {
-      const pool = playLetterPool(contentReadyLetters(LETTERS), letterCategory).filter((letter) =>
+      const pool = playLetterPool(contentReadyLetters(allowedLetters), letterCategory).filter((letter) =>
         letterAllowsActivity(letter, prev.playActivity)
       );
       const selectedLetterId = pool.some((letter) => letter.id === prev.selectedLetterId)
@@ -732,21 +838,22 @@ function App() {
             onSpeak={speak}
             onToggleMusic={toggleMusic}
             musicOn={musicOn}
-            optionCount={progress.optionCount}
+            optionCount={optionCount}
             availableOptionCounts={supportedOptionCounts}
             onOptionCountChange={setOptionCount}
             playActivity={progress.playActivity}
             onPlayActivityChange={setPlayActivity}
-            studyOrder={progress.studyOrder}
+            studyOrder={studyOrder}
             onStudyOrderChange={setStudyOrder}
-            letterCategory={progress.letterCategory}
+            letterCategory={letterCategory}
             onLetterCategoryChange={setLetterCategory}
-            selectedLetterId={progress.selectedLetterId}
+            selectedLetterId={selectedLetterId}
             pickableLetters={pickableLetters}
             onSelectedLetterChange={setSelectedLetter}
             foxCelebrate={progress.stars >= 20}
             playerPreference={shownPlayerPreference}
             onOpenPlayerChooser={() => setPlayerChooserOpen(true)}
+            onOpenTrialInfo={isTrial ? () => requestParentFlow("home") : undefined}
           />
         );
       case "modeSelect":
@@ -755,13 +862,13 @@ function App() {
           <AdventurePlay
             key={playEpoch}
             letters={previewLetter ? [previewLetter] : adventureLetters}
-            optionCatalog={LETTERS}
-            optionCount={progress.optionCount}
+            optionCatalog={previewLetter ? LETTERS : allowedLetters}
+            optionCount={optionCount}
             stats={progress.letterStats}
             progress={progress}
             startActivity={preview?.activity ?? progress.playActivity}
-            studyOrder={previewLetter ? "pick" : progress.studyOrder}
-            selectedLetterId={previewLetter?.id ?? progress.selectedLetterId}
+            studyOrder={previewLetter ? "pick" : studyOrder}
+            selectedLetterId={previewLetter?.id ?? selectedLetterId}
             resumeLetterId={
               previewLetter?.id ??
               activityLetterId(progress, preview?.activity ?? progress.playActivity)
@@ -784,6 +891,8 @@ function App() {
                 ? undefined
                 : () => setRestartConfirm(true)
             }
+            onLetterCompleted={previewLetter ? undefined : onLetterCompleted}
+            onTrialPoolFinished={isTrial && !previewLetter ? onTrialPoolFinished : undefined}
           />
         );
       case "learn":
@@ -797,25 +906,25 @@ function App() {
             onBack={backHome}
             onHome={backHome}
             onSpeak={speak}
-            autoAdvance={progress.studyOrder !== "pick"}
+            autoAdvance={studyOrder !== "pick"}
             advanceDelaySec={progress.learnAdvanceSeconds}
             onAdvanceSecondsChange={
-              progress.studyOrder !== "pick" ? setLearnAdvanceSeconds : undefined
+              studyOrder !== "pick" ? setLearnAdvanceSeconds : undefined
             }
             onGoNextActivity={() => {
               setPlayActivitySilent("find");
               enterAdventure();
             }}
-            allowLetterSkip={progress.studyOrder !== "pick"}
+            allowLetterSkip={studyOrder !== "pick"}
           />
         );
       case "find":
         return (
           <FindLetterGame
             letters={playLetters}
-            optionCount={progress.optionCount}
+            optionCount={optionCount}
             optionPool={glyphOptions}
-            optionCatalog={LETTERS}
+            optionCatalog={allowedLetters}
             stats={progress.letterStats}
             onCorrect={markCorrect}
             onAfterSuccess={waitForQueuedReward}
@@ -830,7 +939,7 @@ function App() {
           <PictureLetterGame
             key="standalone-picture"
             letters={playLetters}
-            optionCount={progress.optionCount}
+            optionCount={optionCount}
             pictureBank={pictureExamples}
             stats={progress.letterStats}
             trailStep={progress.stars % 5}
@@ -848,7 +957,7 @@ function App() {
           <PictureLetterGame
             key="standalone-listen"
             letters={playLetters}
-            optionCount={progress.optionCount}
+            optionCount={optionCount}
             pictureBank={pictureExamples}
             stats={progress.letterStats}
             trailStep={progress.stars % 5}
@@ -909,20 +1018,21 @@ function App() {
             onSpeak={speak}
             onToggleMusic={toggleMusic}
             musicOn={musicOn}
-            optionCount={progress.optionCount}
+            optionCount={optionCount}
             availableOptionCounts={supportedOptionCounts}
             onOptionCountChange={setOptionCount}
             playActivity={progress.playActivity}
             onPlayActivityChange={setPlayActivity}
-            studyOrder={progress.studyOrder}
+            studyOrder={studyOrder}
             onStudyOrderChange={setStudyOrder}
-            letterCategory={progress.letterCategory}
+            letterCategory={letterCategory}
             onLetterCategoryChange={setLetterCategory}
-            selectedLetterId={progress.selectedLetterId}
+            selectedLetterId={selectedLetterId}
             pickableLetters={pickableLetters}
             onSelectedLetterChange={setSelectedLetter}
             playerPreference={shownPlayerPreference}
             onOpenPlayerChooser={() => setPlayerChooserOpen(true)}
+            onOpenTrialInfo={isTrial ? () => requestParentFlow("home") : undefined}
           />
         );
     }
@@ -985,19 +1095,19 @@ function App() {
           }}
         />
       ) : null}
-      {!preview && !activeReward && !progress.alphabetCycleCompleted && ["modeSelect", "adventure", "learn", "find", "picture", "listen"].includes(screen) ? (
+      {!preview && !activeReward && !progress.alphabetCycleCompleted && !trialCompleteActivity && ["modeSelect", "adventure", "learn", "find", "picture", "listen"].includes(screen) ? (
         <GameControls
           key={screen}
-          optionCount={progress.optionCount}
+          optionCount={optionCount}
           availableCounts={supportedOptionCounts}
           onOptionCountChange={setOptionCount}
           playActivity={progress.playActivity}
           onPlayActivityChange={setPlayActivity}
-          studyOrder={progress.studyOrder}
+          studyOrder={studyOrder}
           onStudyOrderChange={setStudyOrder}
-          letterCategory={progress.letterCategory}
+          letterCategory={letterCategory}
           onLetterCategoryChange={setLetterCategory}
-          selectedLetterId={progress.selectedLetterId}
+          selectedLetterId={selectedLetterId}
           pickableLetters={pickableLetters}
           onSelectedLetterChange={setSelectedLetter}
           currentLetter={currentPlayLetter}
@@ -1018,6 +1128,36 @@ function App() {
           onStartNewAdventure={startNewAdventureFromComplete}
         />
       ) : null}
+      {trialCompleteActivity && !preview ? (
+        <TrialCompleteScreen
+          activity={trialCompleteActivity}
+          onNext={nextTrialActivity(trialCompleteActivity) ? nextTrialActivityFromComplete : undefined}
+          onRepeat={repeatTrial}
+          onHome={backHome}
+          onCallAdult={() => requestParentFlow("trial_complete")}
+        />
+      ) : null}
+      {lockedFeature && isTrial ? (
+        <LockedFeatureNotice
+          message={LOCKED_FEATURE_MESSAGES[lockedFeature]}
+          onCallAdult={() => {
+            audioManager.stopSpeaking();
+            setLockedFeature(null);
+            requestParentFlow("locked_feature");
+          }}
+          onClose={() => setLockedFeature(null)}
+        />
+      ) : null}
+      {parentFlow?.step === "gate" ? (
+        <ParentGate
+          onPass={() => {
+            trackEvent("parent_screen_opened", { source: parentFlow.source });
+            setParentFlow({ step: "screen", source: parentFlow.source });
+          }}
+          onCancel={() => setParentFlow(null)}
+        />
+      ) : null}
+      {parentFlow?.step === "screen" ? <ParentScreen onClose={closeParentFlow} /> : null}
       <VoiceDebugLine />
     </div>
     </MusicControlProvider>

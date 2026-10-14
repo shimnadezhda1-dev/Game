@@ -1,4 +1,5 @@
 import { OptionCount } from "../types";
+import { canUseOptionCount, useEntitlement } from "../entitlement";
 
 interface DifficultySelectorProps {
   value: OptionCount;
@@ -31,6 +32,7 @@ export function DifficultySelector({
   compact = false,
   layout = "horizontal"
 }: DifficultySelectorProps) {
+  const entitlement = useEntitlement();
   return (
     <div
       className={`difficulty-selector difficulty-selector--${layout} ${
@@ -40,31 +42,37 @@ export function DifficultySelector({
       aria-label="Уровень сложности"
     >
       {OPTIONS.map((option) => {
-        const available = availableCounts.includes(option.value);
+        const locked = !canUseOptionCount(entitlement, option.value);
+        const available = locked || availableCounts.includes(option.value);
+        const selected = !locked && value === option.value;
         return (
           <button
             key={option.value}
             type="button"
             className={`difficulty-option difficulty-option--${option.tone} ${
-              value === option.value ? "is-selected" : ""
-            }`}
+              selected ? "is-selected" : ""
+            }${locked ? " is-locked" : ""}`}
             role="radio"
-            aria-checked={value === option.value}
-            aria-label={`${option.label}, ${option.value} варианта`}
+            aria-checked={selected}
+            aria-label={
+              locked
+                ? `${option.label} — откроется в полной версии`
+                : `${option.label}, ${option.value} варианта`
+            }
             disabled={!available}
             onClick={() => onChange(option.value)}
           >
             <span className="difficulty-option__main">
-              {value === option.value ? (
+              {selected ? (
                 <span className="difficulty-option__check" aria-hidden="true">
                   ✓
                 </span>
               ) : null}
               <StarMarks count={option.stars} />
               <span>{option.label}</span>
-              {!available ? <span aria-hidden="true">🔒</span> : null}
+              {locked || !available ? <span aria-hidden="true">🔒</span> : null}
             </span>
-            {!available ? <small>Скоро</small> : null}
+            {locked ? <small>Полная версия</small> : !available ? <small>Скоро</small> : null}
           </button>
         );
       })}

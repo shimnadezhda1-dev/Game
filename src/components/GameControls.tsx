@@ -12,7 +12,7 @@ import { DifficultySelector } from "./DifficultySelector";
 import { HomeChoiceList } from "./HomePanel";
 import { LetterPickGrid } from "./LetterPickGrid";
 import { MenuImageButton, PlayMenuKind } from "./MenuImageButton";
-import { ACTIVITY_OPTIONS, CATEGORY_OPTIONS, ORDER_OPTIONS, studyOrderVisuals } from "./playMenuOptions";
+import { ACTIVITY_OPTIONS, studyOrderVisuals, useEntitlementMenuOptions } from "./playMenuOptions";
 
 interface GameControlsProps {
   optionCount: OptionCount;
@@ -78,6 +78,7 @@ export function GameControls({
     };
   }, [open]);
 
+  const { orderOptions, categoryOptions } = useEntitlementMenuOptions();
   const activityOptions = useMemo(
     () =>
       ACTIVITY_OPTIONS.map((option) => ({
@@ -132,7 +133,7 @@ export function GameControls({
           <HomeChoiceList
             name="Порядок изучения"
             value={studyOrder}
-            options={ORDER_OPTIONS}
+            options={orderOptions}
             rowLayout
             onChange={(value) => {
               onStudyOrderChange(value);
@@ -166,7 +167,7 @@ export function GameControls({
           <HomeChoiceList
             name="Категория букв"
             value={letterCategory}
-            options={CATEGORY_OPTIONS}
+            options={categoryOptions}
             onChange={(value) => {
               onLetterCategoryChange(value);
               setOpen(null);

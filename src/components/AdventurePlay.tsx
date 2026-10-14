@@ -64,6 +64,9 @@ interface AdventurePlayProps {
   learnAdvanceSeconds?: number;
   onLearnAdvanceSecondsChange?: (value: number) => void;
   onRequestRestart?: () => void;
+  onLetterCompleted?: (letterId: string, activity: PlayActivity) => void;
+  /** Trial only: alphabetical order reached the end of the allowed letters. */
+  onTrialPoolFinished?: (activity: PlayActivity) => void;
 }
 
 function activityToStep(activity: PlayActivity): Step {
@@ -157,7 +160,9 @@ export function AdventurePlay({
   resumeMode = "continue",
   learnAdvanceSeconds = 3,
   onLearnAdvanceSecondsChange,
-  onRequestRestart
+  onRequestRestart,
+  onLetterCompleted,
+  onTrialPoolFinished
 }: AdventurePlayProps) {
   const [playLetters, setPlayLetters] = useState(() =>
     buildPlayLetters(letters, studyOrder)
@@ -366,6 +371,7 @@ export function AdventurePlay({
 
   function goToNextLetterInCurrentActivity(wrapAtEnd = true): boolean {
     audioManager.stopSpeaking();
+    onLetterCompleted?.(letter.id, currentActivity);
     if (studyOrder === "pick") {
       return false;
     }
@@ -383,6 +389,10 @@ export function AdventurePlay({
     }
     const next = nextLetterIndex(currentLetterIndex, playLetters.length);
     if (next === null) {
+      if (onTrialPoolFinished) {
+        onTrialPoolFinished(currentActivity);
+        return false;
+      }
       if (wrapAtEnd && playLetters.length > 0) {
         setCurrentLetterIndex(0);
         return true;

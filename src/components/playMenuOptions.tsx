@@ -1,4 +1,5 @@
-import { ReactNode } from "react";
+import { ReactNode, useMemo } from "react";
+import { canUseLetterCategory, canUseStudyOrder, useEntitlement } from "../entitlement";
 import { LetterCategory, PlayActivity, StudyOrder } from "../types";
 import { ASSETS, assetUrl } from "../utils/assets";
 import { HomeChoiceTone } from "./HomePanel";
@@ -196,6 +197,24 @@ export const CATEGORY_OPTIONS: Array<{
   { value: "vowels", label: "Гласные", tone: "pink", icon: <IconNotes /> },
   { value: "consonants", label: "Согласные", tone: "orange", icon: <IconCube /> }
 ];
+
+/** ORDER/CATEGORY options with full-version-only entries marked as locked. */
+export function useEntitlementMenuOptions() {
+  const entitlement = useEntitlement();
+  return useMemo(
+    () => ({
+      orderOptions: ORDER_OPTIONS.map((option) => ({
+        ...option,
+        locked: !canUseStudyOrder(entitlement, option.value)
+      })),
+      categoryOptions: CATEGORY_OPTIONS.map((option) => ({
+        ...option,
+        locked: !canUseLetterCategory(entitlement, option.value)
+      }))
+    }),
+    [entitlement]
+  );
+}
 
 export const activityIcons = {
   learn: activityVisuals.learn,

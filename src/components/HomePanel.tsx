@@ -15,6 +15,7 @@ interface HomeChoiceListProps<T extends string> {
     image?: string;
     disabled?: boolean;
     unavailableLabel?: string;
+    locked?: boolean;
   }>;
   onChange: (value: T) => void;
   rowLayout?: boolean;
@@ -30,7 +31,7 @@ export function HomeChoiceList<T extends string>({
   return (
     <div className="home-choice-list" role="radiogroup" aria-label={name}>
       {options.map((option) => {
-        const selected = value === option.value;
+        const selected = !option.locked && value === option.value;
         const icon = option.icon ?? (
           option.image ? (
             <img
@@ -47,10 +48,10 @@ export function HomeChoiceList<T extends string>({
             type="button"
             className={`home-choice home-choice--${option.tone} ${
               selected ? "is-selected" : ""
-            }`}
+            }${option.locked ? " is-locked" : ""}`}
             role="radio"
             aria-checked={selected}
-            aria-label={option.label}
+            aria-label={option.locked ? `${option.label} — откроется в полной версии` : option.label}
             disabled={option.disabled}
             onClick={() => onChange(option.value)}
           >
@@ -65,6 +66,11 @@ export function HomeChoiceList<T extends string>({
               </span>
             ) : null}
             <span className="home-choice__label">{option.label}</span>
+            {option.locked ? (
+              <span className="home-choice__lock" aria-hidden="true">
+                🔒
+              </span>
+            ) : null}
             {option.disabled ? (
               <small className="home-choice__soon">{option.unavailableLabel ?? "Пока нельзя"}</small>
             ) : null}

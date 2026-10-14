@@ -9,6 +9,7 @@
     "validate:content": "node build/validateContent.mjs",
     "build": "vite build",
     "build:android": "vite build --base=/",
+    "build:trialdev": "vite build --mode trialdev",
     "cap:sync": "npm run build:android && npx cap sync android",
     "preview": "vite preview"
   },

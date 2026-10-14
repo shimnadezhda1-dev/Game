@@ -13,7 +13,7 @@ import {
   HomeChoiceList,
   HomePanel
 } from "./HomePanel";
-import { ACTIVITY_OPTIONS, CATEGORY_OPTIONS, ORDER_OPTIONS, studyOrderVisuals } from "./playMenuOptions";
+import { ACTIVITY_OPTIONS, studyOrderVisuals, useEntitlementMenuOptions } from "./playMenuOptions";
 import { LetterPickGrid } from "./LetterPickGrid";
 import { playerPreferenceAriaLabel, playerPreferenceIcon } from "./PlayerChooser";
 import { HomeButton } from "./HomeButton";
@@ -44,6 +44,7 @@ interface HomeScreenProps {
   foxCelebrate?: boolean;
   playerPreference: PlayerPreference | null;
   onOpenPlayerChooser: () => void;
+  onOpenTrialInfo?: () => void;
 }
 
 const FIRST_VISIT_KEY = "happy-alphabet-first-visit-v1";
@@ -68,10 +69,12 @@ export function HomeScreen({
   pickableLetters,
   onSelectedLetterChange,
   playerPreference,
-  onOpenPlayerChooser
+  onOpenPlayerChooser,
+  onOpenTrialInfo
 }: HomeScreenProps) {
   const [pulsePlay, setPulsePlay] = useState(false);
   const [letterPickerOpen, setLetterPickerOpen] = useState(false);
+  const { orderOptions, categoryOptions } = useEntitlementMenuOptions();
   const settingsGridRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -284,7 +287,7 @@ export function HomeScreen({
           <HomeChoiceList
             name="Порядок изучения"
             value={studyOrder}
-            options={ORDER_OPTIONS}
+            options={orderOptions}
             onChange={(value) => {
               onStudyOrderChange(value);
               setLetterPickerOpen(value === "pick");
@@ -295,7 +298,7 @@ export function HomeScreen({
           <HomeChoiceList
             name="Категория букв"
             value={letterCategory}
-            options={CATEGORY_OPTIONS}
+            options={categoryOptions}
             onChange={onLetterCategoryChange}
           />
         </HomePanel>
@@ -352,6 +355,12 @@ export function HomeScreen({
           )}
         </span>
       </button>
+
+      {onOpenTrialInfo ? (
+        <button type="button" className="trial-badge" onClick={onOpenTrialInfo}>
+          Пробная версия
+        </button>
+      ) : null}
     </div>
   );
 }
