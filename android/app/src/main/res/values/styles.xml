@@ -13,6 +13,9 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:background">@null</item>
+        <!-- Colour of the native strip behind the status/navigation bars when the WebView is padded
+             by Capacitor SystemBars (Capacitor paints the decor view with windowBackground). -->
+        <item name="android:windowBackground">#7AD7FF</item>
     </style>
 
 

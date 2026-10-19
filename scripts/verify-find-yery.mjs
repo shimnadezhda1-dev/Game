@@ -27,15 +27,20 @@ const sameFlow =
   findGameSrc.includes("playFindLetterPromptForCurrent") &&
   findGameSrc.includes("autoSpeak: false") &&
   findGameSrc.includes("playFindLetterPrompt(");
+const titleHasNoBang =
+  findGameSrc.includes("Найди букву ") &&
+  !findGameSrc.includes("find-title-bang") &&
+  !findGameSrc.includes("`Найди букву ${round.target.upper}!`");
 
 const report = {
-  visibleText: "Найди букву Ы!",
+  visibleText: "Найди букву Ы",
   audioPart1: "/assets/audio/ru/common/find-letter-prefix.mp3",
   audioPart2: "/assets/audio/ru/y/sound.mp3",
   audioPart3: "/assets/audio/ru/common/find-yery-example.mp3",
   firstPlaybackUsesCompositeFlow: usesComposite && sameFlow,
   soundButtonUsesCompositeFlow: sameFlow,
   sameFlow,
+  titleHasNoBang,
   oldIncorrectTtsUsed: findPromptSrc.includes("letterVoiceAssetPath(\"find\", \"Yery\")") || findPromptSrc.includes("y/find.mp3"),
   ySoundUnchanged: yHash === expectedYHash,
   sizes: {
@@ -51,6 +56,7 @@ report.status =
   report.firstPlaybackUsesCompositeFlow &&
   report.soundButtonUsesCompositeFlow &&
   report.sameFlow &&
+  report.titleHasNoBang &&
   !report.oldIncorrectTtsUsed &&
   report.ySoundUnchanged &&
   report.sizes.prefix > 0 &&
@@ -70,6 +76,7 @@ console.log(`audioPart3=${report.audioPart3} size=${report.sizes.example}`);
 console.log(`firstPlaybackUsesCompositeFlow=${report.firstPlaybackUsesCompositeFlow}`);
 console.log(`soundButtonUsesCompositeFlow=${report.soundButtonUsesCompositeFlow}`);
 console.log(`sameFlow=${report.sameFlow}`);
+console.log(`titleHasNoBang=${report.titleHasNoBang}`);
 console.log(`oldIncorrectTtsUsed=${report.oldIncorrectTtsUsed}`);
 console.log(`STATUS ${report.status}`);
 if (report.status !== "PASS") {

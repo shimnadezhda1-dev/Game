@@ -8,6 +8,19 @@
   --teal: #2ec4b6;
   --violet: #7c4dff;
   --orange: #ff9f1c;
+
+  /*
+   * ONE source of system-bar insets for the whole project.
+   *   Android (Capacitor 8 SystemBars, insetsHandling "css"): native code measures the real
+   *   WindowInsets and writes --safe-area-inset-* on <html> (0 when the WebView itself is
+   *   already padded by the native parent view, real px when the WebView draws under the bars).
+   *   Browser / PWA: the variables do not exist, so env(safe-area-inset-*) is used instead.
+   * Never add env() and --safe-area-inset-* together: they describe the same inset.
+   */
+  --inset-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --inset-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
+  --inset-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  --inset-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
 }
 
 * {
@@ -2096,17 +2109,21 @@ button.reward-showcase:active {
   width: clamp(64px, 10vh, 88px);
   height: clamp(64px, 10vh, 88px);
   padding: 0;
-  border: none;
+  border: 4px solid #fff8dc;
   border-radius: 50%;
   cursor: pointer;
-  background: transparent;
-  box-shadow: none;
+  background: linear-gradient(180deg, #ffe566 0%, #ffb703 58%, #ff9a00 100%);
+  box-shadow:
+    0 7px 0 #e07a00,
+    0 10px 14px rgb(0 0 0 / 14%),
+    inset 0 5px 0 rgb(255 255 255 / 38%);
+  overflow: hidden;
 }
 
 .music-toggle img {
   display: block;
-  width: 100%;
-  height: 100%;
+  width: 62%;
+  height: 62%;
   object-fit: contain;
   pointer-events: none;
 }
@@ -2382,8 +2399,8 @@ button.reward-showcase:active {
   position: absolute;
   top: clamp(8px, 2vh, 18px);
   right: 5%;
-  width: clamp(58px, 10vh, 92px);
-  height: clamp(58px, 10vh, 92px);
+  width: clamp(68px, 11.5vh, 108px);
+  height: clamp(68px, 11.5vh, 108px);
   z-index: 1;
 }
 
@@ -2396,11 +2413,30 @@ button.reward-showcase:active {
 }
 
 @media (max-width: 640px) {
+  .reward-screen .cloud-a {
+    top: calc(var(--safe-top, env(safe-area-inset-top, 0px)) + 36px);
+    left: 6%;
+  }
+
+  .reward-screen .cloud-b {
+    top: calc(var(--safe-top, env(safe-area-inset-top, 0px)) + 52px);
+    right: 6%;
+  }
+
+  .reward-screen .cloud-c {
+    top: calc(var(--safe-top, env(safe-area-inset-top, 0px)) + 96px);
+    left: 42%;
+    opacity: 0.85;
+  }
+
   .reward-screen .toy-sun {
-    top: 8px;
-    right: 3%;
-    width: clamp(52px, 12vw, 64px);
-    height: clamp(52px, 12vw, 64px);
+    top: calc(var(--safe-top, env(safe-area-inset-top, 0px)) + 28px);
+    left: 50%;
+    right: auto;
+    width: clamp(52px, 12vw, 66px);
+    height: clamp(52px, 12vw, 66px);
+    transform: translateX(-50%);
+    z-index: 2;
   }
 }
 
@@ -2773,9 +2809,17 @@ button.reward-showcase:active {
   min-width: 56px;
   min-height: 56px;
   padding: 0;
-  overflow: visible;
-  background: transparent;
-  box-shadow: none;
+  overflow: hidden;
+  border: 4px solid #fff8dc;
+  background: linear-gradient(180deg, #ffe566 0%, #ffb703 58%, #ff9a00 100%);
+  box-shadow:
+    0 6px 0 #e07a00,
+    inset 0 4px 0 rgb(255 255 255 / 38%);
+}
+
+.icon-round.music-toggle img {
+  width: 62%;
+  height: 62%;
 }
 
 .icon-round.music-toggle.is-off {
@@ -3771,8 +3815,8 @@ button.reward-showcase:active {
   z-index: 7;
   display: grid;
   place-items: center;
-  width: clamp(58px, 10vh, 92px);
-  height: clamp(58px, 10vh, 92px);
+  width: clamp(68px, 11.5vh, 108px);
+  height: clamp(68px, 11.5vh, 108px);
   min-width: 44px;
   min-height: 44px;
   margin: 0;
@@ -4070,8 +4114,8 @@ button.reward-showcase:active {
   right: 0;
   top: 0;
   z-index: 20;
-  padding: max(6px, env(safe-area-inset-top, 0px)) max(10px, env(safe-area-inset-right, 0px)) 0
-    max(10px, env(safe-area-inset-left, 0px));
+  padding: max(6px, var(--safe-top, env(safe-area-inset-top, 0px))) max(10px, var(--safe-right, env(safe-area-inset-right, 0px))) 0
+    max(10px, var(--safe-left, env(safe-area-inset-left, 0px)));
   pointer-events: none;
 }
 
@@ -4142,11 +4186,51 @@ button.reward-showcase:active {
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 0;
+    bottom: var(--safe-bottom, max(env(safe-area-inset-bottom, 0px), 32px));
     z-index: 1;
     height: 52%;
-    background: linear-gradient(180deg, rgb(158 232 106 / 0%) 0%, #8ee15a 22%, #6bcb3c 100%);
+    /* Soft lawn so desktop-style flowers/blooms underneath stay visible. */
+    background: linear-gradient(
+      180deg,
+      rgb(158 232 106 / 0%) 0%,
+      rgb(142 225 90 / 0.28) 30%,
+      rgb(107 203 60 / 0.52) 100%
+    );
     pointer-events: none;
+  }
+
+  .my-meadow-screen--mobile .meadow-path,
+  .my-meadow-screen--mobile .meadow-bush,
+  .my-meadow-screen--mobile .meadow-mushroom,
+  .my-meadow-screen--mobile .meadow-pebble,
+  .my-meadow-screen--mobile .meadow-wing {
+    display: none;
+  }
+
+  .my-meadow-screen--mobile .flowers .flower {
+    bottom: calc(var(--safe-bottom, 32px) + 18px);
+    transform: scale(0.92);
+  }
+
+  .my-meadow-screen--mobile .meadow-bloom {
+    bottom: calc(var(--safe-bottom, 32px) + 22px);
+    transform: scale(0.9);
+  }
+
+  .my-meadow-screen--mobile .meadow-bloom-b {
+    bottom: calc(var(--safe-bottom, 32px) + 42px);
+  }
+
+  .my-meadow-screen--mobile .meadow-bloom-d {
+    bottom: calc(var(--safe-bottom, 32px) + 40px);
+  }
+
+  .my-meadow-screen--mobile .meadow-sticker-layer {
+    inset: auto;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: var(--safe-bottom, max(env(safe-area-inset-bottom, 0px), 32px));
   }
 
   .my-meadow-screen .meadow-friend {
@@ -4155,13 +4239,13 @@ button.reward-showcase:active {
   }
 
   .my-meadow-screen--mobile .my-meadow-celestial {
-    top: max(10px, calc(env(safe-area-inset-top, 0px) + 8px));
+    top: max(10px, calc(var(--safe-top, env(safe-area-inset-top, 0px)) + 8px));
     left: 50%;
     right: auto;
-    width: 56px;
-    height: 56px;
-    min-width: 44px;
-    min-height: 44px;
+    width: 68px;
+    height: 68px;
+    min-width: 48px;
+    min-height: 48px;
     transform: translateX(-50%);
   }
 
@@ -4180,22 +4264,27 @@ button.reward-showcase:active {
   }
 
   .my-meadow-screen--mobile .cloud-a {
-    top: 92px;
+    top: 132px;
     left: 16%;
   }
 
   .my-meadow-screen--mobile .cloud-b {
-    top: 104px;
+    top: 148px;
     right: 14%;
   }
 
   .my-meadow-screen--mobile .cloud-c {
-    top: 38%;
+    top: 40%;
     left: 46%;
   }
 
   .my-meadow-screen--night.my-meadow-screen--mobile .my-meadow-lawn {
-    background: linear-gradient(180deg, rgb(30 70 40 / 0%) 0%, #2a5c38 28%, #1c3f28 100%);
+    background: linear-gradient(
+      180deg,
+      rgb(30 70 40 / 0%) 0%,
+      rgb(42 92 56 / 0.4) 28%,
+      rgb(28 63 40 / 0.55) 100%
+    );
   }
 }
 
@@ -4382,7 +4471,7 @@ html:has(.home-immersive) #root {
   top: auto;
   left: auto;
   right: auto;
-  width: clamp(88px, 8vw, 128px);
+  width: clamp(100px, 9vw, 144px);
   height: auto;
   transform: none;
   object-fit: contain;
@@ -4627,9 +4716,18 @@ html:has(.home-immersive) #root {
 }
 
 .home-ui.music-toggle {
-  border: none;
-  background: transparent;
-  box-shadow: none;
+  border: 4px solid #e8fbff;
+  background: linear-gradient(180deg, #7ee8ff 0%, #2ec4f0 55%, #1390d0 100%);
+  box-shadow:
+    0 8px 0 #0d6ea0,
+    inset 0 5px 0 rgb(255 255 255 / 42%);
+  overflow: hidden;
+}
+
+.home-ui.music-toggle img {
+  width: 62%;
+  height: 62%;
+  object-fit: contain;
 }
 
 .home-ui.music-toggle.is-off {
@@ -5186,6 +5284,7 @@ html:has(.home-immersive) #root {
     overflow-x: hidden !important;
     justify-content: flex-start !important;
     align-items: stretch !important;
+    padding-bottom: max(28px, calc(var(--safe-bottom, 48px) + 20px)) !important;
   }
 
   .home-cluster {
@@ -5204,7 +5303,7 @@ html:has(.home-immersive) #root {
     top: auto;
     right: auto;
     width: min(520px, calc(100% - 16px));
-    margin: 0 auto 24px;
+    margin: 0 auto max(40px, calc(var(--safe-bottom, 48px) + 32px));
     transform: none;
   }
 
@@ -5245,7 +5344,7 @@ html:has(.home-immersive) #root {
     left: auto;
     bottom: auto;
     width: min(520px, calc(100% - 16px));
-    margin: 0 auto 24px;
+    margin: 0 auto max(40px, calc(var(--safe-bottom, 48px) + 32px));
     transform: none;
   }
 }
@@ -5433,7 +5532,7 @@ html:has(.learn-screen) #root {
   z-index: 5;
   top: 4.5vh;
   left: 50%;
-  width: clamp(88px, 7.5vw, 128px);
+  width: clamp(100px, 8.5vw, 144px);
   height: auto;
   transform: translateX(-50%);
   object-fit: contain;
@@ -5843,7 +5942,7 @@ html:has(.learn-screen) #root {
   }
 
   .learn-sun {
-    width: clamp(72px, 7vw, 100px);
+    width: clamp(84px, 8vw, 116px);
     top: 3.5vh;
   }
 }
@@ -5901,11 +6000,16 @@ html:has(.find-screen) #root {
   object-position: center center;
 }
 
+.find-heading {
+  display: contents;
+}
+
 .find-fox {
-  position: absolute;
+  position: fixed;
   z-index: 25;
   top: 18%;
-  left: calc(50% - min(390px, 34vw));
+  /* Right edge sits just left of the centered title card. */
+  left: calc(50% - min(300px, 26vw));
   bottom: auto;
   height: clamp(160px, 32vh, 300px);
   width: auto;
@@ -5913,6 +6017,11 @@ html:has(.find-screen) #root {
   object-fit: contain;
   pointer-events: none;
   filter: drop-shadow(0 12px 8px rgb(0 0 0 / 18%));
+}
+
+.find-screen:has(.find-choices[data-option-count="5"]) .find-fox,
+.find-screen:has(.find-choices[data-option-count="7"]) .find-fox {
+  left: calc(50% - min(420px, 36vw));
 }
 
 .find-fox.is-celebrate {
@@ -6155,8 +6264,13 @@ html:has(.find-screen) #root {
   }
 
   .find-fox {
-    left: calc(50% - min(340px, 46vw));
+    left: calc(50% - min(260px, 34vw));
     height: clamp(120px, 26vh, 190px);
+  }
+
+  .find-screen:has(.find-choices[data-option-count="5"]) .find-fox,
+  .find-screen:has(.find-choices[data-option-count="7"]) .find-fox {
+    left: calc(50% - min(340px, 42vw));
   }
 
   .find-choice {
@@ -6734,6 +6848,21 @@ html:has(.listen-screen) #root {
 
 /* Phone and small tablet. Desktop (≥821px) keeps the approved composition. */
 @media (max-width: 820px) {
+  /*
+   * Legacy layout offsets for non-home screens (unchanged look). They are now fed by the
+   * single inset source (--inset-*, see :root) instead of raw env(); the floors only keep
+   * the HUD off the edge when the real inset is smaller. The mobile home screen does NOT
+   * use these floors for its bottom edge (see --hs-bottom).
+   */
+  .app-shell {
+    --safe-top: max(var(--inset-top), 32px);
+    --safe-bottom: max(var(--inset-bottom), 48px);
+    --safe-left: max(var(--inset-left), 0px);
+    --safe-right: max(var(--inset-right), 0px);
+    --mobile-hud: calc(var(--safe-top) + 52px);
+    --mobile-controls: calc(116px + var(--safe-bottom));
+  }
+
   html,
   body,
   #root {
@@ -6743,6 +6872,7 @@ html:has(.listen-screen) #root {
   .home-ui {
     width: 64px;
     height: 64px;
+    top: var(--safe-top);
   }
 
   .home-stickers-btn {
@@ -6775,13 +6905,24 @@ html:has(.listen-screen) #root {
   .home-ui-profile {
     width: 56px;
     height: 56px;
-    top: calc(max(2.5%, env(safe-area-inset-top, 0px)) + 4px);
-    right: calc(max(2.4%, env(safe-area-inset-right, 0px)) + 64px + 8px);
+    top: calc(var(--safe-top) + 4px);
+    right: calc(max(2.4%, var(--safe-right)) + 64px + 8px);
     font-size: 26px;
   }
 
   .home-ui-profile.home-ui-profile--neutral .home-ui-profile__face {
     font-size: 16px;
+  }
+
+  .home-ui-home,
+  .screen.home-screen .learn-home,
+  .learn-home,
+  .learn-hud-right {
+    top: var(--safe-top);
+  }
+
+  .learn-hud-right {
+    right: max(8px, var(--safe-right));
   }
 
   .learn-home,
@@ -6850,8 +6991,10 @@ html:has(.listen-screen) #root {
   }
 
   .learn-sun {
-    width: clamp(56px, 12vw, 80px);
+    width: clamp(72px, 16vw, 96px);
     top: 3vh;
+    left: 50%;
+    transform: translateX(-50%);
   }
 
   .find-board,
@@ -6876,10 +7019,7 @@ html:has(.listen-screen) #root {
   }
 
   .find-fox {
-    top: max(72px, 12%);
-    left: max(8px, env(safe-area-inset-left, 0px));
-    transform: none;
-    height: clamp(72px, 12vh, 100px);
+    height: clamp(52px, 8.5dvh, 64px);
     z-index: 15;
   }
 
@@ -6946,7 +7086,7 @@ html:has(.listen-screen) #root {
   }
 
   .home-sun {
-    width: clamp(64px, 16vw, 88px);
+    width: clamp(76px, 18vw, 100px);
   }
 
   .home-cluster {
@@ -7030,16 +7170,16 @@ html:has(.listen-screen) #root {
   }
 
   .learn-screen .learn-home {
-    top: max(8px, env(safe-area-inset-top, 0px));
-    left: max(8px, env(safe-area-inset-left, 0px));
+    top: var(--safe-top, max(8px, env(safe-area-inset-top, 0px)));
+    left: max(8px, var(--safe-left, env(safe-area-inset-left, 0px)));
     width: 52px;
     height: 52px;
     font-size: 24px;
   }
 
   .learn-screen .learn-hud-right {
-    top: max(8px, env(safe-area-inset-top, 0px));
-    right: max(8px, env(safe-area-inset-right, 0px));
+    top: var(--safe-top, max(8px, env(safe-area-inset-top, 0px)));
+    right: max(8px, var(--safe-right, env(safe-area-inset-right, 0px)));
     flex-direction: column;
     align-items: flex-end;
     gap: 8px;
@@ -7069,13 +7209,15 @@ html:has(.listen-screen) #root {
   }
 
   .learn-screen .learn-sun {
-    top: max(6px, env(safe-area-inset-top, 0px));
-    width: clamp(40px, 10vw, 56px);
+    top: calc(var(--safe-top, max(8px, env(safe-area-inset-top, 0px))) + 52px);
+    left: 50%;
+    width: clamp(64px, 16vw, 80px);
+    transform: translateX(-50%);
     z-index: 4;
   }
 
   .learn-screen .learn-advance-row {
-    top: calc(max(8px, env(safe-area-inset-top, 0px)) + 118px);
+    top: calc(var(--safe-top, max(8px, env(safe-area-inset-top, 0px))) + 140px);
     width: min(280px, calc(100vw - 24px));
   }
 
@@ -7087,13 +7229,13 @@ html:has(.listen-screen) #root {
       "bubble bubble"
       "letter object"
       "fox fox";
-    align-items: end;
+    align-items: center;
     align-content: center;
     justify-items: center;
     gap: 8px 12px;
     left: max(64px, env(safe-area-inset-left, 0px));
     right: max(64px, env(safe-area-inset-right, 0px));
-    top: calc(env(safe-area-inset-top, 0px) + 64px);
+    top: calc(var(--safe-top, env(safe-area-inset-top, 0px)) + 186px);
     bottom: calc(env(safe-area-inset-bottom, 0px) + 76px);
     width: auto;
     padding: 0;
@@ -7115,9 +7257,9 @@ html:has(.listen-screen) #root {
     margin: 0 auto;
     align-self: center;
     justify-self: center;
-    padding: 10px 14px 22px;
+    padding: 8px 14px clamp(12px, 1.6dvh, 14px);
     font-size: clamp(16px, 2.6vh, 20px);
-    line-height: 1.3;
+    line-height: 1.2;
     height: auto;
     overflow: visible;
   }
@@ -7135,6 +7277,7 @@ html:has(.listen-screen) #root {
     min-width: 0;
     width: 100%;
     height: 100%;
+    align-self: center;
     align-items: center;
   }
 
@@ -7143,6 +7286,7 @@ html:has(.listen-screen) #root {
     min-width: 0;
     width: 100%;
     height: 100%;
+    align-self: center;
     align-items: center;
   }
 
@@ -7151,6 +7295,7 @@ html:has(.listen-screen) #root {
     width: auto;
     max-width: 100%;
     max-height: min(36vh, 260px);
+    object-position: center center;
     object-fit: contain;
   }
 
@@ -7168,6 +7313,7 @@ html:has(.listen-screen) #root {
     width: auto;
     max-width: 100%;
     max-height: min(28vh, 200px);
+    object-position: center center;
     object-fit: contain;
   }
 
@@ -7231,7 +7377,7 @@ html:has(.listen-screen) #root {
   }
 
   .learn-screen .learn-bubble {
-    padding: 8px 12px 20px;
+    padding: 6px 12px clamp(10px, 1.4dvh, 12px);
     font-size: clamp(15px, 2.4vh, 18px);
   }
 
@@ -7428,11 +7574,11 @@ html:has(.listen-screen) #root {
 @media (max-width: 820px) {
   .game-controls {
     width: min(420px, calc(100vw - 20px));
-    bottom: max(10px, calc(env(safe-area-inset-bottom, 0px) + 10px));
+    bottom: calc(var(--safe-bottom) + 8px);
   }
 
   .learn-advance-row {
-    top: calc(env(safe-area-inset-top, 0px) + 110px);
+    top: calc(var(--safe-top) + 140px);
     bottom: auto;
     width: min(320px, calc(100vw - 96px));
   }
@@ -7795,32 +7941,169 @@ html:has(.listen-screen) #root {
 }
 
 @media (max-width: 820px) {
+  /*
+   * Stickers album: lock the page to the real mobile viewport so body/#root
+   * cannot become a second scroller. Visible height = 100dvh − top − bottom inset.
+   */
+  html:has(.stickers-album),
+  html:has(.stickers-album) body,
+  html:has(.stickers-album) #root {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  .app-shell:has(.stickers-album) {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    /*
+     * --inset-bottom is applied ONCE, here, so the visible scrollport ends
+     * above the Android navigation bar. Do not also add it on .stickers-album
+     * or .stickers-album__collections.
+     */
+    padding: var(--safe-top) max(8px, var(--safe-right)) var(--inset-bottom) max(8px, var(--safe-left));
+  }
+
   .stickers-album {
-    padding-top: 42px;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    padding-top: 8px;
+    /*
+     * Chromium / Android WebView does not add padding-bottom of an overflow:auto
+     * flex box to scrollHeight. The previous inset+16px on this element never
+     * became reachable scroll space, so the last row stayed under the nav bar.
+     */
+    padding-bottom: 0;
+  }
+
+  .stickers-album__collections {
+    /* Scroll-content end: this padding IS part of scrollHeight. Visual gap only. */
+    padding-bottom: 16px;
   }
 
   .sticker-collection__grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  /*
+   * Stickers album uses Progress/.top-bar, not the play-hud buttons.
+   * Reuse the same compact mobile HUD scale as picture/listen (42px).
+   */
+
+
+  .app-shell:has(.stickers-album) .top-bar,
+  .app-shell:has(.stickers-album) .top-bar-right {
+    align-items: center;
+    gap: 8px;
+  }
+
+  .app-shell:has(.stickers-album) .top-bar {
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 6px;
+    box-sizing: border-box;
+  }
+
+  .app-shell:has(.stickers-album) .top-bar-right {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .app-shell:has(.stickers-album) .icon-round {
+    min-width: 42px;
+    min-height: 42px;
+    width: 42px;
+    height: 42px;
+    padding: 4px;
+  }
+
+  .app-shell:has(.stickers-album) .icon-round.music-toggle {
+    min-width: 42px;
+    min-height: 42px;
+    width: 42px;
+    height: 42px;
+  }
+
+  .app-shell:has(.stickers-album) .star-bank {
+    width: auto;
+    min-width: 62px;
+    min-height: 28px;
+    height: 28px;
+    padding: 1px 8px 1px 4px;
+    gap: 4px;
+    border-radius: 999px;
+    font-size: 13px;
+  }
+
+  .app-shell:has(.stickers-album) .star-bank .gold-star-tiny,
+  .app-shell:has(.stickers-album) .star-bank .gold-star-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .app-shell:has(.stickers-album) .star-count {
+    font-size: 13px;
+  }
+
+  .app-shell:has(.stickers-album) .sound-btn {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .stickers-album {
+    padding-top: 8px;
+  }
+
+  .stickers-album__title {
+    font-size: clamp(22px, 5.6vw, 28px);
+  }
+
+  .stickers-album__total {
+    margin-bottom: 6px;
+    font-size: 14px;
+  }
+
+  .stickers-album__meadow {
+    min-height: 40px;
+    margin-bottom: 10px;
+    padding: 6px 14px;
+    border-width: 3px;
+    border-radius: 18px;
+    font-size: 14px;
+    gap: 6px;
+  }
+
+  .stickers-album__meadow-icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .stickers-album__collections {
+    gap: 12px;
+    padding-bottom: 16px;
+  }
+
+  .sticker-collection__head h2 {
+    font-size: clamp(15px, 4vw, 18px);
   }
 }
 
 /* Portrait phones only. Desktop and wide layouts keep their own rules. */
 @media (max-width: 480px) {
   .app-shell {
-    --mobile-hud: 56px;
-    --mobile-controls: clamp(96px, 13dvh, 120px);
+    --mobile-hud: calc(var(--safe-top) + 48px);
+    --mobile-controls: calc(clamp(108px, 14dvh, 136px) + var(--safe-bottom));
   }
 
-  .screen.home-screen {
-    height: 100dvh;
-    max-height: 100dvh;
-    padding-top: 54px !important;
-    justify-content: flex-start !important;
-    gap: 2px !important;
-  }
+  /* Mobile home layout: see the "Mobile home" section at the end of this file. */
 
   .home-ui {
-    top: 6px;
+    top: var(--safe-top);
     width: 46px;
     height: 46px;
   }
@@ -7828,8 +8111,8 @@ html:has(.listen-screen) #root {
   .home-ui-profile {
     width: 42px;
     height: 42px;
-    top: 8px;
-    right: calc(max(6px, env(safe-area-inset-right, 0px)) + 46px + 6px);
+    top: var(--safe-top);
+    right: calc(max(6px, var(--safe-right)) + 46px + 6px);
     font-size: 20px;
   }
 
@@ -7838,144 +8121,10 @@ html:has(.listen-screen) #root {
   }
 
   .screen.home-screen .learn-home {
-    top: 6px;
+    top: var(--safe-top);
     width: 46px;
     height: 46px;
     font-size: 22px;
-  }
-
-  .home-brand {
-    position: relative;
-    top: auto;
-    left: auto;
-    flex: 0 0 auto;
-    gap: 0;
-    width: 100%;
-    max-width: 100%;
-    margin: 0;
-    transform: none;
-  }
-
-  .home-sun {
-    top: -12px;
-    width: 46px;
-  }
-
-  .home-game-title {
-    margin-top: 0;
-    font-size: clamp(20px, 5.8vw, 26px);
-  }
-
-  .home-cluster {
-    flex: 0 0 auto;
-    width: 100%;
-    margin: 0 auto;
-    gap: 2px;
-  }
-
-  .home-fox-art {
-    height: clamp(78px, 12dvh, 104px);
-  }
-
-  .screen.home-screen .home-cta {
-    gap: 4px;
-  }
-
-  .screen.home-screen .home-play-btn {
-    width: min(220px, 64vw);
-    min-height: 46px;
-    padding: 4px 14px;
-    border-width: 4px;
-    border-radius: 28px;
-    font-size: clamp(20px, 5.4vw, 26px);
-    box-shadow:
-      0 5px 0 #e07a00,
-      inset 0 3px 0 rgb(255 255 255 / 42%);
-  }
-
-  .screen.home-screen .home-abc {
-    width: min(148px, 40vw);
-  }
-
-  .home-stickers-btn {
-    min-height: 40px;
-    min-width: min(196px, 62vw);
-    max-width: min(220px, 70vw);
-    padding: 3px 10px 3px 6px;
-    border-width: 3px;
-    border-radius: 18px;
-    font-size: 14px;
-  }
-
-  .home-stickers-btn__icon {
-    width: 34px;
-    height: 28px;
-  }
-
-  .home-meadow-btn {
-    min-height: 34px;
-    min-width: min(196px, 62vw);
-    max-width: min(220px, 70vw);
-    padding: 3px 10px;
-    border-width: 3px;
-    border-radius: 16px;
-    font-size: 13px;
-    gap: 6px;
-  }
-
-  .home-meadow-btn__icon {
-    width: 24px;
-    height: 24px;
-  }
-
-  .home-panels,
-  .home-settings-grid {
-    flex: 0 1 auto;
-    width: min(100% - 12px, 520px);
-    margin: auto auto max(8px, env(safe-area-inset-bottom, 0px));
-    gap: clamp(8px, 1.2dvh, 12px);
-  }
-
-  .home-panel,
-  .home-settings-card {
-    gap: clamp(4px, 0.6dvh, 7px);
-    padding: clamp(6px, 0.9dvh, 9px);
-    border-radius: 16px;
-  }
-
-  .home-panel__title {
-    flex-basis: clamp(28px, 3.8dvh, 36px);
-    height: clamp(28px, 3.8dvh, 36px);
-  }
-
-  .home-panel .menu-image-btn img {
-    height: clamp(28px, 3.8dvh, 36px);
-    max-height: clamp(28px, 3.8dvh, 36px);
-  }
-
-  .home-choice-list,
-  .home-panel .difficulty-selector {
-    gap: clamp(4px, 0.6dvh, 6px);
-  }
-
-  .home-panel .home-choice,
-  .home-panel .difficulty-selector--vertical .difficulty-option {
-    min-height: clamp(32px, 4.4dvh, 40px);
-    padding: 4px 8px;
-    font-size: clamp(12px, 3.4vw, 14px);
-    line-height: 1.15;
-  }
-
-  .home-choice__check,
-  .difficulty-option__check {
-    width: 14px;
-    height: 14px;
-    font-size: 10px;
-  }
-
-  .home-choice__icon {
-    width: 16px;
-    height: 16px;
   }
 
   .picture-screen .learn-home,
@@ -7990,47 +8139,60 @@ html:has(.listen-screen) #root {
   }
 
   .picture-screen .learn-stars,
-  .listen-screen .learn-stars {
-    min-height: 34px;
-    padding: 2px 10px 2px 6px;
-    font-size: 16px;
-    border-width: 3px;
+  .listen-screen .learn-stars,
+  .find-screen .learn-stars,
+  .learn-screen .learn-stars {
+    min-height: 28px;
+    padding: 1px 8px 1px 4px;
+    font-size: 13px;
+    border-width: 2px;
+    gap: 4px;
+  }
+
+  .picture-screen .learn-stars .gold-star-tiny,
+  .listen-screen .learn-stars .gold-star-tiny,
+  .find-screen .learn-stars .gold-star-tiny,
+  .learn-screen .learn-stars .gold-star-tiny {
+    width: 18px;
+    height: 18px;
   }
 
   .picture-screen .learn-hud-right,
-  .listen-screen .learn-hud-right {
-    top: max(6px, env(safe-area-inset-top, 0px));
+  .listen-screen .learn-hud-right,
+  .find-screen .learn-hud-right,
+  .learn-screen .learn-hud-right {
+    top: var(--safe-top);
     flex-direction: row;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
   }
 
   .picture-screen .learn-home,
   .listen-screen .learn-home {
-    top: 6px;
+    top: var(--safe-top);
   }
 
   .picture-board,
   .listen-board,
   .find-board {
     top: var(--mobile-hud);
-    bottom: calc(var(--mobile-controls) + 8px);
+    bottom: calc(var(--mobile-controls) + 12px);
     width: calc(100vw - 104px);
     max-width: calc(100vw - 104px);
     max-height: none;
     height: auto;
-    gap: clamp(6px, 1dvh, 10px);
+    gap: clamp(4px, 0.8dvh, 8px);
     overflow: hidden;
     justify-content: flex-start;
   }
 
   .picture-board,
   .listen-board {
-    top: calc(var(--mobile-hud) + 16px);
+    top: calc(var(--mobile-hud) + 8px);
   }
 
   .find-board {
-    top: calc(var(--mobile-hud) + 58px);
+    top: calc(var(--mobile-hud) + 6px);
     width: calc(100vw - 108px);
     max-width: calc(100vw - 108px);
   }
@@ -8043,17 +8205,8 @@ html:has(.listen-screen) #root {
     font-size: 20px;
   }
 
-  .find-screen .learn-hud-right {
-    top: 8px;
-    flex-direction: row;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .find-screen .learn-stars {
-    min-height: 36px;
-    padding: 2px 10px 2px 6px;
-    font-size: 16px;
+  .find-screen .learn-home {
+    top: var(--safe-top);
   }
 
   .find-title,
@@ -8146,12 +8299,12 @@ html:has(.listen-screen) #root {
   }
 
   .find-screen .find-fox {
-    top: calc(var(--mobile-hud) + 54px);
-    bottom: auto;
-    left: max(34px, calc(env(safe-area-inset-left, 0px) + 26px));
-    height: clamp(42px, 6dvh, 52px);
-    transform: none;
-    z-index: 16;
+    height: clamp(48px, 8dvh, 58px);
+    max-width: min(52px, 15vw);
+  }
+
+  .find-screen .find-title-bang {
+    display: none;
   }
 
   .find-screen .stage-side-nav__btn {
@@ -8161,10 +8314,13 @@ html:has(.listen-screen) #root {
   }
 
   .find-screen .restart-activity {
-    min-height: 30px;
-    margin-top: clamp(2px, 0.4dvh, 6px);
-    padding: 4px 10px;
-    font-size: 12px;
+    min-height: 34px;
+    margin-top: clamp(4px, 0.8dvh, 8px);
+    margin-bottom: 2px;
+    padding: 6px 14px;
+    font-size: 13px;
+    white-space: nowrap;
+    max-width: min(240px, 78vw);
   }
 
   .learn-screen .learn-hud-right {
@@ -8173,21 +8329,23 @@ html:has(.listen-screen) #root {
   }
 
   .learn-screen .learn-sun {
-    top: calc(env(safe-area-inset-top, 0px) + 132px);
-    width: clamp(32px, 8vw, 42px);
+    top: calc(var(--safe-top) + 66px);
+    left: 50%;
+    width: clamp(54px, 14vw, 68px);
+    transform: translateX(-50%);
     z-index: 8;
   }
 
   .learn-screen .learn-advance-row {
-    top: calc(env(safe-area-inset-top, 0px) + 78px);
+    top: calc(var(--safe-top) + 148px);
     width: min(100% - 16px, 340px);
   }
 
   .learn-screen .learn-scene-content {
-    top: calc(env(safe-area-inset-top, 0px) + 120px);
+    top: calc(var(--safe-top) + 196px);
     bottom: calc(var(--mobile-controls) + 8px);
-    left: max(8px, env(safe-area-inset-left, 0px));
-    right: max(68px, env(safe-area-inset-right, 0px));
+    left: max(8px, var(--safe-left));
+    right: max(68px, var(--safe-right));
     gap: clamp(4px, 0.8dvh, 8px) clamp(8px, 2vw, 12px);
   }
 
@@ -8208,9 +8366,9 @@ html:has(.listen-screen) #root {
   }
 
   .learn-screen .learn-bubble {
-    padding: clamp(6px, 1dvh, 10px) clamp(10px, 3vw, 14px) 22px;
+    padding: clamp(4px, 0.8dvh, 6px) clamp(10px, 3vw, 14px) clamp(10px, 1.4dvh, 14px);
     font-size: clamp(14px, 3.6vw, 18px);
-    line-height: 1.3;
+    line-height: 1.2;
   }
 
   .learn-screen .stage-side-nav__btn {
@@ -8243,15 +8401,37 @@ html:has(.listen-screen) #root {
     box-shadow: 0 4px 0 #c9d4ea;
   }
 
+  /*
+   * Mobile picture title: mixed font sizes + vertical-align on the letter
+   * pulled the line off the vertical center of the white pill. Flex centers
+   * the whole row without moving the pill.
+   */
+  .picture-title {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
   .picture-title-text,
   .listen-title {
     font-size: clamp(14px, 3.7vw, 17px);
     line-height: 1.15;
   }
 
+  .picture-title-text {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+  }
+
   .picture-title-letter {
+    display: inline-flex;
+    align-items: center;
     font-size: clamp(20px, 5vw, 26px);
-    vertical-align: -2px;
+    line-height: 1;
+    vertical-align: unset;
   }
 
   .picture-choices {
@@ -8305,10 +8485,13 @@ html:has(.listen-screen) #root {
   .picture-screen .restart-activity,
   .listen-screen .restart-activity {
     flex: 0 0 auto;
-    min-height: 32px;
-    margin-top: clamp(4px, 0.8dvh, 8px);
-    padding: 4px 12px;
-    font-size: 12px;
+    min-height: 34px;
+    margin-top: clamp(6px, 1dvh, 10px);
+    margin-bottom: 2px;
+    padding: 6px 14px;
+    font-size: 13px;
+    white-space: nowrap;
+    max-width: min(240px, 78vw);
   }
 
   .picture-screen .stage-side-nav__btn,
@@ -8326,7 +8509,7 @@ html:has(.listen-screen) #root {
 
   .game-controls {
     width: min(100vw - 12px, 520px);
-    bottom: max(6px, env(safe-area-inset-bottom, 0px));
+    bottom: calc(var(--safe-bottom) + 6px);
   }
 
   .game-controls__buttons {
@@ -8335,14 +8518,23 @@ html:has(.listen-screen) #root {
 
   .game-controls .menu-image-btn img {
     width: 100%;
-    height: clamp(36px, 5.2dvh, 46px);
+    height: clamp(34px, 4.8dvh, 44px);
     object-fit: contain;
   }
 }
 
 @media (max-width: 480px) and (max-height: 680px) {
+  .learn-screen .learn-sun {
+    top: calc(var(--safe-top, env(safe-area-inset-top, 0px)) + 58px);
+    width: clamp(46px, 12vw, 58px);
+  }
+
+  .learn-screen .learn-advance-row {
+    top: calc(var(--safe-top, env(safe-area-inset-top, 0px)) + 128px);
+  }
+
   .learn-screen .learn-scene-content {
-    top: calc(env(safe-area-inset-top, 0px) + 116px);
+    top: calc(var(--safe-top, env(safe-area-inset-top, 0px)) + 172px);
   }
 
   .learn-screen .learn-letter-art,
@@ -8475,15 +8667,15 @@ html:has(.listen-screen) #root {
 /* Mobile only, activity 1: keep bubble text above the tail. */
 @media (max-width: 768px) {
   .learn-screen .learn-bubble {
-    padding-bottom: 22px;
-    line-height: 1.3;
+    padding-bottom: clamp(10px, 1.4dvh, 14px);
+    line-height: 1.2;
     overflow: visible;
   }
 
   .learn-screen .learn-bubble:after {
-    bottom: -14px;
-    width: 18px;
-    height: 18px;
+    bottom: -10px;
+    width: 16px;
+    height: 16px;
   }
 }
 
@@ -8916,7 +9108,7 @@ html:has(.listen-screen) #root {
 
 @media (max-width: 480px) {
   .trial-badge {
-    top: calc(env(safe-area-inset-top, 0px) + 62px);
+    top: calc(var(--safe-top, env(safe-area-inset-top, 0px)) + 54px);
     bottom: auto;
     padding: 4px 8px;
     font-size: 11px;
@@ -9098,4 +9290,748 @@ html:has(.listen-screen) #root {
   background: #fff;
   color: #c0392b;
   font: 700 12px/1.2 monospace;
+}
+
+/* Mobile safe-area + play layout polish (phones). Desktop ≥821px unchanged. */
+@media (max-width: 820px) {
+  .parent-overlay {
+    align-items: flex-start;
+    padding: max(12px, var(--safe-top, 32px)) 12px max(12px, var(--safe-bottom, 24px));
+    overflow-y: auto;
+  }
+
+  .parent-card {
+    max-height: none;
+    margin: auto 0;
+  }
+
+  .trial-complete {
+    padding: max(10px, var(--safe-top, 32px)) 12px max(12px, var(--safe-bottom, 24px));
+    justify-content: flex-start;
+    box-sizing: border-box;
+  }
+
+  .trial-complete .character-hero .fox-embed {
+    width: min(120px, 22vw);
+    height: min(120px, 22vw);
+  }
+
+  .trial-complete__card {
+    width: min(520px, calc(100% - 8px));
+    margin-top: 4px;
+    padding: 14px 14px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .find-title {
+    padding: 4px 10px;
+  }
+
+  .find-title-text {
+    font-size: clamp(15px, 3.8vw, 18px);
+  }
+
+  .find-title-letter {
+    font-size: clamp(22px, 5.4vw, 28px);
+  }
+
+  .find-hint-card {
+    padding: 3px 8px;
+    gap: 6px;
+  }
+
+  .find-hint-letter,
+  .find-hint-object {
+    height: clamp(36px, 6.5dvh, 56px);
+  }
+
+  .find-hint-divider {
+    height: clamp(28px, 5dvh, 44px);
+  }
+
+  .find-screen .find-choices {
+    --find-gap: clamp(6px, 1dvh, 10px);
+  }
+
+  .picture-title,
+  .listen-title {
+    padding: 4px 8px;
+  }
+
+  .picture-title-text,
+  .listen-title {
+    font-size: clamp(13px, 3.4vw, 16px);
+  }
+
+  .picture-choices {
+    gap: 3px;
+  }
+
+  .restart-activity {
+    min-height: 34px;
+    padding: 6px 14px;
+    font-size: 13px;
+    white-space: nowrap;
+    max-width: min(240px, 78vw);
+  }
+
+  .parent-card {
+    padding: 14px 14px 12px;
+  }
+
+  .parent-card h2 {
+    font-size: clamp(18px, 5vw, 22px);
+    margin-bottom: 6px;
+  }
+
+  .parent-screen__lead {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+
+  .parent-screen__benefits {
+    margin-bottom: 8px;
+  }
+
+  .parent-screen__benefits li {
+    padding: 1px 0;
+    font-size: 14px;
+  }
+
+  .parent-screen__price {
+    margin-bottom: 8px;
+    padding: 8px;
+  }
+
+  .parent-screen__price strong {
+    font-size: 22px;
+  }
+
+  .parent-screen__buy {
+    min-height: 52px;
+    font-size: 16px !important;
+  }
+
+  .parent-gate__question {
+    font-size: 28px;
+  }
+
+  .parent-gate__option {
+    min-height: 48px;
+    font-size: 22px !important;
+  }
+
+  .trial-complete__card h1 {
+    margin-bottom: 8px;
+    font-size: clamp(18px, 5.2vw, 24px);
+  }
+
+  .trial-complete__actions {
+    gap: 8px;
+  }
+
+  .trial-complete__next {
+    min-height: 56px;
+    font-size: 16px;
+  }
+
+  .trial-complete__secondary {
+    min-height: 48px;
+    font-size: 14px;
+  }
+
+  .trial-complete--final .trial-complete__adult {
+    min-height: 54px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) and (max-height: 860px) {
+  .find-board {
+    top: calc(var(--mobile-hud) + 4px);
+  }
+
+  .picture-board,
+  .listen-board {
+    top: calc(var(--mobile-hud) + 4px);
+  }
+
+  .trial-complete .character-hero .fox-embed {
+    width: 96px;
+    height: 96px;
+  }
+}
+
+/* Mobile only: fox beside a centered title; compact hint card. */
+@media (max-width: 820px) {
+  .find-screen .find-board {
+    overflow: visible;
+    top: calc(var(--mobile-hud) + 6px);
+  }
+
+  /*
+   * Full-viewport heading: title stays on the screen/hint-card center line,
+   * while the left 1fr is a real work slot for the fox (not the narrow
+   * leftover of the 100vw-108px board).
+   */
+  .find-heading {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    column-gap: 10px;
+    align-items: end;
+    width: 100vw;
+    max-width: 100vw;
+    margin-left: calc(50% - 50vw);
+    align-self: stretch;
+    flex: 0 0 auto;
+    box-sizing: border-box;
+    padding: 16px 10px 0;
+    min-height: calc(clamp(76px, 13dvh, 104px) + 20px);
+    overflow: visible;
+  }
+
+  .find-screen .find-fox,
+  .find-screen:has(.find-choices[data-option-count="3"]) .find-fox,
+  .find-screen:has(.find-choices[data-option-count="5"]) .find-fox,
+  .find-screen:has(.find-choices[data-option-count="7"]) .find-fox {
+    position: relative;
+    inset: unset;
+    top: unset;
+    left: unset;
+    right: unset;
+    bottom: unset;
+    transform: none;
+    grid-column: 1;
+    justify-self: end;
+    align-self: end;
+    height: clamp(76px, 13dvh, 104px);
+    max-width: min(100px, 28vw, 100%);
+    width: auto;
+    max-height: none;
+    z-index: 16;
+    filter: drop-shadow(0 4px 3px rgb(0 0 0 / 16%));
+  }
+
+  .find-screen .find-fox.is-celebrate {
+    animation: find-fox-bounce-mobile 0.8s ease-in-out 2;
+  }
+
+  .find-screen .find-title {
+    grid-column: 2;
+    display: inline-flex;
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.35em;
+    padding: 5px 12px 4px;
+    line-height: 1;
+    min-height: 0;
+    height: auto;
+  }
+
+  .find-screen .find-title-text {
+    display: inline;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .find-screen .find-title-letter {
+    display: inline;
+    margin: 0;
+    line-height: 1;
+    vertical-align: baseline;
+  }
+
+  .find-screen .find-title-bang {
+    display: inline;
+    white-space: pre;
+  }
+
+  .find-screen .find-hint-card {
+    width: max-content;
+    max-width: min(100%, 260px);
+    padding: 4px 10px;
+    gap: 8px;
+    align-self: center;
+    box-sizing: border-box;
+    margin-top: -4px;
+  }
+
+  /*
+   * Pack the answer grid under the hint card instead of stretching it
+   * through the leftover board height (that was pushing the tiles down).
+   */
+  .find-screen .find-choices {
+    flex: 0 0 auto;
+    min-height: 0;
+    container-type: inline-size;
+    align-content: start;
+  }
+
+  .find-screen .find-choices[data-option-count="3"],
+  .find-screen .find-choices[data-option-count="5"],
+  .find-screen .find-choices[data-option-count="7"] {
+    --find-tile: min(
+      calc((100cqi - var(--find-gap)) / 2),
+      clamp(60px, 9.6dvh, 76px)
+    );
+  }
+}
+
+@keyframes find-fox-bounce-mobile {
+  50% {
+    transform: translateY(-22px);
+  }
+}
+
+/*
+ * Desktop find-letter only. Do not change the max-width:820 mobile fox.
+ *
+ * Root cause: .find-board uses transform: translateX(-50%) to center.
+ * That transform makes position:fixed .find-fox a descendant of the board
+ * containing block, so overflow:auto clips the fox. Easy uses a narrower
+ * board, so more of the fox sits outside and is clipped harder.
+ */
+@media (min-width: 821px) {
+  .find-board {
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    transform: none;
+  }
+
+  .find-screen .find-fox,
+  .find-screen:has(.find-choices[data-option-count="3"]) .find-fox,
+  .find-screen:has(.find-choices[data-option-count="5"]) .find-fox,
+  .find-screen:has(.find-choices[data-option-count="7"]) .find-fox {
+    position: fixed;
+    transform: translateX(-100%);
+  }
+
+  .find-screen .find-fox {
+    left: max(
+      calc(0.82 * clamp(160px, 32vh, 300px) + 16px),
+      calc(50% - min(300px, 26vw))
+    );
+  }
+
+  .find-screen:has(.find-choices[data-option-count="5"]) .find-fox,
+  .find-screen:has(.find-choices[data-option-count="7"]) .find-fox {
+    left: max(
+      calc(0.82 * clamp(160px, 32vh, 300px) + 16px),
+      calc(50% - min(420px, 36vw))
+    );
+  }
+
+  .find-screen .find-fox.is-celebrate {
+    animation: find-fox-bounce-desktop 0.8s ease-in-out 2;
+  }
+}
+
+@media (min-width: 821px) and (max-width: 900px) {
+  .find-screen .find-fox {
+    left: max(
+      calc(0.82 * clamp(120px, 26vh, 190px) + 12px),
+      calc(50% - min(260px, 34vw))
+    );
+  }
+
+  .find-screen:has(.find-choices[data-option-count="5"]) .find-fox,
+  .find-screen:has(.find-choices[data-option-count="7"]) .find-fox {
+    left: max(
+      calc(0.82 * clamp(120px, 26vh, 190px) + 12px),
+      calc(50% - min(340px, 42vw))
+    );
+  }
+}
+
+@media (min-width: 901px) and (max-height: 768px) {
+  .find-screen .find-fox {
+    left: max(
+      calc(0.82 * clamp(130px, 28vh, 210px) + 16px),
+      calc(50% - min(300px, 26vw))
+    );
+  }
+
+  .find-screen:has(.find-choices[data-option-count="5"]) .find-fox,
+  .find-screen:has(.find-choices[data-option-count="7"]) .find-fox {
+    left: max(
+      calc(0.82 * clamp(130px, 28vh, 210px) + 16px),
+      calc(50% - min(420px, 36vw))
+    );
+  }
+}
+
+@keyframes find-fox-bounce-desktop {
+  50% {
+    transform: translateX(-100%) translateY(-16px);
+  }
+}
+
+/* Desktop stickers album: lift the whole content block under the top HUD. */
+@media (min-width: 821px) {
+  .stickers-album {
+    justify-content: flex-start;
+    padding-top: 2px;
+    padding-bottom: 12px;
+    gap: 6px;
+  }
+
+  .stickers-album__title {
+    margin: 0;
+  }
+
+  .stickers-album__total {
+    margin: 0 0 4px;
+  }
+
+  .stickers-album__meadow {
+    margin: 0 auto 8px;
+  }
+
+  .stickers-album__collections {
+    margin-top: 0;
+  }
+}
+
+/*
+ * Music button: the asset is already one cyan circle + clef.
+ * Do not wrap it in another circle/square (no double rings). Context rules still
+ * own only position and size, so the mobile home layout is not changed.
+ */
+@media (max-width: 820px) {
+  .music-toggle,
+  .home-ui.music-toggle,
+  .icon-round.music-toggle,
+  .learn-hud-right .music-toggle {
+    padding: 0 !important;
+    border: none !important;
+    border-radius: 50%;
+    background: transparent !important;
+    box-shadow: none !important;
+    overflow: hidden;
+  }
+
+  .music-toggle img,
+  .home-ui.music-toggle img,
+  .icon-round.music-toggle img,
+  .learn-hud-right .music-toggle img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain;
+  }
+}
+
+@media (min-width: 821px) {
+  .music-toggle,
+  .home-ui.music-toggle,
+  .icon-round.music-toggle,
+  .learn-hud-right .music-toggle {
+    width: 72px !important;
+    height: 72px !important;
+    min-width: 72px !important;
+    min-height: 72px !important;
+    padding: 0 !important;
+    border: none !important;
+    border-radius: 50%;
+    background: transparent !important;
+    box-shadow: none !important;
+    overflow: hidden;
+  }
+
+  .music-toggle img,
+  .home-ui.music-toggle img,
+  .icon-round.music-toggle img,
+  .learn-hud-right .music-toggle img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain;
+  }
+}
+
+/* ==========================================================================
+   Mobile home (portrait phones): one height-adaptive screen, no page scroll.
+
+   Free height = 100dvh − safe-top − safe-bottom. Every vertical size below is a
+   clamp() driven by --vh (1dvh, falls back to 1vh), so the stack shrinks on short
+   phones and relaxes on tall ones. The fox art is the flexible element: it takes
+   whatever room is left. Touch targets keep a floor; decorative parts shrink first.
+   Desktop (>= 821px) and tablets (481-820px) are not affected.
+   ========================================================================== */
+@media (max-width: 480px) {
+  .screen.home-screen {
+    --vh: 1vh;
+    --hs-top: var(--safe-top, 32px);
+    /* Real native bottom inset only (no hard-coded floor, no second env() term). */
+    --hs-bottom: var(--inset-bottom, 0px);
+    --hs-cta-w: clamp(180px, 62vw, 250px);
+    --hs-row: clamp(26px, calc(var(--vh) * 4.6), 42px);
+    --hs-title: clamp(19px, calc(var(--vh) * 3), 30px);
+    --hs-sun: clamp(34px, calc(var(--vh) * 5.2), 54px);
+    --hs-pad: clamp(3px, calc(var(--vh) * 0.7), 8px);
+    --hs-gap: clamp(3px, calc(var(--vh) * 0.55), 6px);
+    --hs-font: clamp(10px, min(3.3vw, calc(var(--vh) * 1.75)), 14px);
+  }
+
+  @supports (height: 100dvh) {
+    .screen.home-screen {
+      --vh: 1dvh;
+    }
+  }
+
+  .screen.home-screen {
+    height: 100%;
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: var(--hs-gap) !important;
+    padding: var(--hs-top) 6px calc(var(--hs-bottom) + clamp(0px, calc(var(--vh) * 0.6), 8px)) !important;
+    overflow: hidden !important;
+  }
+
+  /* --- brand: sun sits between the HUD buttons, title right below --- */
+  .home-brand {
+    position: relative;
+    top: auto;
+    left: auto;
+    flex: 0 0 auto;
+    gap: 0;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    transform: none;
+  }
+
+  .home-sun {
+    top: 0;
+    width: var(--hs-sun);
+  }
+
+  /* Title must clear the avatar/music HUD (bottom edge ~ safe-top + 46px). */
+  .home-game-title {
+    margin-top: max(0px, calc(44px - var(--hs-sun) * 0.88));
+    font-size: clamp(17px, min(5.4vw, calc(var(--vh) * 3.1)), 26px);
+  }
+
+  /* Badge sits in the HUD row between Home and the sun (never over the title). */
+  .trial-badge {
+    top: calc(var(--hs-top) + 6px);
+    left: 62px;
+    max-width: 76px;
+    padding: 3px 6px;
+    border-radius: 12px;
+    font-size: clamp(9px, 2.7vw, 10.5px);
+    line-height: 1.05;
+    text-align: center;
+    white-space: normal;
+  }
+
+  /* --- middle: fox (flexible) + call-to-action stack --- */
+  .home-cluster {
+    position: relative;
+    left: auto;
+    top: auto;
+    flex: 1 1 0;
+    min-height: 0;
+    width: 100%;
+    max-width: 520px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    gap: var(--hs-gap);
+    transform: none;
+  }
+
+  .home-fox-art {
+    position: relative;
+    right: auto;
+    top: auto;
+    flex: 1 1 0;
+    width: 100%;
+    height: auto;
+    min-height: 48px;
+    max-height: calc(var(--vh) * 20);
+    transform: none;
+    object-fit: contain;
+  }
+
+  .screen.home-screen .home-cta {
+    flex: 0 0 auto;
+    width: 100%;
+    gap: calc(var(--hs-gap) * 0.7);
+  }
+
+  .screen.home-screen .home-play-btn {
+    width: var(--hs-cta-w);
+    min-height: clamp(38px, calc(var(--vh) * 5.6), 54px);
+    padding: 2px 12px;
+    border-width: 3px;
+    border-radius: 999px;
+    font-size: clamp(17px, calc(var(--vh) * 2.8), 24px);
+    box-shadow:
+      0 4px 0 #e07a00,
+      inset 0 3px 0 rgb(255 255 255 / 42%);
+  }
+
+  /* The ABV art is a 800x300 image; drop the legacy 56px min-height of .home-abc. */
+  .screen.home-screen .home-abc {
+    width: clamp(104px, calc(var(--vh) * 17), 170px);
+    min-height: 0;
+  }
+
+  .home-stickers-btn {
+    width: calc(var(--hs-cta-w) * 0.92);
+    min-width: 0;
+    max-width: none;
+    min-height: clamp(32px, calc(var(--vh) * 4.8), 46px);
+    margin: 0;
+    padding: 2px 8px 2px 5px;
+    gap: 6px;
+    border-width: 3px;
+    border-radius: 18px;
+    font-size: clamp(12px, calc(var(--vh) * 1.85), 16px);
+    box-shadow:
+      0 4px 0 #0d6ea0,
+      inset 0 3px 0 rgb(255 255 255 / 40%);
+  }
+
+  .home-stickers-btn__icon {
+    width: clamp(26px, calc(var(--vh) * 3.8), 42px);
+    height: clamp(22px, calc(var(--vh) * 3.2), 36px);
+  }
+
+  .home-meadow-btn {
+    width: calc(var(--hs-cta-w) * 0.92);
+    min-width: 0;
+    max-width: none;
+    min-height: clamp(30px, calc(var(--vh) * 4.4), 42px);
+    margin: 0;
+    padding: 2px 8px;
+    gap: 6px;
+    border-width: 3px;
+    border-radius: 16px;
+    font-size: clamp(11.5px, calc(var(--vh) * 1.75), 15px);
+    box-shadow:
+      0 4px 0 #2e7d22,
+      inset 0 3px 0 rgb(255 255 255 / 38%);
+  }
+
+  .home-meadow-btn__icon {
+    width: clamp(20px, calc(var(--vh) * 3.2), 30px);
+    height: clamp(20px, calc(var(--vh) * 3.2), 30px);
+  }
+
+  /* --- bottom: four settings panels, 2x2 --- */
+  .home-panels,
+  .home-settings-grid {
+    position: relative;
+    top: auto;
+    right: auto;
+    flex: 0 0 auto;
+    width: min(100%, 520px);
+    margin: 0 auto;
+    gap: var(--hs-gap);
+    transform: none;
+  }
+
+  .home-panel,
+  .home-settings-card {
+    gap: var(--hs-gap);
+    padding: var(--hs-pad);
+    border-radius: 16px;
+    box-shadow: 0 4px 0 rgb(47 90 130 / 14%), 0 6px 10px rgb(0 0 0 / 12%);
+  }
+
+  .home-panel__title {
+    flex-basis: var(--hs-title);
+    height: var(--hs-title);
+  }
+
+  .home-panel .menu-image-btn img {
+    height: var(--hs-title);
+    max-height: var(--hs-title);
+  }
+
+  .home-choice-list,
+  .home-panel .difficulty-selector {
+    gap: var(--hs-gap);
+  }
+
+  .home-panel .home-choice,
+  .home-panel .difficulty-selector--vertical .difficulty-option {
+    flex: 1 1 auto;
+    min-height: var(--hs-row);
+    padding: 2px 7px;
+    font-size: var(--hs-font);
+    line-height: 1.08;
+    box-shadow: 0 3px 0 rgb(0 0 0 / 16%), inset 0 2px 0 rgb(255 255 255 / 28%);
+  }
+
+  .home-panel .difficulty-selector--vertical .difficulty-option {
+    flex: 1 1 0;
+  }
+
+  .home-choice__label {
+    line-height: 1.08;
+  }
+
+  .home-choice__check,
+  .difficulty-option__check {
+    width: 14px;
+    height: 14px;
+    font-size: 10px;
+  }
+
+  .home-choice__icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Letter picker opens over the panels; it must never push the layout. */
+  .home-letter-overlay {
+    position: absolute;
+    left: 50%;
+    bottom: calc(var(--hs-bottom) + 4px);
+    width: min(calc(100% - 12px), 520px);
+    max-height: calc(100% - var(--hs-top) - var(--hs-bottom) - 56px);
+    margin: 0;
+    overflow-y: auto;
+    transform: translateX(-50%);
+  }
+}
+
+/* Short phones: fox moves beside the call-to-action stack instead of above it. */
+@media (max-width: 480px) and (max-height: 749px) {
+  /* The beside-the-fox layout frees vertical room: give the panel rows more height as it grows. */
+  .screen.home-screen {
+    --hs-row: clamp(26px, calc(var(--vh) * 9.7 - 29px), 38px);
+  }
+
+  .home-cluster {
+    flex-direction: row;
+    justify-content: center;
+    gap: clamp(4px, 2vw, 12px);
+  }
+
+  .home-fox-art {
+    flex: 1 1 0;
+    align-self: stretch;
+    width: auto;
+    min-width: 64px;
+    max-width: 150px;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+  }
+
+  .screen.home-screen .home-cta {
+    flex: 0 0 auto;
+    width: var(--hs-cta-w);
+  }
 }

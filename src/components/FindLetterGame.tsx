@@ -142,7 +142,7 @@ export function FindLetterGame({
   }, [round.target.id, round.phase, round.optionError]);
 
   const bubble =
-    round.phase === "feedback" ? "Молодец!" : prompt ?? `Найди букву ${round.target.upper}!`;
+    round.phase === "feedback" ? "Молодец!" : prompt ?? `Найди букву ${round.target.upper}`;
   const colorPlan = useMemo(
     () => planFindColors(round.target.id, round.options),
     [round.target.id, round.options.join(",")]
@@ -177,20 +177,20 @@ export function FindLetterGame({
           </button>
         </GameHudRight>
 
-        <img
-          className={`find-fox ${round.phase === "feedback" ? "is-celebrate" : ""}`}
-          src={assetUrl(ASSETS.find.fox)}
-          alt=""
-          draggable={false}
-          decoding="async"
-        />
-
         <div className="find-board">
-          <h1 className="find-title">
-            <span className="find-title-text">Найди букву </span>
-            <span className="find-title-letter">{letterMark}</span>
-            <span className="find-title-text">!</span>
-          </h1>
+          <div className="find-heading">
+            <img
+              className={`find-fox ${round.phase === "feedback" ? "is-celebrate" : ""}`}
+              src={assetUrl(ASSETS.find.fox)}
+              alt=""
+              draggable={false}
+              decoding="async"
+            />
+            <h1 className="find-title">
+              <span className="find-title-text">Найди букву </span>
+              <span className="find-title-letter">{letterMark}</span>
+            </h1>
+          </div>
 
           <div className="find-hint-card">
             {glyphSrc ? (
