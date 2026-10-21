@@ -56,7 +56,7 @@ export function MyMeadowScreen({
   onOpenAlbum
 }: MyMeadowScreenProps) {
   const [layoutKind, setLayoutKind] = useState<MeadowLayoutKind>(() =>
-    meadowLayoutKindFromWidth(window.innerWidth)
+    meadowLayoutKindFromWidth(window.innerWidth, window.innerHeight)
   );
   const [hintTarget, setHintTarget] = useState<TutorialHint>(null);
   const sessionHintRef = useRef(false);
@@ -78,11 +78,21 @@ export function MyMeadowScreen({
   );
 
   useEffect(() => {
-    const media = window.matchMedia("(max-width: 820px)");
-    const sync = () => setLayoutKind(meadowLayoutKindFromWidth(window.innerWidth));
+    const sync = () =>
+      setLayoutKind(meadowLayoutKindFromWidth(window.innerWidth, window.innerHeight));
+    const portrait = window.matchMedia("(max-width: 820px)");
+    const landscape = window.matchMedia("(orientation: landscape) and (max-height: 500px)");
     sync();
-    media.addEventListener("change", sync);
-    return () => media.removeEventListener("change", sync);
+    portrait.addEventListener("change", sync);
+    landscape.addEventListener("change", sync);
+    window.addEventListener("resize", sync);
+    window.addEventListener("orientationchange", sync);
+    return () => {
+      portrait.removeEventListener("change", sync);
+      landscape.removeEventListener("change", sync);
+      window.removeEventListener("resize", sync);
+      window.removeEventListener("orientationchange", sync);
+    };
   }, []);
 
   useEffect(() => {

@@ -15,7 +15,7 @@ export function GameHudRight({ stars, children }: GameHudRightProps) {
     <div className="learn-hud-right">
       <div className="learn-hud-pair">
         <MusicToggleButton musicOn={musicOn} onToggle={onToggleMusic} />
-        <div className="learn-stars" aria-label={`Звёзды: ${stars}`}>
+        <div className="learn-stars" data-star-counter aria-label={`Звёзды: ${stars}`}>
           <GoldStar size="tiny" />
           <span>{stars}</span>
         </div>

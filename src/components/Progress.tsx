@@ -43,6 +43,7 @@ export function Progress({
         {homeMode ? null : (
           <button
             id="star-bank"
+            data-star-counter
             className={`icon-round star-bank ${bankPulse ? "star-bank-pulse" : ""}`}
             onClick={onOpenStars}
             aria-label="Мои награды"

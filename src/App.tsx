@@ -32,6 +32,7 @@ import { loadProgress, saveProgress } from "./utils/storage";
 import { preloadImages } from "./utils/preload";
 import { assetUrl } from "./utils/assets";
 import type { Point } from "./utils/point";
+import { getStarFlightTarget } from "./utils/starFlight";
 import {
   availableOptionCounts,
   getLetterStats,
@@ -40,7 +41,7 @@ import {
   pictureContentBank,
   unlockedLetters
 } from "./utils/selectors";
-import { unlockRewardAtThreshold } from "./utils/rewards";
+import { applyStickerGrant, ensureStickerIdSaved } from "./utils/rewards";
 import { RewardItem } from "./data/rewardCatalog";
 import { ALPHABET_ACHIEVEMENT_ID, getStickerById, resolvedSticker } from "./data/stickerCatalog";
 import { stickerAssetExists } from "./data/stickerAssets";
@@ -48,9 +49,7 @@ import {
   addCompletedCycleLetter,
   applyAlphabetAchievement,
   isAlphabetCycleComplete,
-  startNewAlphabetAdventure,
-  uniqueIds,
-  uniqueNumbers
+  startNewAlphabetAdventure
 } from "./utils/stickerLogic";
 import { StickersAlbumScreen } from "./components/StickersAlbumScreen";
 import { setPraisePlayerPreference } from "./audio/phraseBag";
@@ -306,6 +305,20 @@ function App() {
       if (!reward) {
         return;
       }
+      const stickerId = reward.item.id;
+      if (stickerId && !progressRef.current.unlockedStickerIds.includes(stickerId)) {
+        const unlockedStickerIds = ensureStickerIdSaved(
+          progressRef.current.unlockedStickerIds,
+          stickerId
+        );
+        const patched: ProgressState = {
+          ...progressRef.current,
+          unlockedStickerIds,
+          unlockedRewards: unlockedStickerIds
+        };
+        progressRef.current = patched;
+        setProgress(patched);
+      }
       flowLog("REWARD OPEN");
       celebratingRef.current = true;
       setIsCelebrating(true);
@@ -424,85 +437,65 @@ function App() {
 
   function addStar(letterId: string) {
     const snapshot = progressRef.current;
-    const queued = unlockRewardAtThreshold(
-      snapshot.playerPreference,
+    const nextStars = snapshot.stars + 1;
+    const grant = applyStickerGrant(
       snapshot.unlockedStickerIds,
       snapshot.claimedMilestonesThisCycle,
+      snapshot.playerPreference,
       snapshot.stars,
-      snapshot.stars + 1
+      nextStars
     );
-    if (queued) {
+    const prevStats = getLetterStats(snapshot.letterStats, letterId);
+    const nextStats = {
+      ...snapshot.letterStats,
+      [letterId]: {
+        correctCount: prevStats.correctCount + 1,
+        wrongCount: prevStats.wrongCount,
+        lastPracticed: Date.now()
+      }
+    };
+    const learnedLetterIds =
+      prevStats.correctCount + 1 >= 3
+        ? Array.from(new Set([...snapshot.learnedLetterIds, letterId]))
+        : snapshot.learnedLetterIds;
+    const next: ProgressState = {
+      ...snapshot,
+      correctAnswers: snapshot.correctAnswers + 1,
+      stars: nextStars,
+      letterStats: nextStats,
+      mistakeCounts: snapshot.mistakeCounts,
+      learnedLetterIds,
+      unlockedStickerIds: grant.unlockedStickerIds,
+      unlockedRewards: grant.unlockedStickerIds,
+      claimedMilestonesThisCycle: grant.claimedMilestonesThisCycle,
+      rewardedThresholds: grant.claimedMilestonesThisCycle
+    };
+    next.unlockedGroupIndex = maybeUnlockNextGroup(next);
+    if (grant.granted) {
       pendingRewardRef.current = {
-        item: queued.item,
-        threshold: queued.threshold
+        item: grant.granted.item,
+        threshold: grant.granted.threshold
       };
     }
-    setProgress((prev) => {
-      const prevStats = getLetterStats(prev.letterStats, letterId);
-      const nextStars = prev.stars + 1;
-      const nextStats = {
-        ...prev.letterStats,
-        [letterId]: {
-          correctCount: prevStats.correctCount + 1,
-          wrongCount: prevStats.wrongCount,
-          lastPracticed: Date.now()
-        }
-      };
-      const learnedLetterIds =
-        prevStats.correctCount + 1 >= 3
-          ? Array.from(new Set([...prev.learnedLetterIds, letterId]))
-          : prev.learnedLetterIds;
-      const unlocked = unlockRewardAtThreshold(
-        prev.playerPreference,
-        prev.unlockedStickerIds,
-        prev.claimedMilestonesThisCycle,
-        prev.stars,
-        nextStars
-      );
-      if (unlocked) {
-        pendingRewardRef.current = {
-          item: unlocked.item,
-          threshold: unlocked.threshold
-        };
-      }
-      const unlockedStickerIds = uniqueIds(
-        unlocked ? [...prev.unlockedStickerIds, unlocked.item.id] : prev.unlockedStickerIds
-      );
-      const claimedMilestonesThisCycle = uniqueNumbers(
-        unlocked ? [...prev.claimedMilestonesThisCycle, unlocked.threshold] : prev.claimedMilestonesThisCycle
-      );
-      const next: ProgressState = {
-        ...prev,
-        correctAnswers: prev.correctAnswers + 1,
-        stars: nextStars,
-        letterStats: nextStats,
-        mistakeCounts: prev.mistakeCounts,
-        learnedLetterIds,
-        unlockedStickerIds,
-        unlockedRewards: unlockedStickerIds,
-        claimedMilestonesThisCycle,
-        rewardedThresholds: claimedMilestonesThisCycle
-      };
-      next.unlockedGroupIndex = maybeUnlockNextGroup(next);
-      return next;
-    });
+    progressRef.current = next;
+    setProgress(next);
     setBankPulse(true);
     window.setTimeout(() => setBankPulse(false), 600);
   }
 
   function markCorrect(letterId: string, origin?: Point) {
-    const bank = document.getElementById("star-bank")?.getBoundingClientRect();
     const fromX = origin?.x ?? window.innerWidth / 2;
     const fromY = origin?.y ?? window.innerHeight / 2;
-    const toX = bank ? bank.left + bank.width / 2 : 48;
-    const toY = bank ? bank.top + bank.height / 2 : 28;
-    setFlight({ fromX, fromY, toX, toY });
-    if (starTimerRef.current !== null) {
-      window.clearTimeout(starTimerRef.current);
+    const target = getStarFlightTarget();
+    if (target) {
+      setFlight({ fromX, fromY, toX: target.x, toY: target.y });
+      if (starTimerRef.current !== null) {
+        window.clearTimeout(starTimerRef.current);
+      }
+      starTimerRef.current = window.setTimeout(() => {
+        setFlight(null);
+      }, 850);
     }
-    starTimerRef.current = window.setTimeout(() => {
-      setFlight(null);
-    }, 850);
     addStar(letterId);
   }
 

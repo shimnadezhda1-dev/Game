@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { canAccessLetterFor, requestParentFlow, trackEvent, useEntitlement } from "../entitlement";
 import { audioManager } from "../audio/AudioManager";
 import { speakLockedFeatureHint } from "../audio/trialVoice";
+import { isMobileLandscape, isMobileViewport, subscribeViewportChange } from "../utils/viewport";
 
 interface LetterPickGridProps {
   letters: readonly LetterItem[];
@@ -13,11 +14,13 @@ interface LetterPickGridProps {
 function useLetterPageSize() {
   const [pageSize, setPageSize] = useState(8);
   useEffect(() => {
-    const media = window.matchMedia("(max-width: 820px)");
-    const apply = () => setPageSize(media.matches ? 6 : 8);
+    const apply = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      setPageSize(isMobileViewport(width, height) && !isMobileLandscape(width, height) ? 6 : 8);
+    };
     apply();
-    media.addEventListener("change", apply);
-    return () => media.removeEventListener("change", apply);
+    return subscribeViewportChange(apply);
   }, []);
   return pageSize;
 }

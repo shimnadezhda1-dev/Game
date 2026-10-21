@@ -126,7 +126,13 @@ const MOBILE_AUTO_LAYOUT_BANDS = [
   { inset: 10, bottom: 44 }
 ] as const;
 
-export function meadowLayoutKindFromWidth(width: number): MeadowLayoutKind {
+export function meadowLayoutKindFromWidth(
+  width: number,
+  height = typeof window !== "undefined" ? window.innerHeight : 0
+): MeadowLayoutKind {
+  if (height > 0 && height <= 500 && width > height) {
+    return "mobile";
+  }
   return width <= MEADOW_MOBILE_MAX_WIDTH ? "mobile" : "desktop";
 }
 

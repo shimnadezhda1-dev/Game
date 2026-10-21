@@ -8,6 +8,7 @@ import {
   StudyOrder
 } from "../types";
 import { assetUrl } from "../utils/assets";
+import { isMobileViewport } from "../utils/viewport";
 import { DifficultySelector } from "./DifficultySelector";
 import {
   HomeChoiceList,
@@ -146,7 +147,7 @@ export function HomeScreen({
       if (!title) {
         return;
       }
-      if (window.innerWidth <= 820) {
+      if (isMobileViewport(window.innerWidth, window.innerHeight)) {
         title.style.removeProperty("margin-top");
         document.querySelector<HTMLElement>(".home-cluster")?.style.removeProperty("top");
         document.querySelector<HTMLElement>(".home-cluster")?.style.removeProperty("transform");
@@ -176,6 +177,7 @@ export function HomeScreen({
 
     schedule();
     window.addEventListener("resize", schedule);
+    window.addEventListener("orientationchange", schedule);
     const images = Array.from(grid.querySelectorAll("img"));
     const onImage = () => schedule();
     images.forEach((image) => {
@@ -187,6 +189,7 @@ export function HomeScreen({
     return () => {
       cancelAnimationFrame(frame);
       window.removeEventListener("resize", schedule);
+      window.removeEventListener("orientationchange", schedule);
       images.forEach((image) => image.removeEventListener("load", onImage));
     };
   }, []);

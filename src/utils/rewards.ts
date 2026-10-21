@@ -5,6 +5,7 @@ import {
   stickerMilestonesForDisplay
 } from "../data/rewardCatalog";
 import { asRewardItem, pickNextRegularSticker } from "../data/stickerCatalog";
+import { uniqueIds, uniqueNumbers } from "./stickerLogic";
 
 export interface StarReward {
   at: number;
@@ -76,4 +77,41 @@ export function unlockRewardAtThreshold(
     return null;
   }
   return { item: asRewardItem(item), threshold };
+}
+
+/** Persist a sticker in the same step that decides the reward overlay. */
+export function applyStickerGrant(
+  unlockedStickerIds: readonly string[],
+  claimedMilestonesThisCycle: readonly number[],
+  preference: PlayerPreference | null,
+  prevStars: number,
+  nextStars: number
+): {
+  unlockedStickerIds: string[];
+  claimedMilestonesThisCycle: number[];
+  granted: { item: RewardItem; threshold: number } | null;
+} {
+  const granted = unlockRewardAtThreshold(
+    preference,
+    unlockedStickerIds,
+    claimedMilestonesThisCycle,
+    prevStars,
+    nextStars
+  );
+  return {
+    unlockedStickerIds: uniqueIds(
+      granted ? [...unlockedStickerIds, granted.item.id] : unlockedStickerIds
+    ),
+    claimedMilestonesThisCycle: uniqueNumbers(
+      granted ? [...claimedMilestonesThisCycle, granted.threshold] : claimedMilestonesThisCycle
+    ),
+    granted
+  };
+}
+
+export function ensureStickerIdSaved(
+  unlockedStickerIds: readonly string[],
+  stickerId: string
+): string[] {
+  return uniqueIds([...unlockedStickerIds, stickerId]);
 }
