@@ -16,10 +16,8 @@ const fromGlob = new Set(
 const EXTRA_EXISTING_ASSETS = new Set([
   "/assets/character/fox-celebrate.webp",
   "/assets/ui/rewards-chest.webp",
-  "/assets/ui/stars.webp",
   "/assets/home/sun-smiling.webp",
-  "/assets/character/fox-happy.webp",
-  "/assets/stickers/sun-new.png"
+  "/assets/character/fox-happy.webp"
 ]);
 
 /** Backup paths, kept in sync with VISIBLE_STICKER_ART titles in stickerCatalog.ts. */

@@ -38,7 +38,6 @@ export const ASSETS = {
   find: {
     meadow: "/assets/find/meadow.webp",
     fox: "/assets/find/fox.webp",
-    letterA: "/assets/find/letter-a.webp",
     watermelon: letterImages("A")?.findObject ?? "",
     choiceA: letterImages("A")?.choice ?? "",
     choiceB: letterImages("B")?.choice ?? "",
@@ -66,7 +65,6 @@ export const ASSETS = {
   ui: {
     cubes: "/assets/ui/learn-cubes.webp",
     play: "/assets/ui/play-letters.webp",
-    stars: "/assets/ui/stars.webp",
     rewards: "/assets/ui/rewards-chest.webp",
     /** Future sticker files: `/assets/rewards/{id}.webp` */
     home: "/assets/ui/home-house.webp",
